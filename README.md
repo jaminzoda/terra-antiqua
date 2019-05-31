@@ -1,12 +1,7 @@
-Plugin Builder Results
+The QGIS plugin directory is located at:
+    /home/USER_PROFILE/.local/share/QGIS/QGIS3/profiles/default/python/plugins
 
-Your plugin DEMBuilder was created in:
-    /home/jon/eclipse-workspace/PGreconPlugin/dem_builder
-
-Your QGIS plugin directory is located at:
-    /home/jon/.local/share/QGIS/QGIS3/profiles/default/python/plugins
-
-What's Next:
+To use this plugin do the following:
 
   * Copy the entire directory containing your new plugin to the QGIS plugin
     directory
@@ -21,7 +16,7 @@ What's Next:
 
   * Create your own custom icon, replacing the default icon.png
 
-  * Modify your user interface by opening DEMBuilder_dialog_base.ui in Qt Designer
+  * Modify the user interface by opening DEMBuilder_dialog_base.ui in Qt Designer
 
   * You can use the Makefile to compile your Ui and resource files when
     you make changes. This requires GNU make (gmake)
@@ -29,4 +24,4 @@ What's Next:
 For more information, see the PyQGIS Developer Cookbook at:
 http://www.qgis.org/pyqgis-cookbook/index.html
 
-(C) 2011-2018 GeoApt LLC - geoapt.com
+(C) 2019 Magic - paleoenvironment.eu
