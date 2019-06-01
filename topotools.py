@@ -108,7 +108,7 @@ class TopoTools:
 				x_vector = x_vector.reshape(1, len(x_vector))
 				y_vector = np.arange(np.maximum(0, j - factor), (np.minimum((rows - 1), j + factor) + 1), 1)
 				y_vector = y_vector.reshape(len(y_vector), 1)
-				#out_array[i, i] = np.mean(in_array[y_vector, x_vector])
+				out_array[i, j] = np.mean(in_array[y_vector, x_vector])
 		end=time.time()
 		print(end-start)
 
