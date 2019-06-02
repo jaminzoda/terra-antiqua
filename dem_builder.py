@@ -36,8 +36,8 @@ import processing
 from .dem_builder_dialog import DEMBuilderDialog
 from .mask_maker_dialog import MaskMakerDialog
 from .topo_modifier_dialog import TopoModifierDialog
-from .topotools import TopoTools as tt
-
+from .topotools import RasterTools as rt
+from .topotools import ArrayTools as at
 
 
 
@@ -819,7 +819,7 @@ class DEMBuilder:
                     v_layer=None
 
                     # Modify the topography
-                    # TODO impplement indexing in the formula so that only values above the minimum get modified
+                    # TODO implement indexing in the formula so that only values above the minimum get modified
                     x = topo
                     formula = formula.replace('x', 'x[r_masks==1]')
                     x[r_masks == 1] = eval(formula)
@@ -879,7 +879,7 @@ class DEMBuilder:
                     x = topo
                     in_array=x[r_masks == 1]
 
-                    x[r_masks==1]=tt.mod_min_max(in_array,fmin,fmax)
+                    x[r_masks==1]=at.mod_min_max(in_array,fmin,fmax)
 
 
 
@@ -911,7 +911,7 @@ class DEMBuilder:
                 # Modify the topography
                 x = topo
                 in_array=x[r_masks == 1]
-                x[r_masks == 1]=tt.mod_min_max(in_array,fmin,fmax)
+                x[r_masks == 1]=at.mod_min_max(in_array,fmin,fmax)
 
 
 
@@ -944,7 +944,7 @@ class DEMBuilder:
             #Filling the gaps
             # TODO move the interpolation inside the modifying function
             if self.dlg3.interpolationBox.isChecked():
-                result=tt.fill_no_data(rlayer)
+                result=rt.fill_no_data(rlayer)
                 if result==0:
                     log("Interpolation was performed sucessfuly")
                 else:
@@ -955,7 +955,7 @@ class DEMBuilder:
 
                 factor=3 # smoothing radius in grid cells. The amount of cells around the one to be smoothed.
                          #TODO get it from the dialog
-                result=tt.raster_smoothing(rlayer,factor)
+                result=rt.raster_smoothing(rlayer,factor)
                 if result==True:
                     log("Smoothing was performed sucessfuly")
                 else:
