@@ -50,9 +50,18 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.formulaCheckBox.setChecked(True)
         self.minMaxCheckBox.setChecked(False)
         self.minMaxGroupBox.setEnabled(False)
+        self.minMaxGroupBox.setCollapsed(True)
+        self.formulaGroupBox.setCollapsed(False)
+        self.min_maxValueCheckBox.setChecked(True)
         #Change the state of groupboxes, when the state of checkboxes is changed
         self.formulaCheckBox.stateChanged.connect(self.setFormulaEnabled)
         self.minMaxCheckBox.stateChanged.connect(self.setMinMaxEnabled)
+
+        #Set the groupbox for specifying minimum and maximum elevation values that should be modified disabled/enabled
+        self.min_maxValueCheckBox.stateChanged.connect(self.setBoundingValuesForModification)
+        self.minMaxValuesFromAttrCheckBox.stateChanged.connect(self.setBoundingValuesFromAttrEnabled)
+        self.minMaxValuesFromSpinCheckBox.stateChanged.connect(self.setBoundingValuesFromSpinEnabled)
+
 
 
         #Set fields for minimum and maximum values enabled/disabled
@@ -139,12 +148,19 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.minField.setLayer(self.masksBox.currentLayer())
         self.maxField.setLayer(self.masksBox.currentLayer())
 
+        self.minValueField.setLayer(self.masksBox.currentLayer())
+        self.maxValueField.setLayer(self.masksBox.currentLayer())
+
     #Set the groupbox for formula enabled.
     def setFormulaEnabled(self,state):
         if state > 0:
             self.formulaGroupBox.setEnabled(True)
             self.minMaxCheckBox.setChecked(False)
             self.minMaxGroupBox.setEnabled(False)
+            self.minMaxGroupBox.setCollapsed(True)
+            self.formulaGroupBox.setCollapsed(False)
+            self.min_maxValueCheckBox.setChecked(True)
+
 
     #Set the groupbox for specifing final minimum and maximum values enabled.\
     #This is enabled if the user wants to use final minimuum and maximum values
@@ -154,6 +170,8 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.minMaxGroupBox.setEnabled(True)
             self.formulaCheckBox.setChecked(False)
             self.formulaGroupBox.setEnabled(False)
+            self.formulaGroupBox.setCollapsed(True)
+            self.minMaxGroupBox.setCollapsed(False)
 
     #Set fields for minimum and maximum values enabled. This is needed, when the user wants
     #get the minimum and maximum values from the attribute table
@@ -168,6 +186,42 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.maxField.setEnabled(False)
             self.minSpin.setEnabled(True)
             self.maxSpin.setEnabled(True)
+
+    def setBoundingValuesForModification(self,state):
+        if state>0:
+            self.minValueField.setEnabled(True)
+            self.maxValueField.setEnabled(True)
+            self.minValueSpin.setEnabled(True)
+            self.maxValueSpin.setEnabled(True)
+            self.minMaxValuesFromAttrCheckBox.setEnabled(True)
+            self.minMaxValuesFromSpinCheckBox.setEnabled(True)
+
+            self.boundingValuesGroupBox.show()
+        else:
+            self.minValueField.setEnabled(False)
+            self.maxValueField.setEnabled(False)
+            self.minValueSpin.setEnabled(False)
+            self.maxValueSpin.setEnabled(False)
+            self.minMaxValuesFromAttrCheckBox.setEnabled(False)
+            self.minMaxValuesFromSpinCheckBox.setEnabled(False)
+
+
+            self.boundingValuesGroupBox.hide()
+
+    def setBoundingValuesFromAttrEnabled(self, state):
+        if state>0:
+            self.minValueField.setEnabled(True)
+            self.maxValueField.setEnabled(True)
+            self.minValueSpin.setEnabled(False)
+            self.maxValueSpin.setEnabled(False)
+            self.minMaxValuesFromSpinCheckBox.setChecked(False)
+    def setBoundingValuesFromSpinEnabled(self, state):
+        if state>0:
+            self.minValueField.setEnabled(False)
+            self.maxValueField.setEnabled(False)
+            self.minValueSpin.setEnabled(True)
+            self.maxValueSpin.setEnabled(True)
+            self.minMaxValuesFromAttrCheckBox.setChecked(False)
 
 
 
