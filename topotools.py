@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-from osgeo import gdal, gdalconst
-from qgis.core import QgsRasterLayer
-
 import os
-from .topo_modifier_dialog import TopoModifierDialog  as td
+import os.path
+
+import numpy as np
+from osgeo import gdal, osr, ogr, gdalconst
+from qgis.core import QgsVectorLayer, QgsRasterLayer
+from .topo_modifier_dialog import TopoModifierDialog
 
 
+# Import the code for the dialog
 
 
 class RasterTools(QgsRasterLayer):
 	def __init__(self):
 		super.__init__(self)
-
 
 
 	def fill_no_data(self, no_data_value=None):
@@ -68,7 +69,7 @@ class RasterTools(QgsRasterLayer):
 	def raster_smoothing(self, factor):
 		"""
 		Smoothes values of pixels in a raster  by averaging  values around them
-		:param in_layer: input raster layer for smoothing
+		:param self, in_layer: input raster layer for smoothing
 		:return:Boolean
 		"""
 
@@ -96,6 +97,57 @@ class RasterTools(QgsRasterLayer):
 		in_band.WriteArray(out_array)
 		in_band.FlushCache()
 		return True
+class VectorTools(QgsVectorLayer):
+	def __init__(self):
+		super.__init__(self)
+
+	def vector_to_raster(self, out_path, geotransform, ncols, nrows, name_of_mask):
+
+		v_layer=self
+		# if the folder for storing the rasters is created. If not it will be created
+		path = os.path.join(out_path, "raster_masks")
+
+		if not os.path.exists(path):
+			try:
+				os.mkdir(path)
+			except OSError:
+				print("Creation of the directory %s failed" % path)
+			else:
+				print("Successfully created the directory %s " % path)
+		else:
+			print("The folder raster_masks is already created.")
+
+		# In and out files
+		out_raster_file = os.path.join(path, name_of_mask + ".tif")
+
+		# Opening the shapefile of the layer specified in the user dialog combobox selectSsMask
+		try:
+			in_shapefile = ogr.Open(v_layer.source())
+
+			if in_shapefile:  # checks to see if shapefile was successfully defined
+				v_layer = in_shapefile.GetLayer()
+			else:  # if it's not successfully defined
+				print("Couldn't load shapefile")
+
+		except:  # Seems redundant, but if an exception is raised in the Open() call, you get a message
+			print("Exception raised during shapefile loading")
+
+		NoData_value = 0
+		# getting the real work done
+		mask_raster = gdal.GetDriverByName('GTiff').Create(out_raster_file, ncols, nrows, 1, gdal.GDT_Int32)
+		mask_raster.SetGeoTransform(geotransform)
+		crs = osr.SpatialReference()
+		crs.ImportFromEPSG(4326)
+		mask_raster.SetProjection(crs.ExportToWkt())
+		band = mask_raster.GetRasterBand(1)
+		band.SetNoDataValue(NoData_value)
+
+		gdal.RasterizeLayer(mask_raster, [1], v_layer, burn_values = [1])
+		mask_raster = None
+		band = None
+		raster = gdal.Open(out_raster_file)
+		raster_array = raster.GetRasterBand(1).ReadAsArray()
+		return raster_array
 
 
 class ArrayTools(np.ndarray):
@@ -121,3 +173,53 @@ class ArrayTools(np.ndarray):
 		ratio=(imax-fmin)/(fmax-fmin)
 		out_array[out_array>=fmin]=fmin+(in_array[in_array>=fmin]-fmin)/ratio
 		return out_array
+
+	def mod_formula(self, formula, min=None, max=None):
+		"""
+		:input self (numpy array): an input array that contains elevation values.
+		:param formula: the formula to be used for topography modification.
+
+		:param mask_array: mask that will be used to subset area of the raster (input array) for modification.
+		:return: numpy array of modified elevation values.
+		"""
+		print('formula started')
+		topo=self
+		print('in_array shape:',topo.shape)
+		print(topo)
+		print("min: ", min)
+		print("max: ", max)
+		print(formula)
+		x=np.empty(topo.shape)
+		x.fill(np.nan)
+		if min!=None and max!=None:
+			index='x[(x>min)*(x<max)==1]'
+			x[(topo>min)*(topo<max)==1]=topo[(topo>min)*(topo<max)==1]
+			new_formula = formula.replace('x', index)
+			x[(topo>min)*(topo<max)==1] = eval(new_formula)
+			print(new_formula)
+		elif min!=None and max==None:
+			index = 'x[x>min]'
+			x[topo>min] = topo[topo>min]
+			new_formula = formula.replace('x', index)
+			x[topo>min]= eval(new_formula)
+		elif min==None and max!=None:
+			index = 'x[x<max]'
+			x[topo<max]= topo[topo<max]
+			new_formula = formula.replace('x', index)
+			x[topo<max]=eval(new_formula)
+		else:
+			x= topo
+			new_formula = formula
+			x[:]=eval(new_formula)
+		print('x_shape: ',x.shape)
+		print('x_type: ', type(x))
+
+		print('topo_shape: ', topo.shape)
+		print('topo_type: ', type(topo))
+
+
+		topo[np.isfinite(x)]=x[np.isfinite(x)]
+
+		return topo
+
+
