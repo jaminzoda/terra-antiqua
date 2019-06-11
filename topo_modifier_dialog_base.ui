@@ -88,13 +88,13 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-352</y>
+            <y>-571</y>
             <width>439</width>
-            <height>676</height>
+            <height>872</height>
            </rect>
           </property>
-          <layout class="QGridLayout" name="gridLayout_6">
-           <item row="0" column="0">
+          <layout class="QVBoxLayout" name="verticalLayout_12">
+           <item>
             <widget class="QGroupBox" name="groupBox">
              <property name="title">
               <string>Input layers</string>
@@ -164,7 +164,7 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item>
             <widget class="QgsCollapsibleGroupBox" name="maskSelectionGroup">
              <property name="enabled">
               <bool>true</bool>
@@ -216,180 +216,299 @@
              </layout>
             </widget>
            </item>
-           <item row="2" column="0">
-            <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_6">
-               <item>
-                <widget class="QCheckBox" name="formulaCheckBox">
-                 <property name="text">
-                  <string>Use formula for topography modification.</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="minMaxCheckBox">
-                 <property name="text">
-                  <string>Use minimum and maximum values.</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <widget class="QCheckBox" name="formulaCheckBox">
+               <property name="text">
+                <string>Use formula for topography modification.</string>
+               </property>
+              </widget>
              </item>
              <item>
-              <widget class="QgsCollapsibleGroupBox" name="formulaGroupBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
+              <widget class="QCheckBox" name="minMaxCheckBox">
+               <property name="text">
+                <string>Use minimum and maximum values.</string>
                </property>
-               <property name="autoFillBackground">
-                <bool>false</bool>
-               </property>
-               <property name="title">
-                <string>Formula for topography modification</string>
-               </property>
-               <layout class="QGridLayout" name="gridLayout_4">
-                <item row="0" column="0">
-                 <layout class="QVBoxLayout" name="verticalLayout_5">
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QgsCollapsibleGroupBox" name="formulaGroupBox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>Formula for topography modification</string>
+             </property>
+             <property name="collapsed">
+              <bool>false</bool>
+             </property>
+             <property name="saveCollapsedState">
+              <bool>true</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <item row="0" column="0">
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="text">
+                   <string>Specify the column, which contains formula for modification or type it in the textbox:</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1">
                   <item>
-                   <widget class="QLabel" name="label_4">
-                    <property name="text">
-                     <string>Specify the column, which contains formula for modification or type it in the textbox:</string>
-                    </property>
-                    <property name="wordWrap">
+                   <widget class="QgsFieldComboBox" name="formulaField">
+                    <property name="allowEmptyFieldName">
                      <bool>true</bool>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1">
-                    <item>
-                     <widget class="QgsFieldComboBox" name="formulaField">
-                      <property name="allowEmptyFieldName">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="formulaText"/>
-                    </item>
-                   </layout>
+                   <widget class="QLineEdit" name="formulaText"/>
                   </item>
                  </layout>
                 </item>
                </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QgsCollapsibleGroupBox" name="minMaxGroupBox">
-               <property name="title">
-                <string>Final minimum and maximum values</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_7">
-                <item>
-                 <widget class="QCheckBox" name="minMaxFromAttrCheckBox">
-                  <property name="text">
-                   <string>Take the minimum and maximum values from the attribute table.</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_5">
-                  <property name="text">
-                   <string>Minimum value:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_11">
-                  <item>
-                   <widget class="QgsFieldComboBox" name="minField"/>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="minSpin">
-                    <property name="minimum">
-                     <number>-11000</number>
-                    </property>
-                    <property name="maximum">
-                     <number>11000</number>
-                    </property>
-                    <property name="singleStep">
-                     <number>100</number>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_6">
-                  <property name="text">
-                   <string>Maximum value:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_7">
-                  <item>
-                   <widget class="QgsFieldComboBox" name="maxField"/>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="maxSpin">
-                    <property name="minimum">
-                     <number>-11000</number>
-                    </property>
-                    <property name="maximum">
-                     <number>11000</number>
-                    </property>
-                    <property name="singleStep">
-                     <number>100</number>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </widget>
-             </item>
-            </layout>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="min_maxValueCheckBox">
+                <property name="text">
+                 <string>Constrain the values to be modified with minimum and maximum.</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QGroupBox" name="boundingValuesGroupBox">
+                <property name="title">
+                 <string>Bounding values</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_13">
+                 <item>
+                  <widget class="QCheckBox" name="minMaxValuesFromAttrCheckBox">
+                   <property name="text">
+                    <string>Take the minimum and maximum values from the attribute table.</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="minMaxValuesFromSpinCheckBox">
+                   <property name="text">
+                    <string>Enter the minimum and maximum values.</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_4">
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_7">
+                     <item>
+                      <widget class="QLabel" name="minValueLabel">
+                       <property name="text">
+                        <string>Minimum:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QgsFieldComboBox" name="minValueField"/>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="minValueSpin">
+                       <property name="focusPolicy">
+                        <enum>Qt::WheelFocus</enum>
+                       </property>
+                       <property name="toolTipDuration">
+                        <number>-1</number>
+                       </property>
+                       <property name="minimum">
+                        <number>-11000</number>
+                       </property>
+                       <property name="maximum">
+                        <number>11000</number>
+                       </property>
+                       <property name="value">
+                        <number>0</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_8">
+                     <item>
+                      <widget class="QLabel" name="maxValueLabel">
+                       <property name="text">
+                        <string>Maximum:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QgsFieldComboBox" name="maxValueField"/>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="maxValueSpin">
+                       <property name="minimum">
+                        <number>-11000</number>
+                       </property>
+                       <property name="maximum">
+                        <number>11000</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </item>
-           <item row="3" column="0">
-            <layout class="QVBoxLayout" name="verticalLayout_10">
-             <item>
-              <widget class="QCheckBox" name="interpolationBox">
-               <property name="text">
-                <string>Interpolate values for the empty cells.</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="smoothingBox">
-               <property name="text">
-                <string>Smooth resulting raster.</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QGroupBox" name="groupBox_2">
-               <property name="title">
-                <string>Output</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QgsCollapsibleGroupBox" name="minMaxGroupBox">
+             <property name="title">
+              <string>Final minimum and maximum values</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_7">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="minMaxFromAttrCheckBox">
+                <property name="text">
+                 <string>Take the minimum and maximum values from the attribute table.</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Minimum value:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_11">
                 <item>
-                 <widget class="QLabel" name="outputLaber">
+                 <widget class="QgsFieldComboBox" name="minField"/>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="minSpin">
+                  <property name="minimum">
+                   <number>-11000</number>
+                  </property>
+                  <property name="maximum">
+                   <number>11000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>100</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Maximum value:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QgsFieldComboBox" name="maxField"/>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="maxSpin">
+                  <property name="minimum">
+                   <number>-11000</number>
+                  </property>
+                  <property name="maximum">
+                   <number>11000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>100</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="title">
+              <string>Interpolation and smoothing</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QCheckBox" name="interpolationBox">
+                <property name="text">
+                 <string>Interpolate values for the empty cells.</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_13">
+                <item>
+                 <widget class="QCheckBox" name="smoothingBox">
                   <property name="text">
-                   <string>Output directory:</string>
+                   <string>Smooth resulting raster.</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QgsFileWidget" name="outputPath"/>
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>Smoothing factor(in grid cells):</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="smFactorSpinBox">
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>5</number>
+                  </property>
+                 </widget>
                 </item>
                </layout>
-              </widget>
-             </item>
-            </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Output</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <widget class="QLabel" name="outputLaber">
+                <property name="text">
+                 <string>Output directory:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QgsFileWidget" name="outputPath"/>
+              </item>
+             </layout>
+            </widget>
            </item>
           </layout>
          </widget>

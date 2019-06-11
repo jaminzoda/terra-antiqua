@@ -30,7 +30,10 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVa
 from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import QAction
 from osgeo import gdal, osr, ogr
-from qgis.core import *
+from qgis.core import QgsVectorFileWriter, QgsVectorLayer,QgsExpression,QgsFeatureRequest,\
+    QgsMessageLog,QgsRasterBandStats,QgsColorRampShader,QgsRasterShader,QgsSingleBandPseudoColorRenderer,\
+    QgsWkbTypes, QgsProject, QgsGeometry, NULL
+
 import processing
 # Import the code for the dialog
 from .dem_builder_dialog import DEMBuilderDialog
@@ -38,6 +41,8 @@ from .mask_maker_dialog import MaskMakerDialog
 from .topo_modifier_dialog import TopoModifierDialog
 from .topotools import RasterTools as rt
 from .topotools import ArrayTools as at
+from .topotools import VectorTools as vt
+
 
 
 
@@ -211,51 +216,6 @@ class DEMBuilder:
                 action)
             self.iface.removeToolBarIcon(action)
 
-    def vector_to_raster(self, v_layer, out_path, geotransform, ncols, nrows, name_of_mask):
-
-        # if the folder for storing the rasters is created. If not it will be created
-        path = os.path.join(out_path, "raster_masks")
-
-        if not os.path.exists(path):
-            try:
-                os.mkdir(path)
-            except OSError:
-                print("Creation of the directory %s failed" % path)
-            else:
-                print("Successfully created the directory %s " % path)
-        else:
-            print("The folder raster_masks is already created.")
-
-        # In and out files
-        out_raster_file = os.path.join(path, name_of_mask+".tif")
-
-        # Opening the shapefile of the layer specified in the user dialog combobox selectSsMask
-        try:
-            in_shapefile = ogr.Open(v_layer.source())
-
-            if in_shapefile:  # checks to see if shapefile was successfully defined
-                v_layer = in_shapefile.GetLayer()
-            else:  # if it's not successfully defined
-                print("Couldn't load shapefile")
-
-        except:  # Seems redundant, but if an exception is raised in the Open() call, you get a message
-            print("Exception raised during shapefile loading")
-
-        NoData_value = 0
-        # getting the real work done
-        mask_raster = gdal.GetDriverByName('GTiff').Create(out_raster_file, ncols, nrows, 1, gdal.GDT_Int32)
-        mask_raster.SetGeoTransform(geotransform)
-        crs = osr.SpatialReference()
-        crs.ImportFromEPSG(4326)
-        mask_raster.SetProjection(crs.ExportToWkt())
-        band = mask_raster.GetRasterBand(1)
-        band.SetNoDataValue(NoData_value)
-        gdal.RasterizeLayer(mask_raster, [1], v_layer, burn_values=[1])
-        mask_raster = None
-        band=None
-        raster = gdal.Open(out_raster_file)
-        raster_array=raster.GetRasterBand(1).ReadAsArray()
-        return raster_array
 
     def run(self):
         """Run method that performs all the real work"""
@@ -378,9 +338,9 @@ class DEMBuilder:
 
 
             #Rasterize extracted masks
-            ss_mask=self.vector_to_raster(ss_temp,out_path,geotransform,ncols,nrows,"ShallowSea")
-            cs_mask=self.vector_to_raster(cs_temp,out_path,geotransform,ncols,nrows,"ContinentalShelves")
-            coast_mask=self.vector_to_raster(coast_temp,out_path,geotransform,ncols,nrows,"Continents")
+            ss_mask=vt.vector_to_raster(ss_temp,out_path,geotransform,ncols,nrows,"ShallowSea")
+            cs_mask=vt.vector_to_raster(cs_temp,out_path,geotransform,ncols,nrows,"ContinentalShelves")
+            coast_mask=vt.vector_to_raster(coast_temp,out_path,geotransform,ncols,nrows,"Continents")
 
 
             #Modify bathymetry according to masks
@@ -651,76 +611,64 @@ class DEMBuilder:
         self.dlg3.runButton.pressed.connect(self.run_topo_modifier)
 
     def run_topo_modifier(self):
-        #get the log widget
-        log=self.dlg3.log
-        out_path=self.dlg3.outputPath.filePath()
-
+        # get the log widget
+        log = self.dlg3.log
+        out_path = self.dlg3.outputPath.filePath()
 
         log('Starting')
-        #self.dlg3.setVisible(True)
+        # self.dlg3.setVisible(True)
         self.dlg3.Tabs.setCurrentIndex(1)
-        #Get the topography as an array
-
+        # Get the topography as an array
 
         log('Getting the raster layer')
-        topo_layer=self.dlg3.baseTopoBox.currentLayer()
-        topo_extent=topo_layer.extent()
-        topo_ds=gdal.Open(topo_layer.dataProvider().dataSourceUri())
-        topo=topo_ds.GetRasterBand(1).ReadAsArray()
-        geotransform = topo_ds.GetGeoTransform() #this geotransform is used to rasterize extracted masks below
+        topo_layer = self.dlg3.baseTopoBox.currentLayer()
+        topo_extent = topo_layer.extent()
+        topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
+        topo = topo_ds.GetRasterBand(1).ReadAsArray()
+        geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
         nrows, ncols = np.shape(topo)
-
 
         if not topo is None:
             log(('Size of the Topography raster: ', str(topo.shape)))
         else:
             log('There is a problem with reading the Topography raster')
 
-        #Get the vector masks
+        # Get the vector masks
         log('Getting the vector layer')
-        mask_layer=self.dlg3.masksBox.currentLayer()
+        mask_layer = self.dlg3.masksBox.currentLayer()
 
         if mask_layer.isValid:
             log('The mask layer is loaded properly')
         else:
             log('There is a problem with the mask layer - not loaded properly')
 
-        #Check if formula field is specified
-        if self.dlg3.formulaField.currentField():  #the QgsFieldCombobox returns string with the name of field - we check if it is empty - empty string = False (bool) in python
-            formula_field=self.dlg3.formulaField.currentField()
-
-        else:
-            formula_field=None
-            formula=self.dlg3.formulaText.text()
-            log(('formula for topography modification is: ',formula))
 
 
-        if  self.dlg3.useAllMasksBox.isChecked()==True:
-            #Get features from the mask_layer
+        if self.dlg3.useAllMasksBox.isChecked() == True:
+            # Get features from the mask_layer
             features = mask_layer.getFeatures()
 
-            # Midifying the topography raster with different formula for different masks
+        # Midifying the topography raster with different formula for different masks
         else:
 
             # Get features by attrtibute from the masks layer - the attributes are fetched in the 'layer' field
             field = self.dlg3.maskNameField.currentField()
             value = self.dlg3.maskNameText.text()
 
-
             log(('Fetching the ', value, ' masks from the field: ', field))
 
             expr = QgsExpression(QgsExpression().createFieldEqualityExpression(field, value))
             features = mask_layer.getFeatures(QgsFeatureRequest(expr))
 
-            #Make sure if any feature is returned by our query above
-            #If the field name or the name of mask is not specified correctly, our feature itterator (features)
-            #will be empty and "any" statement will return false.
+            # Make sure if any feature is returned by our query above
+            # If the field name or the name of mask is not specified correctly, our feature itterator (features)
+            # will be empty and "any" statement will return false.
 
-            assert (any(True for _ in features)), "Your query did not return any record. Please, check if you specified correct field for the names of masks, and that you have typed the name of a mask correctly."
+            assert (any(True for _ in
+                        features)), "Your query did not return any record. Please, check if you specified correct field for the names of masks, and that you have typed the name of a mask correctly."
 
-            #Get the features in the feature itterator again, because during the assertion we already itterated over the iterator and it is empty now.
+            # Get the features in the feature itterator again, because during the assertion we already itterated over the iterator and it is empty now.
             features = mask_layer.getFeatures(QgsFeatureRequest(expr))
-
 
         # Create a directory for temporary vector files
         path = os.path.join(out_path, "vector_masks")
@@ -735,12 +683,68 @@ class DEMBuilder:
         else:
             log("The folder raster_masks is already created.")
 
-        #Check if the formula mode of topography modification is checked
-        #Otherwise minimum and maximum values will be used to calculate the formula
+        # Check if the formula mode of topography modification is checked
+        # Otherwise minimum and maximum values will be used to calculate the formula
         if self.dlg3.formulaCheckBox.isChecked():
-            # If formula field is not selected, all the masks are rasterized and the whole topography
+
+            # Get the fields
+            fields = mask_layer.fields().toList()
+
+            # Get the field names to be able to fetch formulas from the attributes table
+            field_names = [i.name() for i in fields]
+
+            # If formula field is not selected, the whole topography
             # raster is modified with one formula, which is taken from the textbox in the dialog
-            if formula_field is None:
+            # Check if formula field is specified
+            if self.dlg3.formulaField.currentField():  # the QgsFieldCombobox returns string with the name of field - we check if it is empty - empty string = False (bool) in python
+                formula_field = self.dlg3.formulaField.currentField()
+
+
+                # Get the position of the formula field in the table of attributes
+                # This will help us to get the formula of a mask by it's position
+                formula_pos = field_names.index(formula_field)
+
+                formula=None
+
+            else:
+                formula = self.dlg3.formulaText.text()
+                log(('formula for topography modification is: ', formula))
+
+
+           #Get the minimum and maximum bounding values for selecting the elevation values that should be modified.
+            # Values outside the bounding values will not be touched.
+            if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.minValueField.currentField():
+                min_value_field=self.dlg3.minValueField.currentField()
+
+                # Get the position of the formula field in the table of attributes
+                # This will help us to get the formula of a mask by it's position
+                min_value_pos = field_names.index(min_value_field)
+
+
+                min_value=None
+            elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
+                min_value=self.dlg3.minValueSpin.value()
+            else:
+                min_value=None
+
+            if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.maxValueField.currentField():
+                max_value_field = self.dlg3.maxValueField.currentField()
+
+
+                # Get the position of the formula field in the table of attributes
+                # This will help us to get the formula of a mask by it's position
+                max_value_pos = field_names.index(max_value_field)
+
+
+                max_value = None
+            elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
+                max_value = self.dlg3.maxValueSpin.value()
+            else:
+                max_value=None
+
+
+            #if formula_field is None:
+                """
                 # Create a temporary layer to store the extracted masks
                 temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
                 temp_dp = temp_layer.dataProvider()
@@ -750,90 +754,108 @@ class DEMBuilder:
                 out_file = os.path.join(path, 'masks_for_topo_modification.shp')
 
                 if os.path.exists(out_file):
-                   driver = ogr.GetDriverByName('ESRI Shapefile')
-                   driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
+                    driver = ogr.GetDriverByName('ESRI Shapefile')
+                    driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
                 error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", temp_layer.crs(),
-                                                               "ESRI Shapefile")
+                                                                "ESRI Shapefile")
                 if error == QgsVectorFileWriter.NoError:
-                   log("The  shape file" + out_file + "has been created and saved successfully")
+                    log("The  shape file" + out_file + "has been created and saved successfully")
+
+                # Rasterize extracted masks
+                v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
+                r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows, 'r_masks_for_modification')
+
+                # Modify the topography
+
+               
+                    
+
+                x = at.mod_formula(topo,formula,r_masks)
+                """
 
 
-                #Rasterize extracted masks
-                v_layer=QgsVectorLayer(out_file,'extracted_masks', 'ogr')
-                r_masks=self.vector_to_raster(v_layer,out_path,geotransform,ncols,nrows,'r_masks_for_modification')
-
-
-                #Modify the topography
-                #TODO impplement indexing in the formula so that only values above the minimum get modified
-                x=topo
-                formula=formula.replace('x','x[r_masks==1]')
-
-                x[r_masks==1]=eval(formula)
 
             # If formula field is selected, the formula is taken from attribute field
             # and the topography regions are modified according to each mask's formula
-            else:
-                #Get the field names
-                fields = mask_layer.fields().toList()
+            #else:
 
-                # Get the field names to be able to fetch formulas from the attributes table
-                field_names = [i.name() for i in fields]
+            mask_number = 0
+            for feat in features:
+                mask_number += 1
 
-                #Get the position of the formula field in the table of attributes
-                #This will help us to get the formula of a mask by it's position
-                formula_pos = field_names.index(formula_field)
-                mask_number=0
-                for feat in features:
-                    mask_number+=1
-                    formula=feat.attributes()[formula_pos]
+                #Get the formula, min and max values, if they are different foor each feature.
+                if formula==None:
+                    feat_formula = feat.attributes()[formula_pos]
 
-                    #Check if the formula field contains the formula
-                    if formula==NULL or ('x' in formula)==False:
-                        log("Mask "+str(mask_number)+" does not contain any formula.")
-                        log("You might want to check if the field for formula is specified correctly in the plugin dialog.")
-                        continue
+                else:
+                    feat_formula=formula
 
-                    # Create a temporary layer to store the extracted masks
-                    temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-                    temp_dp = temp_layer.dataProvider()
-                    temp_dp.addAttributes(fields)
-                    temp_layer.updateFields()
+                # Check if the formula field contains the formula
+                if feat_formula == NULL or ('x' in feat_formula) == False:
+                    log("Mask " + str(mask_number) + " does not contain any formula.")
+                    log(
+                        "You might want to check if the field for formula is specified correctly in the plugin dialog.")
+                    continue
+                if min_value==None and 'min_value_field' in locals():
+                    feat_min_value=feat.attributes()[min_value_pos]
+                elif min_value==None:
+                    feat_min_value=None
+                else:
+                    feat_min_value=min_value
 
-                    temp_dp.addFeature(feat)
+                if max_value==None and 'max_value_field' in locals():
+                    feat_max_value=feat.attributes()[max_value_pos]
+                elif max_value==None:
+                    feat_max_value=None
+                else:
+                    feat_max_value=max_value
 
-                    # Create a temporary shapefile to store extracted masks before rasterizing them
-                    out_file = os.path.join(path, 'masks_for_topo_modification.shp')
 
-                    if os.path.exists(out_file):
-                        driver = ogr.GetDriverByName('ESRI Shapefile')
-                        driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
-                    error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", temp_layer.crs(),
-                                                                    "ESRI Shapefile")
-                    if error == QgsVectorFileWriter.NoError:
-                        log("The  shape file" + out_file + "has been created and saved successfully")
 
-                    # Rasterize extracted masks
-                    v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                    r_masks = self.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
-                                                    'r_masks_for_modification')
-                    v_layer=None
+                # Create a temporary layer to store the extracted masks
+                temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+                temp_dp = temp_layer.dataProvider()
+                temp_dp.addAttributes(fields)
+                temp_layer.updateFields()
 
-                    # Modify the topography
-                    # TODO implement indexing in the formula so that only values above the minimum get modified
-                    x = topo
-                    formula = formula.replace('x', 'x[r_masks==1]')
-                    x[r_masks == 1] = eval(formula)
+                temp_dp.addFeature(feat)
+
+                # Create a temporary shapefile to store extracted masks before rasterizing them
+                out_file = os.path.join(path, 'masks_for_topo_modification.shp')
+
+                if os.path.exists(out_file):
+                    driver = ogr.GetDriverByName('ESRI Shapefile')
+                    driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
+                error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", temp_layer.crs(),
+                                                                "ESRI Shapefile")
+                if error == QgsVectorFileWriter.NoError:
+                    log("The  shape file" + out_file + "has been created and saved successfully")
+
+                # Rasterize extracted masks
+                v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
+                r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
+                                              'r_masks_for_modification')
+                v_layer = None
+
+
+                # Modify the topography
+                x=topo
+                in_array=x[r_masks == 1]
+
+
+                x[r_masks == 1] = at.mod_formula(in_array,feat_formula,feat_min_value,feat_max_value)
+
         else:
-           # Get the final minimum and maximum values either from a
-           # specified field in the attribute table or from the spinboxes.
+            # Get the final minimum and maximum values either from a
+            # specified field in the attribute table or from the spinboxes.
             if self.dlg3.minMaxFromAttrCheckBox.isChecked():
                 # Get the fields from the layer
                 fields = mask_layer.fields().toList()
                 # Get the field names to be able to fetch formulas from the attributes table
                 field_names = [i.name() for i in fields]
-                #Get the names of fields with the minimum and maximum values.
+                # Get the names of fields with the minimum and maximum values.
                 fmin_field = self.dlg3.minField.currentField()
-                fmax_field=self.dlg3.maxField.currentField()
+                fmax_field = self.dlg3.maxField.currentField()
                 # Get the position of the minimum and maximum fields in the table of attributes
                 # This will help us to get the values of a mask by their positions
                 fmin_pos = field_names.index(fmin_field)
@@ -845,7 +867,8 @@ class DEMBuilder:
                     fmax = feat.attributes()[fmax_pos]
                     # Check if the min and max fields contain any value
                     if fmin == NULL or fmax == NULL:
-                        log("Mask " + str(mask_number) + " does not contain final maximum or/and minimum values specified in the attributes table.")
+                        log("Mask " + str(
+                            mask_number) + " does not contain final maximum or/and minimum values specified in the attributes table.")
                         log(
                             "You might want to check if the fields for minimum and maximum values are specified correctly in the plugin dialog.")
                         continue
@@ -871,15 +894,15 @@ class DEMBuilder:
 
                     # Rasterize extracted masks
                     v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                    r_masks = self.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
-                                                    'r_masks_for_modification')
+                    r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
+                                                  'r_masks_for_modification')
                     v_layer = None
 
                     # Modify the topography
                     x = topo
-                    in_array=x[r_masks == 1]
+                    in_array = x[r_masks == 1]
 
-                    x[r_masks==1]=at.mod_min_max(in_array,fmin,fmax)
+                    x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
 
 
 
@@ -905,25 +928,17 @@ class DEMBuilder:
 
                 # Rasterize extracted masks
                 v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                r_masks = self.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
-                                                'r_masks_for_modification')
+                r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
+                                              'r_masks_for_modification')
 
                 # Modify the topography
                 x = topo
-                in_array=x[r_masks == 1]
-                x[r_masks == 1]=at.mod_min_max(in_array,fmin,fmax)
+                in_array = x[r_masks == 1]
+                x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
 
 
 
-
-
-
-
-
-
-
-
-        #Check if raster was modified. If the x matrix was assigned.
+        # Check if raster was modified. If the x matrix was assigned.
         if 'x' in locals():
             # Write the resulting raster array to a raster file
             file_path = os.path.join(out_path, "paleo_dem_modified.tif")
@@ -941,11 +956,11 @@ class DEMBuilder:
             raster = None
             rlayer = self.iface.addRasterLayer(file_path, "Modified topo- and bathymetry", "gdal")
 
-            #Filling the gaps
+            # Filling the gaps
             # TODO move the interpolation inside the modifying function
             if self.dlg3.interpolationBox.isChecked():
-                result=rt.fill_no_data(rlayer)
-                if result==0:
+                result = rt.fill_no_data(rlayer)
+                if result == 0:
                     log("Interpolation was performed sucessfuly")
                 else:
                     log("Interpolation was not successful")
@@ -953,14 +968,13 @@ class DEMBuilder:
             # Smoothing raster
             if self.dlg3.smoothingBox.isChecked():
 
-                factor=3 # smoothing radius in grid cells. The amount of cells around the one to be smoothed.
-                         #TODO get it from the dialog
-                result=rt.raster_smoothing(rlayer,factor)
-                if result==True:
+                factor = self.dlg3.smFactorSpinBox.value()  # smoothing radius in grid cells. The amount of cells around the one to be smoothed.
+                # TODO get it from the dialog
+                result = rt.raster_smoothing(rlayer, factor)
+                if result == True:
                     log("Smoothing was performed sucessfuly")
                 else:
                     log("Smoothing was not successful")
-
 
             """#Rendering a symbology style for the resulting raster layer"""
 
@@ -988,8 +1002,8 @@ class DEMBuilder:
             shader.setRasterShaderFunction(ramp_shader)
 
             """Finally, we need to apply the symbology we’ve create to the raster layer. 
-            First, we’ll create a renderer using our raster shader. 
-            Then we’ll Assign the renderer to our raster layer."""
+			First, we’ll create a renderer using our raster shader. 
+			Then we’ll Assign the renderer to our raster layer."""
 
             renderer = QgsSingleBandPseudoColorRenderer(rlayer.dataProvider(), 1, shader)
             rlayer.setRenderer(renderer)
@@ -999,3 +1013,5 @@ class DEMBuilder:
         else:
             log("The plugin did not succeed because one or more parameters were set incorrectly.")
             log("Please, check the log above.")
+
+
