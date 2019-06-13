@@ -174,6 +174,27 @@ class ArrayTools(np.ndarray):
 		out_array[out_array>=fmin]=fmin+(in_array[in_array>=fmin]-fmin)/ratio
 		return out_array
 
+	def mod_rescale(self, min:int, max:int):
+		"""
+		Modifies the elevation/bathimetry
+		values based on the current and provided
+		minimum and maximum values.
+		This is basically flattening and roughening.
+		:param in_array: input numpy array for modification.
+		:param fmin: final minimum value of elevation/bathymetry.
+		:param fmax: final maximum value of elevation/bathymetry.
+		:return: modified array of eleveation/bathymetry values.
+		"""
+		in_array=self
+		#Define the initial minimum and maximum values of the array
+		#imin = in_array.min()
+		imax = in_array[np.isfinite(in_array)].max()
+		imin=in_array[np.isfinite(in_array)].min()
+		out_array=in_array
+		out_array[:]=(max-min)*(out_array[:]-imin)/(imax-imin)+min
+
+		return out_array
+
 	def mod_formula(self, formula, min=None, max=None):
 		"""
 		:input self (numpy array): an input array that contains elevation values.
