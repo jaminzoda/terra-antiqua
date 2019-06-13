@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>697</width>
+    <width>765</width>
     <height>429</height>
    </rect>
   </property>
@@ -18,6 +18,9 @@
   </property>
   <property name="windowTitle">
    <string>Paleogeography - Mask preparation</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_11">
    <item>
@@ -44,9 +47,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-108</y>
-              <width>427</width>
-              <height>466</height>
+              <y>0</y>
+              <width>500</width>
+              <height>552</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">

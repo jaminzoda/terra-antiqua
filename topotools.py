@@ -182,13 +182,9 @@ class ArrayTools(np.ndarray):
 		:param mask_array: mask that will be used to subset area of the raster (input array) for modification.
 		:return: numpy array of modified elevation values.
 		"""
-		print('formula started')
+
 		topo=self
-		print('in_array shape:',topo.shape)
-		print(topo)
-		print("min: ", min)
-		print("max: ", max)
-		print(formula)
+
 		x=np.empty(topo.shape)
 		x.fill(np.nan)
 		if min!=None and max!=None:
@@ -196,7 +192,7 @@ class ArrayTools(np.ndarray):
 			x[(topo>min)*(topo<max)==1]=topo[(topo>min)*(topo<max)==1]
 			new_formula = formula.replace('x', index)
 			x[(topo>min)*(topo<max)==1] = eval(new_formula)
-			print(new_formula)
+
 		elif min!=None and max==None:
 			index = 'x[x>min]'
 			x[topo>min] = topo[topo>min]
@@ -211,11 +207,7 @@ class ArrayTools(np.ndarray):
 			x= topo
 			new_formula = formula
 			x[:]=eval(new_formula)
-		print('x_shape: ',x.shape)
-		print('x_type: ', type(x))
 
-		print('topo_shape: ', topo.shape)
-		print('topo_type: ', type(topo))
 
 
 		topo[np.isfinite(x)]=x[np.isfinite(x)]
