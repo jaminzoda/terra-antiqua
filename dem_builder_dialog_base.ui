@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>697</width>
+    <width>765</width>
     <height>429</height>
    </rect>
   </property>
@@ -18,6 +18,9 @@
   </property>
   <property name="windowTitle">
    <string>Paleogeography-Compiling topography and bathymetry</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_13">
    <item>
@@ -40,8 +43,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>439</width>
-            <height>524</height>
+            <width>512</width>
+            <height>614</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
