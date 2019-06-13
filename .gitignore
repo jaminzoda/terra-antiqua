@@ -250,5 +250,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+.my-credentials
 
 # End of https://www.gitignore.io/api/python,windows,pycharm
