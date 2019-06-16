@@ -28,7 +28,7 @@ import logging
 import numpy as np
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVariant
 from PyQt5.QtGui import QIcon, QColor
-from PyQt5.QtWidgets import QAction
+from PyQt5.QtWidgets import QAction, QToolBar
 from osgeo import gdal, osr, ogr
 from qgis.core import QgsVectorFileWriter, QgsVectorLayer,QgsExpression,QgsFeatureRequest,\
     QgsMessageLog,QgsRasterBandStats,QgsColorRampShader,QgsRasterShader,QgsSingleBandPseudoColorRenderer,\
@@ -39,6 +39,7 @@ import processing
 from .dem_builder_dialog import DEMBuilderDialog
 from .mask_maker_dialog import MaskMakerDialog
 from .topo_modifier_dialog import TopoModifierDialog
+from .paleocoastlines import PaleocoastlinesDialog
 from .topotools import RasterTools as rt
 from .topotools import ArrayTools as at
 from .topotools import VectorTools as vt
@@ -80,6 +81,12 @@ class DEMBuilder:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Paleogeography')
+
+        #Create a separate toolbar for the tool
+        self.pg_toolBar = iface.mainWindow().findChild(QToolBar, u'Paleogeography')
+        if not self.pg_toolBar:
+            self.pg_toolBar = iface.addToolBar(u'Paleogeography')
+            self.pg_toolBar.setObjectName(u'Paleogeography')
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -169,7 +176,7 @@ class DEMBuilder:
 
         if add_to_toolbar:
             # Adds plugin icon to Plugins toolbar
-            self.iface.addToolBarIcon(action)
+            self.pg_toolBar.addAction(action)
 
         if add_to_menu:
             self.iface.addPluginToMenu(
@@ -186,6 +193,7 @@ class DEMBuilder:
         icon_path = os.path.join(self.plugin_dir, 'icon.png')
         icon2_path = os.path.join(self.plugin_dir, 'mask.png')
         icon3_path = os.path.join(self.plugin_dir, 'topomod.png')
+        icon4_path = os.path.join(self.plugin_dir, 'paleocoastlines.png')
 
 
         self.add_action(
@@ -204,6 +212,11 @@ class DEMBuilder:
             text=self.tr(u'Topoggraphy modifier'),
             callback=self.topo_modifier_dlg_load,
             parent=self.iface.mainWindow())
+        self.add_action(
+            icon4_path,
+            text = self.tr(u'Paleoshorelines reconstructor'),
+            callback = self.paleocoastlines_dlg_load,
+            parent = self.iface.mainWindow())
 
         # will be set False in run()
         self.first_start = True
@@ -965,16 +978,7 @@ class DEMBuilder:
                 else:
                     log("Interpolation was not successful")
 
-            # Smoothing raster
-            if self.dlg3.smoothingBox.isChecked():
 
-                factor = self.dlg3.smFactorSpinBox.value()  # smoothing radius in grid cells. The amount of cells around the one to be smoothed.
-                # TODO get it from the dialog
-                result = rt.raster_smoothing(rlayer, factor)
-                if result == True:
-                    log("Smoothing was performed sucessfuly")
-                else:
-                    log("Smoothing was not successful")
 
             """#Rendering a symbology style for the resulting raster layer"""
 
@@ -1013,5 +1017,141 @@ class DEMBuilder:
         else:
             log("The plugin did not succeed because one or more parameters were set incorrectly.")
             log("Please, check the log above.")
+
+
+
+
+    def paleocoastlines_dlg_load(self):
+        self.dlg4 = PaleocoastlinesDialog()
+
+        # show the dialog
+        self.dlg4.show()
+        # Run the dialog event loop
+        # result = self.dlg4.exec_()
+
+        # # Set up logging to use the dlg4 text widget as a handler
+        # self.log_widget=self.dlg4.logText
+
+        # See if OK was pressed
+        # if result:
+
+        self.dlg4.runButton.pressed.connect(self.run_paleocoastlines)
+
+    def run_paleocoastlines(self):
+        # get the log widget
+        log = self.dlg4.log
+        out_path = self.dlg4.outputPath.filePath()
+
+        log('Starting')
+
+        self.dlg4.Tabs.setCurrentIndex(1)
+
+
+        log('Getting the raster layer')
+        topo_layer = self.dlg4.baseTopoBox.currentLayer()
+        topo_extent = topo_layer.extent()
+        topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
+        topo = topo_ds.GetRasterBand(1).ReadAsArray()
+        geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
+        nrows, ncols = np.shape(topo)
+
+        if not topo is None:
+            log(('Size of the Topography raster: ', str(topo.shape)))
+        else:
+            log('There is a problem with reading the Topography raster')
+
+        # Get the vector masks
+        log('Getting the vector layer')
+        mask_layer = self.dlg4.masksBox.currentLayer()
+
+        if mask_layer.isValid:
+            log('The mask layer is loaded properly')
+        else:
+            log('There is a problem with the mask layer - not loaded properly')
+
+        r_masks = vt.vector_to_raster(mask_layer, out_path, geotransform, ncols, nrows,
+                                      'r_masks_for_modification')
+        #The bathymetry values that are above sea level are taken down below sea level
+        in_array=topo[(r_masks==0)*(topo>0)==1]
+        topo[(r_masks == 0) * (topo > 0) == 1]=at.mod_rescale(in_array,-100,-0.05)
+
+        #The topography values that are below sea level are taken up above sea level
+        in_array = topo[(r_masks == 1) * (topo < 0) == 1]
+        topo[(r_masks == 1) * (topo < 0) == 1]=at.mod_rescale(in_array,0.05,100)
+
+
+        # Check if raster was modified. If the x matrix was assigned.
+        if 'topo' in locals():
+            # Write the resulting raster array to a raster file
+            file_path = os.path.join(out_path, "paleo_dem_final.tif")
+
+            driver = gdal.GetDriverByName('GTiff')
+            if os.path.exists(file_path):
+                driver.Delete(file_path)
+
+            raster = driver.Create(file_path, ncols, nrows, 1, gdal.GDT_Float32)
+            raster.SetGeoTransform(geotransform)
+            crs = osr.SpatialReference()
+            crs.ImportFromEPSG(4326)
+            raster.SetProjection(crs.ExportToWkt())
+            raster.GetRasterBand(1).WriteArray(topo)
+            raster = None
+            rlayer = self.iface.addRasterLayer(file_path, "Reconstructed DEM", "gdal")
+
+            # Smoothing raster
+            if self.dlg4.smoothingBox.isChecked():
+
+                factor = self.dlg4.smFactorSpinBox.value()  # smoothing radius in grid cells. The amount of cells around the one to be smoothed.
+
+                result = rt.raster_smoothing(rlayer, factor)
+                if result == True:
+                    log("Smoothing was performed sucessfuly")
+                else:
+                    log("Smoothing was not successful")
+
+            """#Rendering a symbology style for the resulting raster layer"""
+
+            stats = rlayer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
+            min = stats.minimumValue
+            max = stats.maximumValue
+            ramp_shader = QgsColorRampShader()
+            ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
+
+            lst = [QgsColorRampShader.ColorRampItem(min, QColor(0, 0, 90), str(round(min))),
+                   QgsColorRampShader.ColorRampItem(0, QColor(100, 255, 255), '0'),
+                   QgsColorRampShader.ColorRampItem(1, QColor(0, 150, 0), '1'),
+                   QgsColorRampShader.ColorRampItem(200, QColor(0, 255, 0), '200'),
+                   QgsColorRampShader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
+                   QgsColorRampShader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
+                   QgsColorRampShader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
+                   QgsColorRampShader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
+                   QgsColorRampShader.ColorRampItem(max, QColor(255, 255, 255), str(round(max)))]
+
+            ramp_shader.setColorRampItemList(lst)
+
+            # We’ll assign the color ramp to a QgsRasterShader
+            # so it can be used to symbolize a raster layer.
+            shader = QgsRasterShader()
+            shader.setRasterShaderFunction(ramp_shader)
+
+            """Finally, we need to apply the symbology we’ve create to the raster layer. 
+            First, we’ll create a renderer using our raster shader. 
+            Then we’ll Assign the renderer to our raster layer."""
+
+            renderer = QgsSingleBandPseudoColorRenderer(rlayer.dataProvider(), 1, shader)
+            rlayer.setRenderer(renderer)
+            rlayer.triggerRepaint()
+
+            log("The raster was modified successfully.")
+
+        else:
+            log("The plugin did not succeed because one or more parameters were set incorrectly.")
+            log("Please, check the log above.")
+
+
+
+
+
+
 
 
