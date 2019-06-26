@@ -64,6 +64,7 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         pass
 
 
+
     def enableRunButton(self):
         if  self.baseTopoBox.currentLayer()!=None and self.masksBox.currentLayer()!=None:
             self.runButton.setEnabled(True)

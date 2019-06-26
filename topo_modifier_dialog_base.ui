@@ -60,9 +60,7 @@
        <string>Parameters</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
-<<<<<<< HEAD
        <item row="0" column="0">
-=======
        <item row="0" column="1">
         <widget class="QTextBrowser" name="InfoBox">
          <property name="maximumSize">
@@ -77,7 +75,6 @@
         </widget>
        </item>
        <item row="0" column="0" alignment="Qt::AlignTop">
->>>>>>> 3767460db5e9c323ad7265c3b0fba5e889f4fbb1
         <widget class="QScrollArea" name="scrollArea">
          <property name="enabled">
           <bool>true</bool>
@@ -113,11 +110,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-<<<<<<< HEAD
             <y>0</y>
-=======
             <y>-718</y>
->>>>>>> 3767460db5e9c323ad7265c3b0fba5e889f4fbb1
+            <y>-718</y>
             <width>497</width>
             <height>1115</height>
            </rect>
@@ -498,8 +493,6 @@
                </widget>
               </item>
               <item>
-<<<<<<< HEAD
-=======
                <widget class="QCheckBox" name="smoothingBox">
                 <property name="text">
                  <string>Smooth resulting raster.</string>
@@ -546,7 +539,6 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
->>>>>>> 3767460db5e9c323ad7265c3b0fba5e889f4fbb1
                <widget class="QLabel" name="outputLaber">
                 <property name="text">
                  <string>Output directory:</string>
