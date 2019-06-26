@@ -22,6 +22,7 @@ class RasterTools(QgsRasterLayer):
 		Fils the missing data by interpolating from edges.
 		:param in_layer: QgsRasterLayer
 		:param no_data_value: NoDataValue of the input layer
+		:param vlayer: A vector layer with masks for interpolating only inside masks
 		:return: Boolean
 		"""
 		#Get the input raster dataset

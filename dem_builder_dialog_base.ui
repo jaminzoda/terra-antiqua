@@ -42,12 +42,24 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>512</width>
-            <height>614</height>
+            <y>-147</y>
+            <width>507</width>
+            <height>583</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="title">
+              <string>Reconstruction type</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <widget class="QComboBox" name="reconstructionTypeBox"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item>
             <widget class="QGroupBox" name="groupBox_2">
              <property name="title">
@@ -57,7 +69,7 @@
               <item row="0" column="0">
                <layout class="QVBoxLayout" name="verticalLayout_2">
                 <item>
-                 <widget class="QLabel" name="label">
+                 <widget class="QLabel" name="oceanAgeLabel">
                   <property name="text">
                    <string>Ocean age</string>
                   </property>
@@ -67,8 +79,11 @@
                  <layout class="QHBoxLayout" name="horizontalLayout">
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectOceanAge">
+                    <property name="currentText">
+                     <string/>
+                    </property>
                     <property name="allowEmptyLayer">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="showCrs">
                      <bool>true</bool>
@@ -86,7 +101,7 @@
                 </item>
                </layout>
               </item>
-              <item row="1" column="0">
+              <item row="2" column="0">
                <layout class="QVBoxLayout" name="verticalLayout_3">
                 <item>
                  <widget class="QLabel" name="label_2">
@@ -118,10 +133,10 @@
                 </item>
                </layout>
               </item>
-              <item row="2" column="0">
+              <item row="1" column="0">
                <layout class="QVBoxLayout" name="verticalLayout_4">
                 <item>
-                 <widget class="QLabel" name="label_3">
+                 <widget class="QLabel" name="shallowSeaLabel">
                   <property name="text">
                    <string>Shallow sea bathymetry</string>
                   </property>
@@ -132,7 +147,7 @@
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectSbathy">
                     <property name="allowEmptyLayer">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="showCrs">
                      <bool>true</bool>
@@ -320,7 +335,7 @@
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_9">
                <item>
-                <widget class="QLabel" name="label_5">
+                <widget class="QLabel" name="ageBoxLabel">
                  <property name="text">
                   <string>Age of reconstruction (Ma)</string>
                  </property>
@@ -341,7 +356,7 @@
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_10">
                <item>
-                <widget class="QLabel" name="label_6">
+                <widget class="QLabel" name="shelfDepthBoxLabel">
                  <property name="text">
                   <string>Shelf depth (m)</string>
                  </property>

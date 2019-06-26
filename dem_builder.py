@@ -32,14 +32,15 @@ from PyQt5.QtWidgets import QAction, QToolBar
 from osgeo import gdal, osr, ogr
 from qgis.core import QgsVectorFileWriter, QgsVectorLayer,QgsExpression,QgsFeatureRequest,\
     QgsMessageLog,QgsRasterBandStats,QgsColorRampShader,QgsRasterShader,QgsSingleBandPseudoColorRenderer,\
-    QgsWkbTypes, QgsProject, QgsGeometry, NULL
+    QgsWkbTypes, QgsProject, QgsGeometry, NULL, QgsFeature
 
 import processing
 # Import the code for the dialog
 from .dem_builder_dialog import DEMBuilderDialog
 from .mask_maker_dialog import MaskMakerDialog
 from .topo_modifier_dialog import TopoModifierDialog
-from .paleocoastlines import PaleocoastlinesDialog
+from .paleocoastlines_dialog import PaleocoastlinesDialog
+from .fill_smooth_dialog import FillSmoothDialog
 from .topotools import RasterTools as rt
 from .topotools import ArrayTools as at
 from .topotools import VectorTools as vt
@@ -194,6 +195,7 @@ class DEMBuilder:
         icon2_path = os.path.join(self.plugin_dir, 'mask.png')
         icon3_path = os.path.join(self.plugin_dir, 'topomod.png')
         icon4_path = os.path.join(self.plugin_dir, 'paleocoastlines.png')
+        icon5_path = os.path.join(self.plugin_dir, 'fill_smooth.png')
 
 
         self.add_action(
@@ -216,6 +218,11 @@ class DEMBuilder:
             icon4_path,
             text = self.tr(u'Paleoshorelines reconstructor'),
             callback = self.paleocoastlines_dlg_load,
+            parent = self.iface.mainWindow())
+        self.add_action(
+            icon5_path,
+            text = self.tr(u'Filling the gaps and smoothing'),
+            callback = self.fill_smooth_dlg_load,
             parent = self.iface.mainWindow())
 
         # will be set False in run()
@@ -245,136 +252,187 @@ class DEMBuilder:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            # Reading the paleobathymetry raster from Mueller et. al,.
-            # getting ocean age layer
-            ocean_age_layer = self.dlg.selectOceanAge.currentLayer()
-            # getting the paleobathymetry layer
-            bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
-            # getting the shallow sea bathynetry
-            s_bathy_layer = self.dlg.selectSbathy.currentLayer()
-
-            # reading the data from the layers
-            age_ds = gdal.Open(ocean_age_layer.dataProvider().dataSourceUri())
-            bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
-            sbathy_ds = gdal.Open(s_bathy_layer.dataProvider().dataSourceUri())
-            paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
-            ocean_age = age_ds.GetRasterBand(1).ReadAsArray()
-            s_bathy = sbathy_ds.GetRasterBand(1).ReadAsArray()
-
-            # creating a base grid for compiling topography and bathymetry
-            paleo_dem = np.empty(ocean_age.shape)
-            paleo_dem[:] = np.nan
-            paleo_bathy[np.isnan(
-                paleo_bathy)] = 1  # setting the nan values to 1 for comparison - python raises warning messages, when comparing two matrices containing nan values
-            paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-
-            # calculating the ocean depth from the age
-            ocean_depth = np.empty(ocean_age.shape)
-            ocean_depth[:] = np.nan
-            r_time = self.dlg.ageBox.value()
-            shelf_depth=self.dlg.shelfDepthBox.value()
-            ocean_age[np.isnan(ocean_age)] = -1
-            ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - r_time
-            ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
-            ocean_depth[ocean_age > 90] = -5750
-
-            # Update the bathymetry, keeping mueller only where agegrid is undefined
-            paleo_dem[np.isfinite(ocean_depth)] = ocean_depth[np.isfinite(ocean_depth)]
-
-
-            #processing Shallow sea and Continental shelves
-            # this line gets the user-defined directoory for storing the output files and prepares some variables for rasterization process
-            out_path = self.dlg.outputFile.filePath()
-            geotransform = age_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
-            nrows, ncols = np.shape(
-                paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
-            #Get the general masks layer from the dialog
-            masks_layer=self.dlg.selectMasks.currentLayer()
-
-            #Create temporary layers to store extracted masks
-
-            ss_temp=QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary ss", "memory")
-            ss_prov=ss_temp.dataProvider()
-            cs_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary cs", "memory")
-            cs_prov = cs_temp.dataProvider()
-            coast_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary coastline", "memory")
-            coast_prov = coast_temp.dataProvider()
-
-            #Get features by attrtibute from the masks layer - the attributes are fetched in the 'layer' field
-            expr_ss=QgsExpression( "\"layer\"='Shallow sea'" )
-            expr_cs = QgsExpression("\"layer\"='Continental Shelves'")
-            expr_coast = QgsExpression("\"layer\"='Continents'")
-            ss_features=masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
-            cs_features=masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
-            coast_features=masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
-
-            # Add extracted features (masks) to the temporary layers
-            ss_prov.addFeatures(ss_features)
-            cs_prov.addFeatures(cs_features)
-            coast_prov.addFeatures(coast_features)
-
-            #Save the extracted masks
-            # Create a directory for the vector masks
-            if not os.path.exists(os.path.join(out_path,"vector_masks")):
-                os.makedirs(os.path.join(out_path,"vector_masks"))
-
-            #Output files
-            ss_out_file=os.path.join(out_path,"vector_masks","Shallow_sea.shp")
-            cs_out_file =os.path.join(out_path,"vector_masks","Continental_shelves.shp")
-            coast_out_file =os.path.join(out_path,"vector_masks","Coastline.shp")
+            recon_type=self.dlg.reconstructionTypeBox.currentIndex()
+            if recon_type==0: # 0 - Baatsen, 1 - Poblette
+                # Reading the paleobathymetry raster from Mueller et. al,.
+                # getting ocean age layer
+                ocean_age_layer = self.dlg.selectOceanAge.currentLayer()
+                age_ds = gdal.Open(ocean_age_layer.dataProvider().dataSourceUri())
+                ocean_age = age_ds.GetRasterBand(1).ReadAsArray()
 
 
 
-            layers=[(ss_temp,ss_out_file,"ShallowSea"),(cs_temp,cs_out_file,"ContinentalShelves"),(coast_temp,coast_out_file,"Coastline")]
-            for layer,out_file, name in layers:
-                # Check if the file is already created. Acts like overwrite
-                if os.path.exists(out_file):
-                    driver = ogr.GetDriverByName('ESRI Shapefile')
-                    driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
-                error = QgsVectorFileWriter.writeAsVectorFormat(layer, out_file, "UTF-8", layer.crs(), "ESRI Shapefile")
-                if error == QgsVectorFileWriter.NoError:
-                    print("The  shape file"+out_file+"has been created and saved successfully")
-                if name=="ShallowSea":
-                    ss_temp=QgsVectorLayer(out_file,"Shallow sea masks","ogr")
-                elif name=="ContinentalShelves":
-                    cs_temp=QgsVectorLayer(out_file,"Continental Shelves masks","ogr")
-                elif name=="Coastline":
-                    coast_temp=QgsVectorLayer(out_file,"Continental Shelves masks","ogr")
+
+                # getting the shallow sea bathynetry
+
+                s_bathy_layer = self.dlg.selectSbathy.currentLayer()
+                sbathy_ds = gdal.Open(s_bathy_layer.dataProvider().dataSourceUri())
+                s_bathy = sbathy_ds.GetRasterBand(1).ReadAsArray()
+
+
+
+                # getting the paleobathymetry layer
+                bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
+                bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
+                paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
+
+                # creating a base grid for compiling topography and bathymetry
+                paleo_dem = np.empty(paleo_bathy.shape)
+                paleo_dem[:] = np.nan
+                #paleo_bathy[np.isnan(paleo_bathy)] = 9999  # setting the nan values to 1 for comparison - python raises warning messages, when comparing two matrices containing nan values
+                paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
+                paleo_dem[paleo_bathy>0]=0
+
+
+                # calculating the ocean depth from the age
+                ocean_depth = np.empty(paleo_bathy.shape)
+                ocean_depth[:] = np.nan
+                r_time = self.dlg.ageBox.value()
+                shelf_depth=self.dlg.shelfDepthBox.value()
+                #ocean_age[np.isnan(ocean_age)] = -1 # This line was used only to set nan values to -1 because of the warnings that python gives when comparing two arrays with nan values.
+                ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - r_time
+                ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
+                ocean_depth[ocean_age > 90] = -5750
+                # Update the bathymetry, keeping mueller only where agegrid is undefined
+                paleo_dem[np.isfinite(ocean_depth)] = ocean_depth[np.isfinite(ocean_depth)]
+
+
+                #processing Shallow sea and Continental shelves
+                # this line gets the user-defined directoory for storing the output files and prepares some variables for rasterization process
+                out_path = self.dlg.outputFile.filePath()
+                geotransform = age_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
+                nrows, ncols = np.shape(
+                    paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
+                #Get the general masks layer from the dialog
+                masks_layer=self.dlg.selectMasks.currentLayer()
+
+                #Create temporary layers to store extracted masks
+
+                ss_temp=QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary ss", "memory")
+                ss_prov=ss_temp.dataProvider()
+                cs_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary cs", "memory")
+                cs_prov = cs_temp.dataProvider()
+                coast_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary coastline", "memory")
+                coast_prov = coast_temp.dataProvider()
+
+                #Get features by attrtibute from the masks layer - the attributes are fetched in the 'layer' field
+                expr_ss=QgsExpression( "\"layer\"='Shallow sea'" )
+                expr_cs = QgsExpression("\"layer\"='Continental Shelves'")
+                expr_coast = QgsExpression("\"layer\"='Continents'")
+
+                ss_features=masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
+                cs_features=masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
+                coast_features=masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
 
 
 
 
 
+                # Add extracted features (masks) to the temporary layers
+                ss_prov.addFeatures(ss_features)
+                cs_prov.addFeatures(cs_features)
+                coast_prov.addFeatures(coast_features)
+
+                #Save the extracted masks
+                # Create a directory for the vector masks
+                if not os.path.exists(os.path.join(out_path,"vector_masks")):
+                    os.makedirs(os.path.join(out_path,"vector_masks"))
+
+                #Output files
+                ss_out_file=os.path.join(out_path,"vector_masks","Shallow_sea.shp")
+                cs_out_file =os.path.join(out_path,"vector_masks","Continental_shelves.shp")
+                coast_out_file =os.path.join(out_path,"vector_masks","Coastline.shp")
+
+
+
+                layers=[(ss_temp,ss_out_file,"ShallowSea"),(cs_temp,cs_out_file,"ContinentalShelves"),(coast_temp,coast_out_file,"Coastline")]
+                for layer,out_file, name in layers:
+                    # Check if the file is already created. Acts like overwrite
+                    if os.path.exists(out_file):
+                        driver = ogr.GetDriverByName('ESRI Shapefile')
+                        driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
+                    error = QgsVectorFileWriter.writeAsVectorFormat(layer, out_file, "UTF-8", layer.crs(), "ESRI Shapefile")
+                    if error == QgsVectorFileWriter.NoError:
+                        print("The  shape file"+out_file+"has been created and saved successfully")
+                    if name=="ShallowSea":
+                        ss_temp=QgsVectorLayer(out_file,"Shallow sea masks","ogr")
+                    elif name=="ContinentalShelves":
+                        cs_temp=QgsVectorLayer(out_file,"Continental Shelves masks","ogr")
+                    elif name=="Coastline":
+                        coast_temp=QgsVectorLayer(out_file,"Continental Shelves masks","ogr")
 
 
 
 
 
-            #Rasterize extracted masks
-            ss_mask=vt.vector_to_raster(ss_temp,out_path,geotransform,ncols,nrows,"ShallowSea")
-            cs_mask=vt.vector_to_raster(cs_temp,out_path,geotransform,ncols,nrows,"ContinentalShelves")
-            coast_mask=vt.vector_to_raster(coast_temp,out_path,geotransform,ncols,nrows,"Continents")
 
 
-            #Modify bathymetry according to masks
-            s_bathy[s_bathy<paleo_dem]=paleo_dem[s_bathy<paleo_dem]   #remove parts that are deeper than current bathymetry
-            paleo_dem[ss_mask==1]=s_bathy[ss_mask==1]
-            paleo_dem[cs_mask==1]=shelf_depth
 
-            #Replace continental shelf by shallow region depth where the latter is deeper and less than 2000m
-            paleo_dem[((cs_mask==1)*(s_bathy>-2000)*(s_bathy<shelf_depth))==1]=s_bathy[((cs_mask==1)*(s_bathy>-2000)*(s_bathy<shelf_depth))==1]
 
-            #Fill the land area with the present day rotated topography
 
-            #Read the Bedrock topography from the dialog
-            topo= self.dlg.selectBrTopo.currentLayer()
-            #Get the data provider to access the data
-            topo_ds = gdal.Open(topo.dataProvider().dataSourceUri())
-            #Read the data as a an array of data
-            topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
-            paleo_dem[coast_mask==1]=topo_br[coast_mask==1]
-            #Set the elevation to 0 wherever the continent mask is defined but there is not elevation value in the topography file
-            #paleo_dem[(coast_mask*np.isnan(topo_br))==1]=0
+                #Rasterize extracted masks
+                ss_mask=vt.vector_to_raster(ss_temp,out_path,geotransform,ncols,nrows,"ShallowSea")
+                cs_mask=vt.vector_to_raster(cs_temp,out_path,geotransform,ncols,nrows,"ContinentalShelves")
+                coast_mask=vt.vector_to_raster(coast_temp,out_path,geotransform,ncols,nrows,"Continents")
+
+
+                #Modify bathymetry according to masks
+                s_bathy[s_bathy<paleo_dem]=paleo_dem[s_bathy<paleo_dem]   #remove parts that are deeper than current bathymetry
+                paleo_dem[ss_mask==1]=s_bathy[ss_mask==1]
+                paleo_dem[cs_mask==1]=shelf_depth
+
+                #Replace continental shelf by shallow region depth where the latter is deeper and less than 2000m
+                paleo_dem[((cs_mask==1)*(s_bathy>-2000)*(s_bathy<shelf_depth))==1]=s_bathy[((cs_mask==1)*(s_bathy>-2000)*(s_bathy<shelf_depth))==1]
+
+                #Fill the land area with the present day rotated topography
+
+                #Read the Bedrock topography from the dialog
+                topo= self.dlg.selectBrTopo.currentLayer()
+                #Get the data provider to access the data
+                topo_ds = gdal.Open(topo.dataProvider().dataSourceUri())
+                #Read the data as a an array of data
+                topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
+                paleo_dem[coast_mask==1]=topo_br[coast_mask==1]
+                #Set the elevation to 0 wherever the continent mask is defined but there is not elevation value in the topography file
+                #paleo_dem[(coast_mask*np.isnan(topo_br))==1]=0
+
+            elif recon_type==1:
+                # getting the paleobathymetry layer
+                bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
+                bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
+                paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
+
+                # creating a base grid for compiling topography and bathymetry
+                paleo_dem = np.empty(paleo_bathy.shape)
+                paleo_dem[:] = np.nan
+                # paleo_bathy[np.isnan(paleo_bathy)] = 9999  # setting the nan values to 1 for comparison - python raises warning messages, when comparing two matrices containing nan values
+                paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
+                paleo_dem[paleo_bathy > 0] = 0
+
+
+                # this line gets the user-defined directoory for storing the output files and prepares some variables for rasterization process
+                out_path = self.dlg.outputFile.filePath()
+                geotransform = bathy_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
+                nrows, ncols = np.shape(
+                    paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
+                # Get the general masks layer from the dialog
+                masks_layer = self.dlg.selectMasks.currentLayer()
+
+                #Rasterize masks layer
+                coast_mask=vt.vector_to_raster(masks_layer,out_path,geotransform,ncols,nrows,"Coastlines")
+
+                # Fill the land area with the present day rotated topography
+
+                # Read the Bedrock topography from the dialog
+                topo = self.dlg.selectBrTopo.currentLayer()
+                # Get the data provider to access the data
+                topo_ds = gdal.Open(topo.dataProvider().dataSourceUri())
+                # Read the data as an array of data
+                topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
+                paleo_dem[coast_mask == 1] = topo_br[coast_mask == 1]
+
+
+
 
             #Istostatic adjustment for Greenland and Antarctica
             if self.dlg.isoStatBox.isChecked():
@@ -396,12 +454,18 @@ class DEMBuilder:
             QgsMessageLog.logMessage("The bathynetry is compiled and is being written in a raster file",
                                      tag="bathy_processing")
 
-            rextent = ocean_age_layer.extent()
-            xmin, xmax, ymin, ymax = [rextent.xMinimum(), rextent.xMaximum(), rextent.yMinimum(), rextent.yMaximum()]
+
+            #Following parameters are used for creating a geotransform for the resulting raster.
+            #however we just copy the geotransform from the bathymetry layer instead
+
+            #rextent = bathy_layer.extent()
+            #xmin, xmax, ymin, ymax = [rextent.xMinimum(), rextent.xMaximum(), rextent.yMinimum(), rextent.yMaximum()]
+            #xres = (xmax - xmin) / float(nrows)
+            #yres = (ymax - ymin) / float(ncols)
+            #NoData_value = 0
+
             nrows, ncols = np.shape(paleo_dem)
-            xres = (xmax - xmin) / float(nrows)
-            yres = (ymax - ymin) / float(ncols)
-            NoData_value = 0
+            geotransform = bathy_ds.GetGeoTransform()
 
             file_path = os.path.join(out_path, "paleo_dem.tif")
 
@@ -412,7 +476,7 @@ class DEMBuilder:
             raster.SetProjection(crs.ExportToWkt())
             raster.GetRasterBand(1).WriteArray(paleo_dem)
             raster = None
-            rlayer=self.iface.addRasterLayer(file_path, "Modified Bathymetry", "gdal")
+            rlayer=self.iface.addRasterLayer(file_path, "Compiled topography and Bathymetry", "gdal")
 
             """#Rendering a symbology style for the resulting raster layer"""
 
@@ -1110,7 +1174,8 @@ class DEMBuilder:
                     log("Smoothing was not successful")
 
             """#Rendering a symbology style for the resulting raster layer"""
-
+            #TODO move rendering function to topotools and use the function inside the processing tools
+            #TODO Modify the renderer the way that it recongnizes the elevation ranges in the raster better and adapts according to that.
             stats = rlayer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
             min = stats.minimumValue
             max = stats.maximumValue
@@ -1148,7 +1213,24 @@ class DEMBuilder:
             log("The plugin did not succeed because one or more parameters were set incorrectly.")
             log("Please, check the log above.")
 
+    def fill_smooth_dlg_load(self):
+        self.dlg5 = FillSmoothDialog()
 
+        # show the dialog
+        self.dlg5.show()
+
+
+        self.dlg5.runButton.pressed.connect(self.run_fill_smooth)
+
+    def run_fill_smooth(self):
+        fill_type = self.dlg5.fillingTypeBox.currentIndex
+        if fill_type==0:
+            base_raster_layer=self.dlg5.baseTopoBox.currentLayer()
+            base_raster_ds=gdal.Open(base_raster_layer.dataProvider().dataSourceUri())
+            base_raster_array=base_raster_ds.GetRasterBand(1).ReadAsArray()
+
+            #Check if the interpolation should be done for the whole raster or only inside the specified masks
+            #if
 
 
 
