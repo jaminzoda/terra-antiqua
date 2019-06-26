@@ -48,6 +48,15 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
+        #Specify the types for compilation
+        #list of options
+        options=['Baatsen-2016', 'Poblette']
+        self.reconstructionTypeBox.addItems(options)
+        #Elements of dialog are changed appropriately, when a reconstruction type is selected
+        self.reconstructionTypeBox.currentIndexChanged.connect(self.typeOfReconstruction)
+
+
+
         # clear the values in the dialog elements
         self.ageBox.setClearValue(0)
         self.ageBox.clear()  # clear the spinbox for the age of reconstructiton
@@ -100,6 +109,50 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectTopoIceButton.clicked.connect(self.addLayerToTopoIce)
         self.selectMasksButton.clicked.connect(self.addLayerToMasks)
 
+
+
+
+
+    #Change the elements of the dialog based on the type of reconstruction
+    def typeOfReconstruction(self):
+        current_index=self.reconstructionTypeBox.currentIndex()
+        if current_index==1:
+            self.selectOceanAge.setEnabled(False)
+            self.selectOceanAge.hide()
+            self.oceanAgeLabel.hide()
+            self.selectBathyButton.hide()
+
+            self.selectSbathy.setEnabled(False)
+            self.selectSbathy.hide()
+            self.shallowSeaLabel.hide()
+            self.selectSBathyButton.hide()
+
+            self.ageBox.setEnabled(False)
+            self.ageBox.hide()
+            self.ageBoxLabel.hide()
+
+            self.shelfDepthBox.setEnabled(False)
+            self.shelfDepthBox.hide()
+            self.shelfDepthBoxLabel.hide()
+
+        elif current_index==0:
+            self.selectOceanAge.setEnabled(True)
+            self.selectOceanAge.show()
+            self.oceanAgeLabel.show()
+            self.selectBathyButton.show()
+
+            self.selectSbathy.setEnabled(True)
+            self.selectSbathy.show()
+            self.shallowSeaLabel.show()
+            self.selectSBathyButton.show()
+
+            self.ageBox.setEnabled(True)
+            self.ageBox.show()
+            self.ageBoxLabel.show()
+
+            self.shelfDepthBox.setEnabled(True)
+            self.shelfDepthBox.show()
+            self.shelfDepthBoxLabel.show()
 
     #Function for enbling Ice topography combobox
     def enableIceTopoBox(self, state):
