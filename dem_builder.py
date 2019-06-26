@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import QAction, QToolBar
 from osgeo import gdal, osr, ogr
 from qgis.core import QgsVectorFileWriter, QgsVectorLayer,QgsExpression,QgsFeatureRequest,\
     QgsMessageLog,QgsRasterBandStats,QgsColorRampShader,QgsRasterShader,QgsSingleBandPseudoColorRenderer,\
-    QgsWkbTypes, QgsProject, QgsGeometry, NULL
+    QgsWkbTypes, QgsProject, QgsGeometry, NULL, QgsFeature
 
 import processing
 # Import the code for the dialog
@@ -248,36 +248,42 @@ class DEMBuilder:
             # Reading the paleobathymetry raster from Mueller et. al,.
             # getting ocean age layer
             ocean_age_layer = self.dlg.selectOceanAge.currentLayer()
-            # getting the paleobathymetry layer
-            bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
-            # getting the shallow sea bathynetry
-            s_bathy_layer = self.dlg.selectSbathy.currentLayer()
-
-            # reading the data from the layers
             age_ds = gdal.Open(ocean_age_layer.dataProvider().dataSourceUri())
-            bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
-            sbathy_ds = gdal.Open(s_bathy_layer.dataProvider().dataSourceUri())
-            paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
             ocean_age = age_ds.GetRasterBand(1).ReadAsArray()
+
+
+
+
+            # getting the shallow sea bathynetry
+
+            s_bathy_layer = self.dlg.selectSbathy.currentLayer()
+            sbathy_ds = gdal.Open(s_bathy_layer.dataProvider().dataSourceUri())
             s_bathy = sbathy_ds.GetRasterBand(1).ReadAsArray()
 
+
+
+            # getting the paleobathymetry layer
+            bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
+            bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
+            paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
+
             # creating a base grid for compiling topography and bathymetry
-            paleo_dem = np.empty(ocean_age.shape)
+            paleo_dem = np.empty(paleo_bathy.shape)
             paleo_dem[:] = np.nan
-            paleo_bathy[np.isnan(
-                paleo_bathy)] = 1  # setting the nan values to 1 for comparison - python raises warning messages, when comparing two matrices containing nan values
+            #paleo_bathy[np.isnan(paleo_bathy)] = 9999  # setting the nan values to 1 for comparison - python raises warning messages, when comparing two matrices containing nan values
             paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
+            paleo_dem[paleo_bathy>0]=0
+
 
             # calculating the ocean depth from the age
-            ocean_depth = np.empty(ocean_age.shape)
+            ocean_depth = np.empty(paleo_bathy.shape)
             ocean_depth[:] = np.nan
             r_time = self.dlg.ageBox.value()
             shelf_depth=self.dlg.shelfDepthBox.value()
-            ocean_age[np.isnan(ocean_age)] = -1
+            #ocean_age[np.isnan(ocean_age)] = -1 # This line was used only to set nan values to -1 because of the warnings that python gives when comparing two arrays with nan values.
             ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - r_time
             ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
             ocean_depth[ocean_age > 90] = -5750
-
             # Update the bathymetry, keeping mueller only where agegrid is undefined
             paleo_dem[np.isfinite(ocean_depth)] = ocean_depth[np.isfinite(ocean_depth)]
 
@@ -304,9 +310,14 @@ class DEMBuilder:
             expr_ss=QgsExpression( "\"layer\"='Shallow sea'" )
             expr_cs = QgsExpression("\"layer\"='Continental Shelves'")
             expr_coast = QgsExpression("\"layer\"='Continents'")
+
             ss_features=masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
             cs_features=masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
             coast_features=masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
+
+
+
+
 
             # Add extracted features (masks) to the temporary layers
             ss_prov.addFeatures(ss_features)
@@ -1110,7 +1121,8 @@ class DEMBuilder:
                     log("Smoothing was not successful")
 
             """#Rendering a symbology style for the resulting raster layer"""
-
+            #TODO move rendering function to topotools and use the function inside the processing tools
+            #TODO Modify the renderer the way that it recongnizes the elevation ranges in the raster better and adapts according to that.
             stats = rlayer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
             min = stats.minimumValue
             max = stats.maximumValue

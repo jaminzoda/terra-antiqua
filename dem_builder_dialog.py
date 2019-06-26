@@ -48,6 +48,11 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
+        #Specify the types for compilation
+        #list of options
+        options=['Baatsen-2016', 'Poblette']
+        self.compilationTypeBox.addItems(options)
+
         # clear the values in the dialog elements
         self.ageBox.setClearValue(0)
         self.ageBox.clear()  # clear the spinbox for the age of reconstructiton
