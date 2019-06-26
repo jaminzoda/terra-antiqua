@@ -60,6 +60,9 @@
        <string>Parameters</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
+<<<<<<< HEAD
+       <item row="0" column="0">
+=======
        <item row="0" column="1">
         <widget class="QTextBrowser" name="InfoBox">
          <property name="maximumSize">
@@ -74,6 +77,7 @@
         </widget>
        </item>
        <item row="0" column="0" alignment="Qt::AlignTop">
+>>>>>>> 3767460db5e9c323ad7265c3b0fba5e889f4fbb1
         <widget class="QScrollArea" name="scrollArea">
          <property name="enabled">
           <bool>true</bool>
@@ -109,7 +113,11 @@
           <property name="geometry">
            <rect>
             <x>0</x>
+<<<<<<< HEAD
+            <y>0</y>
+=======
             <y>-718</y>
+>>>>>>> 3767460db5e9c323ad7265c3b0fba5e889f4fbb1
             <width>497</width>
             <height>1115</height>
            </rect>
@@ -479,7 +487,7 @@
               </sizepolicy>
              </property>
              <property name="title">
-              <string>Interpolation and smoothing</string>
+              <string>Other parameters</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
@@ -490,6 +498,8 @@
                </widget>
               </item>
               <item>
+<<<<<<< HEAD
+=======
                <widget class="QCheckBox" name="smoothingBox">
                 <property name="text">
                  <string>Smooth resulting raster.</string>
@@ -536,6 +546,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
+>>>>>>> 3767460db5e9c323ad7265c3b0fba5e889f4fbb1
                <widget class="QLabel" name="outputLaber">
                 <property name="text">
                  <string>Output directory:</string>
@@ -550,6 +561,19 @@
            </item>
           </layout>
          </widget>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QTextBrowser" name="InfoBox">
+         <property name="maximumSize">
+          <size>
+           <width>200</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="placeholderText">
+          <string>Here we shall see the help text for the tool. </string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -705,8 +729,6 @@
   <tabstop>maxField</tabstop>
   <tabstop>maxSpin</tabstop>
   <tabstop>interpolationBox</tabstop>
-  <tabstop>smoothingBox</tabstop>
-  <tabstop>smFactorSpinBox</tabstop>
   <tabstop>logText</tabstop>
   <tabstop>cancelButton</tabstop>
  </tabstops>
