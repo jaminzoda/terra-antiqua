@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
-    <height>712</height>
+    <width>781</width>
+    <height>468</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -70,137 +70,170 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>440</width>
-            <height>584</height>
+            <width>514</width>
+            <height>354</height>
            </rect>
           </property>
-          <widget class="QCheckBox" name="smoothingBox">
-           <property name="geometry">
-            <rect>
-             <x>9</x>
-             <y>284</y>
-             <width>139</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Smooth resulting raster.</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_3">
-           <property name="geometry">
-            <rect>
-             <x>20</x>
-             <y>10</y>
-             <width>47</width>
-             <height>13</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>How do you want to fill the gaps? Interpolation or </string>
-           </property>
-          </widget>
-          <widget class="QWidget" name="">
-           <property name="geometry">
-            <rect>
-             <x>9</x>
-             <y>80</y>
-             <width>145</width>
-             <height>50</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout">
-            <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Select the topography raster:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QgsMapLayerComboBox" name="baseTopoBox"/>
-              </item>
-              <item>
-               <widget class="QToolButton" name="selectTopoBaseButton">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="">
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Select vector a layer with the rotated  paleoshorelines:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
-              <item>
-               <widget class="QgsMapLayerComboBox" name="masksBox"/>
-              </item>
-              <item>
-               <widget class="QToolButton" name="selectMasksButton">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="">
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <property name="spacing">
-             <number>6</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Smoothing factor(in grid cells):</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="smFactorSpinBox">
-              <property name="minimum">
-               <number>1</number>
-              </property>
-              <property name="maximum">
-               <number>5</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="">
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <item>
-             <widget class="QLabel" name="outputLabel">
-              <property name="text">
-               <string>Output directory:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QgsFileWidget" name="outputPath"/>
-            </item>
-           </layout>
-          </widget>
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>How do you want to fill the gaps? Interpolation or simple filling?</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="fillingTypeBox"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <widget class="QLabel" name="baseRasterLabel">
+               <property name="text">
+                <string>Select the base  raster:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <widget class="QgsMapLayerComboBox" name="baseTopoBox"/>
+               </item>
+               <item>
+                <widget class="QToolButton" name="selectTopoBaseButton">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QLabel" name="copyFromRasterLabel">
+               <property name="text">
+                <string>Select the  raster to copy values from:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QgsMapLayerComboBox" name="copyFromRasterBox"/>
+               </item>
+               <item>
+                <widget class="QToolButton" name="selectCopyFromRasterButton">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <widget class="QCheckBox" name="interpolateAllCheckBox">
+               <property name="text">
+                <string>Interpolatte values for all gaps.</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="interpolateInMaskCheckBox">
+               <property name="text">
+                <string>Interpolatte values inside masks only.</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLabel" name="masksBoxLabel">
+               <property name="text">
+                <string>Select a vector  layer with the masks:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <item>
+                <widget class="QgsMapLayerComboBox" name="masksBox"/>
+               </item>
+               <item>
+                <widget class="QToolButton" name="selectMasksButton">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <item>
+              <widget class="QCheckBox" name="smoothingBox">
+               <property name="text">
+                <string>Smooth resulting raster.</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Smoothing factor(in grid cells):</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="smFactorSpinBox">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>5</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QLabel" name="outputLabel">
+               <property name="text">
+                <string>Output directory:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QgsFileWidget" name="outputPath"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </widget>
         </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboBox"/>
        </item>
        <item>
         <widget class="QTextBrowser" name="InfoBox">
