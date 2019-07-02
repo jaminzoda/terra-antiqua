@@ -30,7 +30,7 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVa
 from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import QAction, QToolBar
 from osgeo import gdal, osr, ogr
-from qgis.core import QgsVectorFileWriter, QgsVectorLayer,QgsExpression,QgsFeatureRequest,\
+from qgis.core import QgsVectorFileWriter, QgsRasterLayer, QgsVectorLayer,QgsExpression,QgsFeatureRequest,\
     QgsMessageLog,QgsRasterBandStats,QgsColorRampShader,QgsRasterShader,QgsSingleBandPseudoColorRenderer,\
     QgsWkbTypes, QgsProject, QgsGeometry, NULL, QgsFeature
 
@@ -1223,14 +1223,70 @@ class DEMBuilder:
         self.dlg5.runButton.pressed.connect(self.run_fill_smooth)
 
     def run_fill_smooth(self):
-        fill_type = self.dlg5.fillingTypeBox.currentIndex
+        fill_type = self.dlg5.fillingTypeBox.currentIndex()
+
         if fill_type==0:
             base_raster_layer=self.dlg5.baseTopoBox.currentLayer()
-            base_raster_ds=gdal.Open(base_raster_layer.dataProvider().dataSourceUri())
-            base_raster_array=base_raster_ds.GetRasterBand(1).ReadAsArray()
+            out_file_path=self.dlg5.outputPath.filePath()
+            interpolated_raster=rt.fill_no_data(base_raster_layer,out_file_path)
 
-            #Check if the interpolation should be done for the whole raster or only inside the specified masks
-            #if
+            if self.dlg5.smoothingBox.isChecked():
+                #Get the layer for smoothing
+                interpolated_raster_layer=QgsRasterLayer(interpolated_raster, 'Interpolated Raster for smoothing', 'gdal')
+                print(interpolated_raster_layer)
+                #Get smoothing factor
+                sm_factor=self.dlg5.smFactorSpinBox.value()
+                rt.raster_smoothing(interpolated_raster_layer, sm_factor)
+        elif fill_type==1:
+            #Get a raster layer to copy the elevation values FROM
+            from_raster_layer= self.dlg5.copyFromRasterBox.currentLayer()
+            from_raster=gdal.Open(from_raster_layer.dataProvider().dataSourceUri())
+            from_array=from_raster.GetRasterBand(1).ReadAsArray()
+
+
+            #Get a raster layer to copy the elevation values TO
+            to_raster_layer = self.dlg5.baseTopoBox.currentLayer()
+            to_raster = gdal.Open(to_raster_layer.dataProvider().dataSourceUri())
+            to_array = to_raster.GetRasterBand(1).ReadAsArray()
+
+
+            #Get a vector coontaining masks
+            mask_vector_layer=self.dlg5.masksBox.currentLayer()
+
+            #Get the path for saving the resulting raster
+            filled_raster_path=self.dlg5.outputPath.filePath()
+
+            #Rasterize masks
+            geotransform=to_raster.GetGeoTransform()
+            nrows,ncols=to_array.shape
+            out_path=os.path.dirname(self.dlg5.outputPath.filePath())
+            name_of_mask='mask_fill_a_raster_from_another.tif'
+            mask_array=vt.vector_to_raster(mask_vector_layer,geotransform,ncols, nrows, name_of_mask)
+
+            #Fill the raster
+            to_array[mask_array==1]=from_array[mask_array==1]
+
+            #Create a new raster for the result
+            output_raster=gdal.GetDriverByName('GTiff').Create(filled_raster_path,ncols,nrows,1,gdal.GDT_Int32)
+            output_raster.SetGeoTransform(geotransform)
+            crs=to_raster.crs()
+            output_raster.SetProjection(crs.toWkt())
+            output_band=output_raster.GetRasterBand(1)
+            output_band.SetNoDataValue(np.nan)
+            output_band.WriteArray(to_array)
+            output_band.FlushCache()
+            output_raster=None
+
+
+
+
+
+
+
+
+
+
+
 
 
 
