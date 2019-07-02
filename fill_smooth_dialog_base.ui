@@ -70,8 +70,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>514</width>
-            <height>354</height>
+            <width>531</width>
+            <height>340</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -140,24 +140,6 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_7">
-             <item>
-              <widget class="QCheckBox" name="interpolateAllCheckBox">
-               <property name="text">
-                <string>Interpolatte values for all gaps.</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="interpolateInMaskCheckBox">
-               <property name="text">
-                <string>Interpolatte values inside masks only.</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
               <widget class="QLabel" name="masksBoxLabel">
@@ -183,7 +165,7 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_6">
+            <layout class="QVBoxLayout" name="smoothingLayout">
              <item>
               <widget class="QCheckBox" name="smoothingBox">
                <property name="text">
@@ -197,7 +179,7 @@
                 <number>6</number>
                </property>
                <item>
-                <widget class="QLabel" name="label_7">
+                <widget class="QLabel" name="smoothingLabel">
                  <property name="text">
                   <string>Smoothing factor(in grid cells):</string>
                  </property>

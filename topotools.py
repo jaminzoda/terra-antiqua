@@ -6,6 +6,7 @@ import os.path
 import numpy as np
 from osgeo import gdal, osr, ogr, gdalconst
 from qgis.core import QgsVectorLayer, QgsRasterLayer
+import processing
 from .topo_modifier_dialog import TopoModifierDialog
 
 
@@ -17,17 +18,17 @@ class RasterTools(QgsRasterLayer):
 		super.__init__(self)
 
 
-	def fill_no_data(self, no_data_value=None):
+	def fill_no_data(self, out_file_path, no_data_value=None):
 		"""
 		Fils the missing data by interpolating from edges.
 		:param in_layer: QgsRasterLayer
-		:param no_data_value: NoDataValue of the input layer
+		:param no_data_value: NoDataValue of the input layer. These values to be set to np.nan during the interpolation.
 		:param vlayer: A vector layer with masks for interpolating only inside masks
-		:return: Boolean
+		:return: String - the path of the output file.
 		"""
-		#Get the input raster dataset
+		# (1) Get the input raster dataset
 		rlayer=self
-		raster_ds = gdal.Open(rlayer.dataProvider().dataSourceUri(), gdalconst.GA_Update)
+		raster_ds = gdal.Open(rlayer.dataProvider().dataSourceUri())
 		in_band = raster_ds.GetRasterBand(1)
 		in_array = in_band.ReadAsArray()
 
@@ -39,7 +40,9 @@ class RasterTools(QgsRasterLayer):
 		if no_data_value != None:
 			in_array[in_array == no_data_value] = np.nan
 
-		#Define the parameters for creating a mask raster of valid values.
+
+		# (2) Define the parameters for creating a mask raster of valid values.
+		#TODO move this mask into the temporary directory of the OS
 		path=os.path.split(rlayer.dataProvider().dataSourceUri())[0]
 		mask_name="mask_"+os.path.split(rlayer.dataProvider().dataSourceUri())[1]
 		mask_file=os.path.join(path,mask_name)
@@ -55,22 +58,46 @@ class RasterTools(QgsRasterLayer):
 		#Create Target - TIFF
 		out_raster = gdal.GetDriverByName('GTiff').Create(mask_file, cols, rows, 1, gdal.GDT_Byte)
 		out_raster.SetGeoTransform(geotransform)
+		crs = osr.SpatialReference()
+		crs.ImportFromEPSG(4326)
+		out_raster.SetProjection(crs.ExportToWkt())
 		out_band = out_raster.GetRasterBand(1)
 		out_band.SetNoDataValue(np.nan)
 		out_band.WriteArray(out_array)
+		out_band.FlushCache()
+		out_raster = None
 
-		result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
-								 maxSearchDist = 100, smoothingIterations = 0)
+
+		# (3) Interpolation (filling the gaps)
+		#Interpolation using the python bindings (package) of gdal
+
+		#result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
+		#						 maxSearchDist = 100, smoothingIterations = 0)
+
+		#interpolation with the processinig module
+		input_layer=rlayer.dataProvider().dataSourceUri()
+		mask=QgsRasterLayer(mask_file,'Validity mask', 'gdal')
+		mask_layer=mask.dataProvider().dataSourceUri()
+		processing.run("gdal:fillnodata",{'INPUT': input_layer, 'BAND': 1,'DISTANCE': 100, 'ITERATIONS': 0, 'NO_MASK': False, 'MASK_LAYER': mask_layer,'OUTPUT': out_file_path})
+
 		in_band.FlushCache()
 
 		raster_ds = None
-		out_raster = None
-		return result
 
-	def raster_smoothing(self, factor):
+
+		# (4) delete the validity mask file
+		mask=None
+		driver = gdal.GetDriverByName('GTiff')
+		if os.path.exists(mask_file):
+			driver.Delete(mask_file)
+
+		return out_file_path
+
+	def raster_smoothing(self, factor, out_file=None):
 		"""
 		Smoothes values of pixels in a raster  by averaging  values around them
 		:param self, in_layer: input raster layer for smoothing
+		:param out_file: String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated.
 		:return:Boolean
 		"""
 
@@ -94,9 +121,24 @@ class RasterTools(QgsRasterLayer):
 				out_array[i, j] = np.mean(in_array[y_vector, x_vector])
 
 
+		#Write the smoothed raster
+		#If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
+		if out_file!=None:
+			if os.path.exists(out_file):
+				driver=gdal.GetDriverByName('GTiff')
+				driver.Delete(out_file)
+			geotransform=raster_ds.GetGeoTransform()
+			smoothed_raster=gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Byte)
+			smoothed_raster.SetGeoTransform(geotransform)
+			crs = rlayer.crs()
+			smoothed_raster.SetProjection(crs.toWkt())
+			smoothed_band=smoothed_raster.GetRasterBand(1)
+			smoothed_band.WriteArray(out_array)
+			smoothed_band.FlushCache()
+		else:
+			in_band.WriteArray(out_array)
+			in_band.FlushCache()
 
-		in_band.WriteArray(out_array)
-		in_band.FlushCache()
 		return True
 class VectorTools(QgsVectorLayer):
 	def __init__(self):
@@ -235,5 +277,42 @@ class ArrayTools(np.ndarray):
 		topo[np.isfinite(x)]=x[np.isfinite(x)]
 
 		return topo
-
+	# def interpolate(self, no_data_value):
+	# 	"""
+	# 	:input array: an input numpy array which contains nan values wherever the raster has gaps.
+	# 	:no_data_value: if a raster contains no_data_values defined customly, like 9999, they should be set to np.nan before interpolation for masking the areas with valid/invalid values.
+	# 	:return: returns a numpy array (with gaps filled by IDW interpolation).
+	# 	"""
+	#
+	# 	in_array=self
+	# 	if no_data_value != None:
+	# 		in_array[in_array == no_data_value] = np.nan
+	#
+	# 	#Define the parameters for creating a mask raster of valid values.
+	# 	path=os.path.split(rlayer.dataProvider().dataSourceUri())[0]
+	# 	mask_name="mask_"+os.path.split(rlayer.dataProvider().dataSourceUri())[1]
+	# 	mask_file=os.path.join(path,mask_name)
+	# 	geotransform = raster_ds.GetGeoTransform()
+	# 	cols = in_array.shape[1]
+	# 	rows = in_array.shape[0]
+	#
+	# 	out_array = np.ones(in_array.shape)
+	#
+	# 	out_array[np.isnan(in_array)] = np.nan
+	# 	out_array[np.isfinite(in_array)] = 1
+	#
+	# 	#Create Target - TIFF
+	# 	out_raster = gdal.GetDriverByName('GTiff').Create(mask_file, cols, rows, 1, gdal.GDT_Byte)
+	# 	out_raster.SetGeoTransform(geotransform)
+	# 	out_band = out_raster.GetRasterBand(1)
+	# 	out_band.SetNoDataValue(np.nan)
+	# 	out_band.WriteArray(out_array)
+	#
+	# 	result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
+	# 							 maxSearchDist = 100, smoothingIterations = 0)
+	# 	in_band.FlushCache()
+	#
+	# 	raster_ds = None
+	# 	out_raster = None
+	# 	return result
 

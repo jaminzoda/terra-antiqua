@@ -29,10 +29,18 @@ class FillSmoothDialog(QtWidgets.QDialog, FORM_CLASS):
         self.fillingTypeBox.addItems(options)
         # Elements of dialog are changed appropriately, when a filling type is selected
         self.fillingTypeBox.currentIndexChanged.connect(self.typeOfFilling)
+        #Set the default appearance of the dialog
+        self.copyFromRasterBox.hide()
+        self.copyFromRasterLabel.hide()
+        self.selectCopyFromRasterButton.hide()
+        self.masksBox.hide()
+        self.selectMasksButton.hide()
+        self.masksBoxLabel.hide()
+
 
 
         #Set the mode of QgsFileWidget to directory mode
-        self.outputPath.setStorageMode(self.outputPath.GetDirectory)
+        self.outputPath.setStorageMode(self.outputPath.SaveFile)
 
         #Base topography layer
         self.baseTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
@@ -60,10 +68,7 @@ class FillSmoothDialog(QtWidgets.QDialog, FORM_CLASS):
         self.masksBox.layerChanged.connect(self.enableRunButton)
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
 
-        #Set the type of interpolation
-        self.interpolateAllCheckBox.setChecked(True)
-        self.interpolateAllCheckBox.stateChanged.connect(self.allRasterInterpolationChecked)
-        self.interpolateInMaskCheckBox.stateChanged.connect(self.inMaskInterpolationChecked)
+
 
 
     def typeOfFilling(self):
@@ -72,42 +77,37 @@ class FillSmoothDialog(QtWidgets.QDialog, FORM_CLASS):
             self.copyFromRasterBox.hide()
             self.copyFromRasterLabel.hide()
             self.selectCopyFromRasterButton.hide()
-            self.interpolateAllCheckBox.show()
-            self.interpolateInMaskCheckBox.show()
-            self.masksBox.show()
-            self.selectMasksButton.show()
-            self.masksBoxLabel.show()
+
+            self.masksBox.hide()
+            self.selectMasksButton.hide()
+            self.masksBoxLabel.hide()
+            self.smoothingBox.show()
+            self.smoothingLabel.show()
+            self.smFactorSpinBox.show()
 
         elif current_index == 1:
             self.copyFromRasterBox.show()
             self.copyFromRasterLabel.show()
             self.selectCopyFromRasterButton.show()
-            self.interpolateAllCheckBox.hide()
-            self.interpolateInMaskCheckBox.hide()
             self.masksBox.show()
             self.selectMasksButton.show()
             self.masksBoxLabel.show()
+            self.smoothingBox.hide()
+            self.smoothingLabel.hide()
+            self.smFactorSpinBox.hide()
+
         elif current_index==2:
             self.copyFromRasterBox.hide()
             self.copyFromRasterLabel.hide()
             self.selectCopyFromRasterButton.hide()
-            self.interpolateAllCheckBox.hide()
-            self.interpolateInMaskCheckBox.hide()
+
             self.masksBox.hide()
             self.selectMasksButton.hide()
             self.masksBoxLabel.hide()
             self.smoothingBox.hide()
+            self.smoothingLabel.show()
+            self.smFactorSpinBox.show()
 
-    def allRasterInterpolationChecked(self,state):
-        if state>0:
-            self.interpolateInMaskCheckBox.setChecked(False)
-            self.masksBox.setEnabled(False)
-            self.selectMasksButton.setEnabled(False)
-    def inMaskInterpolationChecked(self,state):
-        if state>0:
-            self.interpolateAllCheckBox.setChecked(False)
-            self.masksBox.setEnabled(True)
-            self.selectMasksButton.setEnabled(True)
 
 
 
