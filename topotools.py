@@ -4,10 +4,12 @@ import os
 import os.path
 
 import numpy as np
-from osgeo import gdal, osr, ogr, gdalconst
-from qgis.core import QgsVectorLayer, QgsRasterLayer
 import processing
-from .topo_modifier_dialog import TopoModifierDialog
+from PyQt5.QtGui import QColor
+from osgeo import gdal, osr, ogr
+from osgeo import gdalconst
+from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsRasterBandStats, QgsColorRampShader, QgsRasterShader, \
+	QgsSingleBandPseudoColorRenderer
 
 
 # Import the code for the dialog
@@ -128,7 +130,7 @@ class RasterTools(QgsRasterLayer):
 				driver=gdal.GetDriverByName('GTiff')
 				driver.Delete(out_file)
 			geotransform=raster_ds.GetGeoTransform()
-			smoothed_raster=gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Byte)
+			smoothed_raster=gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Float32)
 			smoothed_raster.SetGeoTransform(geotransform)
 			crs = rlayer.crs()
 			smoothed_raster.SetProjection(crs.toWkt())
@@ -140,6 +142,46 @@ class RasterTools(QgsRasterLayer):
 			in_band.FlushCache()
 
 		return True
+
+	def set_raster_symbology(self):
+		"""
+		Applies a color palette to a raster layer.
+		:return:
+		"""
+
+		stats = self.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
+		min = stats.minimumValue
+		max = stats.maximumValue
+		ramp_shader = QgsColorRampShader()
+		ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
+
+		lst = [ramp_shader.ColorRampItem(min, QColor(0, 0, 90), str(round(min))),
+			   ramp_shader.ColorRampItem(0, QColor(100, 255, 255), '0'),
+			   ramp_shader.ColorRampItem(1, QColor(0, 150, 0), '1'),
+			   ramp_shader.ColorRampItem(200, QColor(0, 255, 0), '200'),
+			   ramp_shader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
+			   ramp_shader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
+			   ramp_shader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
+			   ramp_shader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
+			   ramp_shader.ColorRampItem(max, QColor(255, 255, 255), str(round(max)))]
+
+		ramp_shader.setColorRampItemList(lst)
+
+		# We’ll assign the color ramp to a QgsRasterShader
+		# so it can be used to symbolize a raster layer.
+		shader = QgsRasterShader()
+		shader.setRasterShaderFunction(ramp_shader)
+
+		"""Finally, we need to apply the symbology we’ve create to the raster layer. 
+        First, we’ll create a renderer using our raster shader. 
+        Then we’ll Assign the renderer to our raster layer."""
+
+		renderer = QgsSingleBandPseudoColorRenderer(self.dataProvider(), 1, shader)
+		self.setRenderer(renderer)
+		self.triggerRepaint()
+
+
+
 class VectorTools(QgsVectorLayer):
 	def __init__(self):
 		super.__init__(self)
