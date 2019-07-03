@@ -1232,11 +1232,22 @@ class DEMBuilder:
 
             if self.dlg5.smoothingBox.isChecked():
                 #Get the layer for smoothing
-                interpolated_raster_layer=QgsRasterLayer(interpolated_raster, 'Interpolated Raster for smoothing', 'gdal')
-                print(interpolated_raster_layer)
+                interpolated_raster_layer=QgsRasterLayer(interpolated_raster, 'Interpolated DEM', 'gdal')
+
                 #Get smoothing factor
                 sm_factor=self.dlg5.smFactorSpinBox.value()
+                #Smooth the raster
                 rt.raster_smoothing(interpolated_raster_layer, sm_factor)
+
+
+            #Add the interolated raster to the map canvas
+            if self.dlg5.addToCanvasCheckBox.isChecked():
+                # Get the name of the file from its path to add the raster with this name to the map canvas.
+                file_name = os.path.splitext(os.path.basename(interpolated_raster))[0]
+                resulting_layer = self.iface.addRasterLayer(interpolated_raster, file_name,"gdal")
+                #Apply a colour palette to the added layer
+                rt.set_raster_symbology(resulting_layer)
+
         elif fill_type==1:
             #Get a raster layer to copy the elevation values FROM
             from_raster_layer= self.dlg5.copyFromRasterBox.currentLayer()
@@ -1261,21 +1272,35 @@ class DEMBuilder:
             nrows,ncols=to_array.shape
             out_path=os.path.dirname(self.dlg5.outputPath.filePath())
             name_of_mask='mask_fill_a_raster_from_another.tif'
-            mask_array=vt.vector_to_raster(mask_vector_layer,geotransform,ncols, nrows, name_of_mask)
+            mask_array=vt.vector_to_raster(mask_vector_layer,out_path,geotransform,ncols, nrows, name_of_mask)
 
             #Fill the raster
             to_array[mask_array==1]=from_array[mask_array==1]
 
+
             #Create a new raster for the result
-            output_raster=gdal.GetDriverByName('GTiff').Create(filled_raster_path,ncols,nrows,1,gdal.GDT_Int32)
+            output_raster=gdal.GetDriverByName('GTiff').Create(filled_raster_path,ncols,nrows,1,gdal.GDT_Float32)
             output_raster.SetGeoTransform(geotransform)
-            crs=to_raster.crs()
+            crs=to_raster_layer.crs()
             output_raster.SetProjection(crs.toWkt())
             output_band=output_raster.GetRasterBand(1)
             output_band.SetNoDataValue(np.nan)
             output_band.WriteArray(to_array)
             output_band.FlushCache()
             output_raster=None
+
+            # Add the interolated raster to the map canvas
+            if self.dlg5.addToCanvasCheckBox.isChecked():
+                #Get the name of the file from its path to add the raster with this name to the map canvas.
+                file_name=os.path.splitext(os.path.basename(filled_raster_path))[0]
+                resulting_layer = self.iface.addRasterLayer(filled_raster_path, file_name, "gdal")
+                # Apply a colour palette to the added layer
+                rt.set_raster_symbology(resulting_layer)
+        elif fill_type==2:
+            pass
+
+
+
 
 
 
