@@ -24,7 +24,8 @@ class PaleocoastlinesDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
 
         #Set the mode of QgsFileWidget to directory mode
-        self.outputPath.setStorageMode(self.outputPath.GetDirectory)
+        self.outputPath.setStorageMode(self.outputPath.SaveFile)
+        self.outputPath.setFilter('*.tif;;*.tiff')
         #Base topography layer
         self.baseTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.baseTopoBox.setLayer(None)
@@ -49,20 +50,12 @@ class PaleocoastlinesDialog(QtWidgets.QDialog, FORM_CLASS):
 
 
 
-    def enableFormulaText(self):
-        pass
-
-
-
-
-
-
     def enableRunButton(self):
         if  self.baseTopoBox.currentLayer()!=None and self.masksBox.currentLayer()!=None:
             self.runButton.setEnabled(True)
             self.warningLabel.setText('')
         else:
-            self.warningLabel.setText('Plaese, select all the mandatory fields.')
+            self.warningLabel.setText('Please, select all the mandatory fields.')
             self.warningLabel.setStyleSheet('color:red')
 
 
