@@ -98,13 +98,13 @@ class RasterTools(QgsRasterLayer):
 	def raster_smoothing(self, factor, out_file=None):
 		"""
 		Smoothes values of pixels in a raster  by averaging  values around them
-		:param self, in_layer: input raster layer for smoothing
-		:param out_file: String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated.
-		:return:Boolean
+		:param self, in_layer: input raster layer (QgsRasterLayer) for smoothing
+		:param out_file: String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will be written in a new raster, otherwise the old raster will be updated.
+		:return:QgsRasterLayer. Smoothed raster layer.
 		"""
 
-		rlayer = self
-		raster_ds = gdal.Open(rlayer.dataProvider().dataSourceUri(), gdalconst.GA_Update)
+
+		raster_ds = gdal.Open(self.dataProvider().dataSourceUri(), gdalconst.GA_Update)
 		in_band = raster_ds.GetRasterBand(1)
 		in_array = in_band.ReadAsArray()
 		rows=in_array.shape[0]
@@ -132,20 +132,34 @@ class RasterTools(QgsRasterLayer):
 			geotransform=raster_ds.GetGeoTransform()
 			smoothed_raster=gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Float32)
 			smoothed_raster.SetGeoTransform(geotransform)
-			crs = rlayer.crs()
+			crs = self.crs()
 			smoothed_raster.SetProjection(crs.toWkt())
 			smoothed_band=smoothed_raster.GetRasterBand(1)
 			smoothed_band.WriteArray(out_array)
 			smoothed_band.FlushCache()
+
+			# Close datasets
+			raster_ds = None
+			smoothed_raster = None
+
+			#Get the resulting layer to return
+			smoothed_layer=QgsRasterLayer(out_file,'Smoothed paleoDEM', 'gdal')
 		else:
 			in_band.WriteArray(out_array)
 			in_band.FlushCache()
 
-		return True
+			#Close the dataset
+			raster_ds = None
+
+			#Get the resulting layer to return
+			smoothed_layer = QgsRasterLayer(self.dataProvider().dataSourceUri(), 'Smoothed paleoDEM', 'gdal')
+
+
+		return smoothed_layer
 
 	def set_raster_symbology(self):
 		"""
-		Applies a color palette to a raster layer.
+		Applies a color palette to a raster layer. It does not add the raster layer to the Map canvas. Before passing a layer to this function, it should be added to the map canvas.
 		:return:
 		"""
 
@@ -186,28 +200,19 @@ class VectorTools(QgsVectorLayer):
 	def __init__(self):
 		super.__init__(self)
 
-	def vector_to_raster(self, out_path, geotransform, ncols, nrows, name_of_mask):
+	def vector_to_raster(self, geotransform, ncols, nrows):
+		"""
+		Rasterizes a vector layer and returns a numpy array.
 
-		v_layer=self
-		# if the folder for storing the rasters is created. If not it will be created
-		path = os.path.join(out_path, "raster_masks")
-
-		if not os.path.exists(path):
-			try:
-				os.mkdir(path)
-			except OSError:
-				print("Creation of the directory %s failed" % path)
-			else:
-				print("Successfully created the directory %s " % path)
-		else:
-			print("The folder raster_masks is already created.")
-
-		# In and out files
-		out_raster_file = os.path.join(path, name_of_mask + ".tif")
+		:param geotransform: geotransform for the resulting raster layer.
+		:param ncols: number of columns in the raster. Should be consistent with the raster that the masks will deployed on.
+		:param nrows: number of rows in the raster. Should be consistent with the raster that the masks will deployed on.
+		:return: Numpy array.
+		"""
 
 		# Opening the shapefile of the layer specified in the user dialog combobox selectSsMask
 		try:
-			in_shapefile = ogr.Open(v_layer.source())
+			in_shapefile = ogr.Open(self.source())
 
 			if in_shapefile:  # checks to see if shapefile was successfully defined
 				v_layer = in_shapefile.GetLayer()
@@ -218,8 +223,8 @@ class VectorTools(QgsVectorLayer):
 			print("Exception raised during shapefile loading")
 
 		NoData_value = 0
-		# getting the real work done
-		mask_raster = gdal.GetDriverByName('GTiff').Create(out_raster_file, ncols, nrows, 1, gdal.GDT_Int32)
+		# Create a temporary raster file to save the raster mask in. Define spatial referece system, and get the raster band for writing the mask.
+		mask_raster = gdal.GetDriverByName('MEM').Create('', ncols, nrows, 1, gdal.GDT_Int32)
 		mask_raster.SetGeoTransform(geotransform)
 		crs = osr.SpatialReference()
 		crs.ImportFromEPSG(4326)
@@ -227,11 +232,14 @@ class VectorTools(QgsVectorLayer):
 		band = mask_raster.GetRasterBand(1)
 		band.SetNoDataValue(NoData_value)
 
+		#Rasterize mask layer
 		gdal.RasterizeLayer(mask_raster, [1], v_layer, burn_values = [1])
-		mask_raster = None
-		band = None
-		raster = gdal.Open(out_raster_file)
-		raster_array = raster.GetRasterBand(1).ReadAsArray()
+		band.FlushCache()
+		raster_array=band.ReadAsArray()
+		in_shapefile=None
+		v_layer=None
+		mask_raster=None
+
 		return raster_array
 
 
