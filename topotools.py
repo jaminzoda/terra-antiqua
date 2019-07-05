@@ -4,9 +4,12 @@ import os
 import os.path
 
 import numpy as np
-from osgeo import gdal, osr, ogr, gdalconst
-from qgis.core import QgsVectorLayer, QgsRasterLayer
-from .topo_modifier_dialog import TopoModifierDialog
+import processing
+from PyQt5.QtGui import QColor
+from osgeo import gdal, osr, ogr
+from osgeo import gdalconst
+from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsRasterBandStats, QgsColorRampShader, QgsRasterShader, \
+	QgsSingleBandPseudoColorRenderer
 
 
 # Import the code for the dialog
@@ -17,16 +20,17 @@ class RasterTools(QgsRasterLayer):
 		super.__init__(self)
 
 
-	def fill_no_data(self, no_data_value=None):
+	def fill_no_data(self, out_file_path, no_data_value=None):
 		"""
 		Fils the missing data by interpolating from edges.
 		:param in_layer: QgsRasterLayer
-		:param no_data_value: NoDataValue of the input layer
-		:return: Boolean
+		:param no_data_value: NoDataValue of the input layer. These values to be set to np.nan during the interpolation.
+		:param vlayer: A vector layer with masks for interpolating only inside masks
+		:return: String - the path of the output file.
 		"""
-		#Get the input raster dataset
+		# (1) Get the input raster dataset
 		rlayer=self
-		raster_ds = gdal.Open(rlayer.dataProvider().dataSourceUri(), gdalconst.GA_Update)
+		raster_ds = gdal.Open(rlayer.dataProvider().dataSourceUri())
 		in_band = raster_ds.GetRasterBand(1)
 		in_array = in_band.ReadAsArray()
 
@@ -38,7 +42,9 @@ class RasterTools(QgsRasterLayer):
 		if no_data_value != None:
 			in_array[in_array == no_data_value] = np.nan
 
-		#Define the parameters for creating a mask raster of valid values.
+
+		# (2) Define the parameters for creating a mask raster of valid values.
+		#TODO move this mask into the temporary directory of the OS
 		path=os.path.split(rlayer.dataProvider().dataSourceUri())[0]
 		mask_name="mask_"+os.path.split(rlayer.dataProvider().dataSourceUri())[1]
 		mask_file=os.path.join(path,mask_name)
@@ -54,27 +60,51 @@ class RasterTools(QgsRasterLayer):
 		#Create Target - TIFF
 		out_raster = gdal.GetDriverByName('GTiff').Create(mask_file, cols, rows, 1, gdal.GDT_Byte)
 		out_raster.SetGeoTransform(geotransform)
+		crs = osr.SpatialReference()
+		crs.ImportFromEPSG(4326)
+		out_raster.SetProjection(crs.ExportToWkt())
 		out_band = out_raster.GetRasterBand(1)
 		out_band.SetNoDataValue(np.nan)
 		out_band.WriteArray(out_array)
+		out_band.FlushCache()
+		out_raster = None
 
-		result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
-								 maxSearchDist = 100, smoothingIterations = 0)
+
+		# (3) Interpolation (filling the gaps)
+		#Interpolation using the python bindings (package) of gdal
+
+		#result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
+		#						 maxSearchDist = 100, smoothingIterations = 0)
+
+		#interpolation with the processinig module
+		input_layer=rlayer.dataProvider().dataSourceUri()
+		mask=QgsRasterLayer(mask_file,'Validity mask', 'gdal')
+		mask_layer=mask.dataProvider().dataSourceUri()
+		processing.run("gdal:fillnodata",{'INPUT': input_layer, 'BAND': 1,'DISTANCE': 100, 'ITERATIONS': 0, 'NO_MASK': False, 'MASK_LAYER': mask_layer,'OUTPUT': out_file_path})
+
 		in_band.FlushCache()
 
 		raster_ds = None
-		out_raster = None
-		return result
 
-	def raster_smoothing(self, factor):
+
+		# (4) delete the validity mask file
+		mask=None
+		driver = gdal.GetDriverByName('GTiff')
+		if os.path.exists(mask_file):
+			driver.Delete(mask_file)
+
+		return out_file_path
+
+	def raster_smoothing(self, factor, out_file=None):
 		"""
 		Smoothes values of pixels in a raster  by averaging  values around them
-		:param self, in_layer: input raster layer for smoothing
-		:return:Boolean
+		:param self, in_layer: input raster layer (QgsRasterLayer) for smoothing
+		:param out_file: String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will be written in a new raster, otherwise the old raster will be updated.
+		:return:QgsRasterLayer. Smoothed raster layer.
 		"""
 
-		rlayer = self
-		raster_ds = gdal.Open(rlayer.dataProvider().dataSourceUri(), gdalconst.GA_Update)
+
+		raster_ds = gdal.Open(self.dataProvider().dataSourceUri(), gdalconst.GA_Update)
 		in_band = raster_ds.GetRasterBand(1)
 		in_array = in_band.ReadAsArray()
 		rows=in_array.shape[0]
@@ -93,36 +123,96 @@ class RasterTools(QgsRasterLayer):
 				out_array[i, j] = np.mean(in_array[y_vector, x_vector])
 
 
+		#Write the smoothed raster
+		#If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
+		if out_file!=None:
+			if os.path.exists(out_file):
+				driver=gdal.GetDriverByName('GTiff')
+				driver.Delete(out_file)
+			geotransform=raster_ds.GetGeoTransform()
+			smoothed_raster=gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Float32)
+			smoothed_raster.SetGeoTransform(geotransform)
+			crs = self.crs()
+			smoothed_raster.SetProjection(crs.toWkt())
+			smoothed_band=smoothed_raster.GetRasterBand(1)
+			smoothed_band.WriteArray(out_array)
+			smoothed_band.FlushCache()
 
-		in_band.WriteArray(out_array)
-		in_band.FlushCache()
-		return True
+			# Close datasets
+			raster_ds = None
+			smoothed_raster = None
+
+			#Get the resulting layer to return
+			smoothed_layer=QgsRasterLayer(out_file,'Smoothed paleoDEM', 'gdal')
+		else:
+			in_band.WriteArray(out_array)
+			in_band.FlushCache()
+
+			#Close the dataset
+			raster_ds = None
+
+			#Get the resulting layer to return
+			smoothed_layer = QgsRasterLayer(self.dataProvider().dataSourceUri(), 'Smoothed paleoDEM', 'gdal')
+
+
+		return smoothed_layer
+
+	def set_raster_symbology(self):
+		"""
+		Applies a color palette to a raster layer. It does not add the raster layer to the Map canvas. Before passing a layer to this function, it should be added to the map canvas.
+		:return:
+		"""
+
+		stats = self.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
+		min = stats.minimumValue
+		max = stats.maximumValue
+		ramp_shader = QgsColorRampShader()
+		ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
+
+		lst = [ramp_shader.ColorRampItem(min, QColor(0, 0, 90), str(round(min))),
+			   ramp_shader.ColorRampItem(0, QColor(100, 255, 255), '0'),
+			   ramp_shader.ColorRampItem(1, QColor(0, 150, 0), '1'),
+			   ramp_shader.ColorRampItem(200, QColor(0, 255, 0), '200'),
+			   ramp_shader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
+			   ramp_shader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
+			   ramp_shader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
+			   ramp_shader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
+			   ramp_shader.ColorRampItem(max, QColor(255, 255, 255), str(round(max)))]
+
+		ramp_shader.setColorRampItemList(lst)
+
+		# We’ll assign the color ramp to a QgsRasterShader
+		# so it can be used to symbolize a raster layer.
+		shader = QgsRasterShader()
+		shader.setRasterShaderFunction(ramp_shader)
+
+		"""Finally, we need to apply the symbology we’ve create to the raster layer. 
+        First, we’ll create a renderer using our raster shader. 
+        Then we’ll Assign the renderer to our raster layer."""
+
+		renderer = QgsSingleBandPseudoColorRenderer(self.dataProvider(), 1, shader)
+		self.setRenderer(renderer)
+		self.triggerRepaint()
+
+
+
 class VectorTools(QgsVectorLayer):
 	def __init__(self):
 		super.__init__(self)
 
-	def vector_to_raster(self, out_path, geotransform, ncols, nrows, name_of_mask):
+	def vector_to_raster(self, geotransform, ncols, nrows):
+		"""
+		Rasterizes a vector layer and returns a numpy array.
 
-		v_layer=self
-		# if the folder for storing the rasters is created. If not it will be created
-		path = os.path.join(out_path, "raster_masks")
-
-		if not os.path.exists(path):
-			try:
-				os.mkdir(path)
-			except OSError:
-				print("Creation of the directory %s failed" % path)
-			else:
-				print("Successfully created the directory %s " % path)
-		else:
-			print("The folder raster_masks is already created.")
-
-		# In and out files
-		out_raster_file = os.path.join(path, name_of_mask + ".tif")
+		:param geotransform: geotransform for the resulting raster layer.
+		:param ncols: number of columns in the raster. Should be consistent with the raster that the masks will deployed on.
+		:param nrows: number of rows in the raster. Should be consistent with the raster that the masks will deployed on.
+		:return: Numpy array.
+		"""
 
 		# Opening the shapefile of the layer specified in the user dialog combobox selectSsMask
 		try:
-			in_shapefile = ogr.Open(v_layer.source())
+			in_shapefile = ogr.Open(self.source())
 
 			if in_shapefile:  # checks to see if shapefile was successfully defined
 				v_layer = in_shapefile.GetLayer()
@@ -133,8 +223,8 @@ class VectorTools(QgsVectorLayer):
 			print("Exception raised during shapefile loading")
 
 		NoData_value = 0
-		# getting the real work done
-		mask_raster = gdal.GetDriverByName('GTiff').Create(out_raster_file, ncols, nrows, 1, gdal.GDT_Int32)
+		# Create a temporary raster file to save the raster mask in. Define spatial referece system, and get the raster band for writing the mask.
+		mask_raster = gdal.GetDriverByName('MEM').Create('', ncols, nrows, 1, gdal.GDT_Int32)
 		mask_raster.SetGeoTransform(geotransform)
 		crs = osr.SpatialReference()
 		crs.ImportFromEPSG(4326)
@@ -142,11 +232,14 @@ class VectorTools(QgsVectorLayer):
 		band = mask_raster.GetRasterBand(1)
 		band.SetNoDataValue(NoData_value)
 
+		#Rasterize mask layer
 		gdal.RasterizeLayer(mask_raster, [1], v_layer, burn_values = [1])
-		mask_raster = None
-		band = None
-		raster = gdal.Open(out_raster_file)
-		raster_array = raster.GetRasterBand(1).ReadAsArray()
+		band.FlushCache()
+		raster_array=band.ReadAsArray()
+		in_shapefile=None
+		v_layer=None
+		mask_raster=None
+
 		return raster_array
 
 
@@ -234,5 +327,42 @@ class ArrayTools(np.ndarray):
 		topo[np.isfinite(x)]=x[np.isfinite(x)]
 
 		return topo
-
+	# def interpolate(self, no_data_value):
+	# 	"""
+	# 	:input array: an input numpy array which contains nan values wherever the raster has gaps.
+	# 	:no_data_value: if a raster contains no_data_values defined customly, like 9999, they should be set to np.nan before interpolation for masking the areas with valid/invalid values.
+	# 	:return: returns a numpy array (with gaps filled by IDW interpolation).
+	# 	"""
+	#
+	# 	in_array=self
+	# 	if no_data_value != None:
+	# 		in_array[in_array == no_data_value] = np.nan
+	#
+	# 	#Define the parameters for creating a mask raster of valid values.
+	# 	path=os.path.split(rlayer.dataProvider().dataSourceUri())[0]
+	# 	mask_name="mask_"+os.path.split(rlayer.dataProvider().dataSourceUri())[1]
+	# 	mask_file=os.path.join(path,mask_name)
+	# 	geotransform = raster_ds.GetGeoTransform()
+	# 	cols = in_array.shape[1]
+	# 	rows = in_array.shape[0]
+	#
+	# 	out_array = np.ones(in_array.shape)
+	#
+	# 	out_array[np.isnan(in_array)] = np.nan
+	# 	out_array[np.isfinite(in_array)] = 1
+	#
+	# 	#Create Target - TIFF
+	# 	out_raster = gdal.GetDriverByName('GTiff').Create(mask_file, cols, rows, 1, gdal.GDT_Byte)
+	# 	out_raster.SetGeoTransform(geotransform)
+	# 	out_band = out_raster.GetRasterBand(1)
+	# 	out_band.SetNoDataValue(np.nan)
+	# 	out_band.WriteArray(out_array)
+	#
+	# 	result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
+	# 							 maxSearchDist = 100, smoothingIterations = 0)
+	# 	in_band.FlushCache()
+	#
+	# 	raster_ds = None
+	# 	out_raster = None
+	# 	return result
 
