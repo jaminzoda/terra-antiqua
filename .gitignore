@@ -257,3 +257,14 @@ $RECYCLE.BIN/
 .my-credentials
 
 # End of https://www.gitignore.io/api/python,windows,pycharm
+*.doctree
+*.doctree
+help/build/html/.buildinfo
+help/build/html/_static/basic.css
+help/build/html/_static/doctools.js
+help/build/html/_static/documentation_options.js
+help/build/html/_static/searchtools.js
+help/build/html/genindex.html
+help/build/html/index.html
+help/build/html/search.html
+help/build/html/searchindex.js
