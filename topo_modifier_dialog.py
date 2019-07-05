@@ -60,8 +60,6 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.masksBox.layerChanged.connect(self.enableRunButton)
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
 
-
-
     def enableFormulaText(self):
         pass
 
@@ -75,10 +73,9 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.warningLabel.setText('Plaese, select all the mandatory fields.')
             self.warningLabel.setStyleSheet('color:red')
 
-
-    # Function for enbling comboboxes for specifying a column in the attribute table
-    # of the masks  layer where the names of the masks are stored. This will be used
-    # to query only masks, which we need.
+        # Function for enbling comboboxes for specifying a column in the attribute table
+        # of the masks  layer where the names of the masks are stored. This will be used
+        # to query only masks, which we need.
 
     def enableMaskField(self, state):
         if state > 0:
@@ -116,9 +113,7 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
     def setFieldsInLayer(self):
         self.maskNameField.setLayer(self.masksBox.currentLayer())
 
-
         self.formulaField.setLayer(self.masksBox.currentLayer())
-
 
         self.minField.setLayer(self.masksBox.currentLayer())
         self.maxField.setLayer(self.masksBox.currentLayer())
@@ -126,8 +121,8 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.minValueField.setLayer(self.masksBox.currentLayer())
         self.maxValueField.setLayer(self.masksBox.currentLayer())
 
-    #Set the groupbox for formula enabled.
-    def setFormulaEnabled(self,state):
+    # Set the groupbox for formula enabled.
+    def setFormulaEnabled(self, state):
         if state > 0:
             self.formulaGroupBox.setEnabled(True)
             self.minMaxCheckBox.setChecked(False)
@@ -136,10 +131,9 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.formulaGroupBox.setCollapsed(False)
             self.min_maxValueCheckBox.setChecked(True)
 
-
-    #Set the groupbox for specifing final minimum and maximum values enabled.\
-    #This is enabled if the user wants to use final minimuum and maximum values
-    #for flattening and roughening instead of a formula.
+    # Set the groupbox for specifing final minimum and maximum values enabled.\
+    # This is enabled if the user wants to use final minimuum and maximum values
+    # for flattening and roughening instead of a formula.
     def setMinMaxEnabled(self, state):
         if state > 0:
             self.minMaxGroupBox.setEnabled(True)
@@ -148,8 +142,8 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.formulaGroupBox.setCollapsed(True)
             self.minMaxGroupBox.setCollapsed(False)
 
-    #Set fields for minimum and maximum values enabled. This is needed, when the user wants
-    #get the minimum and maximum values from the attribute table
+    # Set fields for minimum and maximum values enabled. This is needed, when the user wants
+    # get the minimum and maximum values from the attribute table
     def setMinMaxFromAttrEnabled(self, state):
         if state > 0:
             self.minField.setEnabled(True)
@@ -162,8 +156,8 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.minSpin.setEnabled(True)
             self.maxSpin.setEnabled(True)
 
-    def setBoundingValuesForModification(self,state):
-        if state>0:
+    def setBoundingValuesForModification(self, state):
+        if state > 0:
             self.minValueField.setEnabled(True)
             self.maxValueField.setEnabled(True)
             self.minValueSpin.setEnabled(True)
@@ -180,23 +174,24 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.minMaxValuesFromAttrCheckBox.setEnabled(False)
             self.minMaxValuesFromSpinCheckBox.setEnabled(False)
 
-
             self.boundingValuesGroupBox.hide()
 
     def setBoundingValuesFromAttrEnabled(self, state):
-        if state>0:
+        if state > 0:
             self.minValueField.setEnabled(True)
             self.maxValueField.setEnabled(True)
             self.minValueSpin.setEnabled(False)
             self.maxValueSpin.setEnabled(False)
             self.minMaxValuesFromSpinCheckBox.setChecked(False)
+
     def setBoundingValuesFromSpinEnabled(self, state):
-        if state>0:
+        if state > 0:
             self.minValueField.setEnabled(False)
             self.maxValueField.setEnabled(False)
             self.minValueSpin.setEnabled(True)
             self.maxValueSpin.setEnabled(True)
             self.minMaxValuesFromAttrCheckBox.setChecked(False)
+
 
 
 

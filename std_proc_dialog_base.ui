@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PaleocoastlinesDialogBase</class>
- <widget class="QDialog" name="PaleocoastlinesDialogBase">
+ <class>FillSmoothDialogBase</class>
+ <widget class="QDialog" name="FillSmoothDialogBase">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
-    <height>429</height>
+    <width>781</width>
+    <height>468</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Paleogeography - Paleoshorelines and smoothing</string>
+   <string>Paleogeography - Standard processing tools (Interpolation, smoothing etc.)</string>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>
@@ -70,17 +70,31 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>515</width>
-            <height>301</height>
+            <width>514</width>
+            <height>435</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_4">
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>How do you want to process your DEM?</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="fillingTypeBox"/>
+             </item>
+            </layout>
+           </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
-              <widget class="QLabel" name="label">
+              <widget class="QLabel" name="baseRasterLabel">
                <property name="text">
-                <string>Select the topography raster:</string>
+                <string>Select the compiled topography+bathymetry  raster:</string>
                </property>
               </widget>
              </item>
@@ -101,11 +115,61 @@
             </layout>
            </item>
            <item>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <item>
+              <widget class="QLabel" name="iceTopoLabel">
+               <property name="text">
+                <string>Select the  Ice topography raster (rotated to time t):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <item>
+                <widget class="QgsMapLayerComboBox" name="selectIceTopoBox"/>
+               </item>
+               <item>
+                <widget class="QToolButton" name="selectIceTopoButton">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QLabel" name="copyFromRasterLabel">
+               <property name="text">
+                <string>Select the  raster to copy values from:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QgsMapLayerComboBox" name="copyFromRasterBox"/>
+               </item>
+               <item>
+                <widget class="QToolButton" name="selectCopyFromRasterButton">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
-              <widget class="QLabel" name="label_2">
+              <widget class="QLabel" name="masksBoxLabel">
                <property name="text">
-                <string>Select aa vector  layer with the rotated  paleoshorelines:</string>
+                <string>Select a vector  layer with the masks:</string>
                </property>
               </widget>
              </item>
@@ -126,14 +190,83 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <property name="spacing">
-              <number>6</number>
+            <widget class="QCheckBox" name="masksFromCoastCheckBox">
+             <property name="text">
+              <string>Get the masks from coastlines (NAME field should be populated with names of the regions).</string>
              </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="iceAmountLayout">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="iceAmountLabel">
+               <property name="text">
+                <string>Amount of the ice to  remove (in % ):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="iceAmountSpinBox">
+               <property name="maximum">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="smoothingLayout">
+             <item>
+              <widget class="QCheckBox" name="smoothingBox">
+               <property name="text">
+                <string>Smooth resulting raster.</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="smoothingLabel">
+                 <property name="text">
+                  <string>Smoothing factor(in grid cells):</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="smFactorSpinBox">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>5</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
             </layout>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QCheckBox" name="addToCanvasCheckBox">
+               <property name="text">
+                <string>Add the resulting raster to the map canvas. </string>
+               </property>
+              </widget>
+             </item>
              <item>
               <widget class="QLabel" name="outputLabel">
                <property name="text">
@@ -298,7 +431,7 @@
   <connection>
    <sender>cancelButton</sender>
    <signal>clicked()</signal>
-   <receiver>PaleocoastlinesDialogBase</receiver>
+   <receiver>FillSmoothDialogBase</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -314,7 +447,7 @@
   <connection>
    <sender>closeButton</sender>
    <signal>clicked()</signal>
-   <receiver>PaleocoastlinesDialogBase</receiver>
+   <receiver>FillSmoothDialogBase</receiver>
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
