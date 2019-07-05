@@ -2,6 +2,9 @@
 # Created by https://www.gitignore.io/api/linux,python,pycharm
 # Edit at https://www.gitignore.io/?templates=linux,python,pycharm
 
+### Mac ###
+/help/*
+
 ### Linux ###
 *~
 
@@ -131,6 +134,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
