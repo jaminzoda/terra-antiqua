@@ -70,8 +70,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>517</width>
-            <height>295</height>
+            <width>515</width>
+            <height>301</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -105,7 +105,7 @@
              <item>
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Select vector a layer with the rotated  paleoshorelines:</string>
+                <string>Select a vector  layer with the rotated  paleoshorelines:</string>
                </property>
               </widget>
              </item>
@@ -126,34 +126,10 @@
             </layout>
            </item>
            <item>
-            <widget class="QCheckBox" name="smoothingBox">
-             <property name="text">
-              <string>Smooth resulting raster.</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <property name="spacing">
               <number>6</number>
              </property>
-             <item>
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>Smoothing factor(in grid cells):</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="smFactorSpinBox">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>5</number>
-               </property>
-              </widget>
-             </item>
             </layout>
            </item>
            <item>
@@ -161,7 +137,7 @@
              <item>
               <widget class="QLabel" name="outputLabel">
                <property name="text">
-                <string>Output directory:</string>
+                <string>Output file path:</string>
                </property>
               </widget>
              </item>

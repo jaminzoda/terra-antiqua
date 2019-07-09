@@ -1,4 +1,3 @@
-
 """
 /***************************************************************************
  DEMBuilder
@@ -22,6 +21,7 @@
  ***************************************************************************/
 """
 import os
+import shutil
 import os.path
 import sys
 import logging
@@ -30,9 +30,9 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVa
 from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import QAction, QToolBar
 from osgeo import gdal, osr, ogr
-from qgis.core import QgsVectorFileWriter, QgsRasterLayer, QgsVectorLayer,QgsExpression,QgsFeatureRequest,\
-    QgsMessageLog,QgsRasterBandStats,QgsColorRampShader,QgsRasterShader,QgsSingleBandPseudoColorRenderer,\
-    QgsWkbTypes, QgsProject, QgsGeometry, NULL, QgsFeature
+from qgis.core import QgsVectorFileWriter, QgsRasterLayer, QgsVectorLayer, QgsExpression, QgsFeatureRequest, \
+	QgsMessageLog, QgsRasterBandStats, QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer, \
+	QgsWkbTypes, QgsProject, QgsGeometry, NULL, QgsFeature
 
 import processing
 # Import the code for the dialog
@@ -40,1281 +40,1202 @@ from .dem_builder_dialog import DEMBuilderDialog
 from .mask_maker_dialog import MaskMakerDialog
 from .topo_modifier_dialog import TopoModifierDialog
 from .paleocoastlines_dialog import PaleocoastlinesDialog
-from .fill_smooth_dialog import FillSmoothDialog
+from .std_proc_dialog import StdProcessingDialog
 from .topotools import RasterTools as rt
 from .topotools import ArrayTools as at
 from .topotools import VectorTools as vt
 
 
-
-
 # Initialize Qt resources from file resources.py
 
 class DEMBuilder:
-    """QGIS Plugin Implementation."""
-
-    def __init__(self, iface):
-        """Constructor.
-
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        """
-        # Save reference to the QGIS interface
-        self.iface = iface
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
-        # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
-        locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'DEMBuilder_{}.qm'.format(locale))
-
-        if os.path.exists(locale_path):
-            self.translator = QTranslator()
-            self.translator.load(locale_path)
-
-            if qVersion() > '4.3.3':
-                QCoreApplication.installTranslator(self.translator)
-
-        # Declare instance attributes
-        self.actions = []
-        self.menu = self.tr(u'&Paleogeography')
-
-        #Create a separate toolbar for the tool
-        self.pg_toolBar = iface.mainWindow().findChild(QToolBar, u'Paleogeography')
-        if not self.pg_toolBar:
-            self.pg_toolBar = iface.addToolBar(u'Paleogeography')
-            self.pg_toolBar.setObjectName(u'Paleogeography')
-
-        # Check if plugin was started the first time in current QGIS session
-        # Must be set in initGui() to survive plugin reloads
-        self.first_start = None
-        # Create the tool dialog
-
-
-
-
-
-
-    # noinspection PyMethodMayBeStatic
-    def tr(self, message):
-        """Get the translation for a string using Qt translation API.
-
-        We implement this ourselves since we do not inherit QObject.
-
-        :param message: String for translation.
-        :type message: str, QString
-
-        :returns: Translated version of message.
-        :rtype: QString
-        """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('DEMBuilder', message)
-
-    def add_action(
-            self,
-            icon_path,
-            text,
-            callback,
-            enabled_flag=True,
-            add_to_menu=True,
-            add_to_toolbar=True,
-            status_tip=None,
-            whats_this=None,
-            parent=None):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
-
-        icon = QIcon(icon_path)
-        action = QAction(icon, text, parent)
-        action.triggered.connect(callback)
-        action.setEnabled(enabled_flag)
-
-        if status_tip is not None:
-            action.setStatusTip(status_tip)
-
-        if whats_this is not None:
-            action.setWhatsThis(whats_this)
-
-        if add_to_toolbar:
-            # Adds plugin icon to Plugins toolbar
-            self.pg_toolBar.addAction(action)
-
-        if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
-
-        self.actions.append(action)
-
-        return action
-
-    def initGui(self):
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
-        icon_path = os.path.join(self.plugin_dir, 'icon.png')
-        icon2_path = os.path.join(self.plugin_dir, 'mask.png')
-        icon3_path = os.path.join(self.plugin_dir, 'topomod.png')
-        icon4_path = os.path.join(self.plugin_dir, 'paleocoastlines.png')
-        icon5_path = os.path.join(self.plugin_dir, 'fill_smooth.png')
-
-
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Topography and bathymetry compiler'),
-            callback=self.run,
-            parent=self.iface.mainWindow())
-        self.add_action(
-            icon2_path,
-            text=self.tr(u'Mask preparator'),
-            callback=self.run_mask_maker,
-            parent=self.iface.mainWindow())
-
-        self.add_action(
-            icon3_path,
-            text=self.tr(u'Topoggraphy modifier'),
-            callback=self.topo_modifier_dlg_load,
-            parent=self.iface.mainWindow())
-        self.add_action(
-            icon4_path,
-            text = self.tr(u'Paleoshorelines reconstructor'),
-            callback = self.paleocoastlines_dlg_load,
-            parent = self.iface.mainWindow())
-        self.add_action(
-            icon5_path,
-            text = self.tr(u'Filling the gaps and smoothing'),
-            callback = self.fill_smooth_dlg_load,
-            parent = self.iface.mainWindow())
-
-        # will be set False in run()
-        self.first_start = True
-
-    def unload(self):
-        """Removes the plugin menu item and icon from QGIS GUI."""
-        for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr(u'&Paleogeography'),
-                action)
-            self.iface.removeToolBarIcon(action)
-
-
-    def run(self):
-        """Run method that performs all the real work"""
-        # Create the dialog with elements (after translation) and keep reference
-        # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
-            self.first_start = False
-            # self.dlg = DEMBuilderDialog()
-            self.dlg=DEMBuilderDialog()
-
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            recon_type=self.dlg.reconstructionTypeBox.currentIndex()
-            if recon_type==0: # 0 - Baatsen, 1 - Poblette
-                # Reading the paleobathymetry raster from Mueller et. al,.
-                # getting ocean age layer
-                ocean_age_layer = self.dlg.selectOceanAge.currentLayer()
-                age_ds = gdal.Open(ocean_age_layer.dataProvider().dataSourceUri())
-                ocean_age = age_ds.GetRasterBand(1).ReadAsArray()
-
-
-
-
-                # getting the shallow sea bathynetry
-
-                s_bathy_layer = self.dlg.selectSbathy.currentLayer()
-                sbathy_ds = gdal.Open(s_bathy_layer.dataProvider().dataSourceUri())
-                s_bathy = sbathy_ds.GetRasterBand(1).ReadAsArray()
-
-
-
-                # getting the paleobathymetry layer
-                bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
-                bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
-                paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
-
-                # creating a base grid for compiling topography and bathymetry
-                paleo_dem = np.empty(paleo_bathy.shape)
-                paleo_dem[:] = np.nan
-                #paleo_bathy[np.isnan(paleo_bathy)] = 9999  # setting the nan values to 1 for comparison - python raises warning messages, when comparing two matrices containing nan values
-                paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-                paleo_dem[paleo_bathy>0]=0
-
-
-                # calculating the ocean depth from the age
-                ocean_depth = np.empty(paleo_bathy.shape)
-                ocean_depth[:] = np.nan
-                r_time = self.dlg.ageBox.value()
-                shelf_depth=self.dlg.shelfDepthBox.value()
-                #ocean_age[np.isnan(ocean_age)] = -1 # This line was used only to set nan values to -1 because of the warnings that python gives when comparing two arrays with nan values.
-                ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - r_time
-                ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
-                ocean_depth[ocean_age > 90] = -5750
-                # Update the bathymetry, keeping mueller only where agegrid is undefined
-                paleo_dem[np.isfinite(ocean_depth)] = ocean_depth[np.isfinite(ocean_depth)]
-
-
-                #processing Shallow sea and Continental shelves
-                # this line gets the user-defined directoory for storing the output files and prepares some variables for rasterization process
-                out_path = self.dlg.outputFile.filePath()
-                geotransform = age_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
-                nrows, ncols = np.shape(
-                    paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
-                #Get the general masks layer from the dialog
-                masks_layer=self.dlg.selectMasks.currentLayer()
-
-                #Create temporary layers to store extracted masks
-
-                ss_temp=QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary ss", "memory")
-                ss_prov=ss_temp.dataProvider()
-                cs_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary cs", "memory")
-                cs_prov = cs_temp.dataProvider()
-                coast_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary coastline", "memory")
-                coast_prov = coast_temp.dataProvider()
-
-                #Get features by attrtibute from the masks layer - the attributes are fetched in the 'layer' field
-                expr_ss=QgsExpression( "\"layer\"='Shallow sea'" )
-                expr_cs = QgsExpression("\"layer\"='Continental Shelves'")
-                expr_coast = QgsExpression("\"layer\"='Continents'")
-
-                ss_features=masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
-                cs_features=masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
-                coast_features=masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
-
-
-
-
-
-                # Add extracted features (masks) to the temporary layers
-                ss_prov.addFeatures(ss_features)
-                cs_prov.addFeatures(cs_features)
-                coast_prov.addFeatures(coast_features)
-
-                #Save the extracted masks
-                # Create a directory for the vector masks
-                if not os.path.exists(os.path.join(out_path,"vector_masks")):
-                    os.makedirs(os.path.join(out_path,"vector_masks"))
-
-                #Output files
-                ss_out_file=os.path.join(out_path,"vector_masks","Shallow_sea.shp")
-                cs_out_file =os.path.join(out_path,"vector_masks","Continental_shelves.shp")
-                coast_out_file =os.path.join(out_path,"vector_masks","Coastline.shp")
-
-
-
-                layers=[(ss_temp,ss_out_file,"ShallowSea"),(cs_temp,cs_out_file,"ContinentalShelves"),(coast_temp,coast_out_file,"Coastline")]
-                for layer,out_file, name in layers:
-                    # Check if the file is already created. Acts like overwrite
-                    if os.path.exists(out_file):
-                        driver = ogr.GetDriverByName('ESRI Shapefile')
-                        driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
-                    error = QgsVectorFileWriter.writeAsVectorFormat(layer, out_file, "UTF-8", layer.crs(), "ESRI Shapefile")
-                    if error == QgsVectorFileWriter.NoError:
-                        print("The  shape file"+out_file+"has been created and saved successfully")
-                    if name=="ShallowSea":
-                        ss_temp=QgsVectorLayer(out_file,"Shallow sea masks","ogr")
-                    elif name=="ContinentalShelves":
-                        cs_temp=QgsVectorLayer(out_file,"Continental Shelves masks","ogr")
-                    elif name=="Coastline":
-                        coast_temp=QgsVectorLayer(out_file,"Continental Shelves masks","ogr")
-
-
-
-
-
-
-
-
-
-
-                #Rasterize extracted masks
-                ss_mask=vt.vector_to_raster(ss_temp,out_path,geotransform,ncols,nrows,"ShallowSea")
-                cs_mask=vt.vector_to_raster(cs_temp,out_path,geotransform,ncols,nrows,"ContinentalShelves")
-                coast_mask=vt.vector_to_raster(coast_temp,out_path,geotransform,ncols,nrows,"Continents")
-
-
-                #Modify bathymetry according to masks
-                s_bathy[s_bathy<paleo_dem]=paleo_dem[s_bathy<paleo_dem]   #remove parts that are deeper than current bathymetry
-                paleo_dem[ss_mask==1]=s_bathy[ss_mask==1]
-                paleo_dem[cs_mask==1]=shelf_depth
-
-                #Replace continental shelf by shallow region depth where the latter is deeper and less than 2000m
-                paleo_dem[((cs_mask==1)*(s_bathy>-2000)*(s_bathy<shelf_depth))==1]=s_bathy[((cs_mask==1)*(s_bathy>-2000)*(s_bathy<shelf_depth))==1]
-
-                #Fill the land area with the present day rotated topography
-
-                #Read the Bedrock topography from the dialog
-                topo= self.dlg.selectBrTopo.currentLayer()
-                #Get the data provider to access the data
-                topo_ds = gdal.Open(topo.dataProvider().dataSourceUri())
-                #Read the data as a an array of data
-                topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
-                paleo_dem[coast_mask==1]=topo_br[coast_mask==1]
-                #Set the elevation to 0 wherever the continent mask is defined but there is not elevation value in the topography file
-                #paleo_dem[(coast_mask*np.isnan(topo_br))==1]=0
-
-            elif recon_type==1:
-                # getting the paleobathymetry layer
-                bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
-                bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
-                paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
-
-                # creating a base grid for compiling topography and bathymetry
-                paleo_dem = np.empty(paleo_bathy.shape)
-                paleo_dem[:] = np.nan
-                # paleo_bathy[np.isnan(paleo_bathy)] = 9999  # setting the nan values to 1 for comparison - python raises warning messages, when comparing two matrices containing nan values
-                paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-                paleo_dem[paleo_bathy > 0] = 0
-
-
-                # this line gets the user-defined directoory for storing the output files and prepares some variables for rasterization process
-                out_path = self.dlg.outputFile.filePath()
-                geotransform = bathy_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
-                nrows, ncols = np.shape(
-                    paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
-                # Get the general masks layer from the dialog
-                masks_layer = self.dlg.selectMasks.currentLayer()
-
-                #Rasterize masks layer
-                coast_mask=vt.vector_to_raster(masks_layer,out_path,geotransform,ncols,nrows,"Coastlines")
-
-                # Fill the land area with the present day rotated topography
-
-                # Read the Bedrock topography from the dialog
-                topo = self.dlg.selectBrTopo.currentLayer()
-                # Get the data provider to access the data
-                topo_ds = gdal.Open(topo.dataProvider().dataSourceUri())
-                # Read the data as an array of data
-                topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
-                paleo_dem[coast_mask == 1] = topo_br[coast_mask == 1]
-
-
-
-
-            #Istostatic adjustment for Greenland and Antarctica
-            if self.dlg.isoStatBox.isChecked():
-                topo_ice=self.dlg.selectIceTopo.currentLayer()
-
-
-
-
-
-
-
-
-
-
-
-
-
-            # write the paleo_dem matrix into a raster
-            QgsMessageLog.logMessage("The bathynetry is compiled and is being written in a raster file",
-                                     tag="bathy_processing")
-
-
-            #Following parameters are used for creating a geotransform for the resulting raster.
-            #however we just copy the geotransform from the bathymetry layer instead
-
-            #rextent = bathy_layer.extent()
-            #xmin, xmax, ymin, ymax = [rextent.xMinimum(), rextent.xMaximum(), rextent.yMinimum(), rextent.yMaximum()]
-            #xres = (xmax - xmin) / float(nrows)
-            #yres = (ymax - ymin) / float(ncols)
-            #NoData_value = 0
-
-            nrows, ncols = np.shape(paleo_dem)
-            geotransform = bathy_ds.GetGeoTransform()
-
-            file_path = os.path.join(out_path, "paleo_dem.tif")
-
-            raster = gdal.GetDriverByName('GTiff').Create(file_path, ncols, nrows, 1, gdal.GDT_Float32)
-            raster.SetGeoTransform(geotransform)
-            crs = osr.SpatialReference()
-            crs.ImportFromEPSG(4326)
-            raster.SetProjection(crs.ExportToWkt())
-            raster.GetRasterBand(1).WriteArray(paleo_dem)
-            raster = None
-            rlayer=self.iface.addRasterLayer(file_path, "Compiled topography and Bathymetry", "gdal")
-
-            """#Rendering a symbology style for the resulting raster layer"""
-
-            stats = rlayer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
-            min = stats.minimumValue
-            max = stats.maximumValue
-            ramp_shader = QgsColorRampShader()
-            ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
-
-            # Define the colors
-            # colors=[(min,(0,0,90)),(0,(100,255,255)),(1,(0,100,0)),(500,(0,255,0)),(1000,(250,250,0)),(200,(255,100,200)),(max,(100,100,90))]
-            # lst=[]
-            # for elev, color in colors:
-            #    lst.append(QgsColorRampShader.ColorRampItem(elev, QColor(', ,'.join([str(i[0]) for i in color])))
-
-            lst = [QgsColorRampShader.ColorRampItem(min, QColor(0, 0, 90), str(round(min))),
-                   QgsColorRampShader.ColorRampItem(0, QColor(100, 255, 255), '0'),
-                   QgsColorRampShader.ColorRampItem(1, QColor(0, 150, 0), '1'),
-                   QgsColorRampShader.ColorRampItem(200, QColor(0, 255, 0), '200'),
-                   QgsColorRampShader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
-                   QgsColorRampShader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
-                   QgsColorRampShader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
-                   QgsColorRampShader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
-                   QgsColorRampShader.ColorRampItem(max, QColor(255, 255, 255), str(round(max)))]
-
-            ramp_shader.setColorRampItemList(lst)
-
-
-            # We’ll assign the color ramp to a QgsRasterShader
-            # so it can be used to symbolize a raster layer.
-            shader = QgsRasterShader()
-            shader.setRasterShaderFunction(ramp_shader)
-
-            """Finally, we need to apply the symbology we’ve create to the raster layer. 
-            First, we’ll create a renderer using our raster shader. 
-            Then we’ll Assign the renderer to our raster layer."""
-
-            renderer = QgsSingleBandPseudoColorRenderer(rlayer.dataProvider(), 1, shader)
-            rlayer.setRenderer(renderer)
-            rlayer.triggerRepaint()
-
-    def run_mask_maker(self):
-        # Create the tool dialog
-        self.dlg2=MaskMakerDialog()
-        # show the dialog
-        self.dlg2.show()
-        # Run the dialog event loop
-        result = self.dlg2.exec_()
-        # See if OK was pressed
-        if result:
-            # this line gets the user-defined directoory for storing the output files
-            out_path = self.dlg2.outputFile.filePath()
-
-            """Combining polygons and polylines"""
-
-            # Get all the input layers
-            # a) Shallow sea masks
-            ss_mask_layer = self.dlg2.selectSsMask.currentLayer()
-            if self.dlg2.selectSsMaskLine.currentLayer():
-                ss_mask_line_layer = self.dlg2.selectSsMaskLine.currentLayer()
-            else:
-                ss_mask_line_layer = None
-            # b) Continental Shelves masks
-            cs_mask_layer = self.dlg2.selectCshMask.currentLayer()
-            if self.dlg2.selectCshMaskLine.currentLayer():
-                cs_mask_line_layer = self.dlg2.selectCshMaskLine.currentLayer()
-            else:
-                cs_mask_line_layer = None
-            # c) Coastline masks
-            coast_mask_layer = self.dlg2.selectCoastlineMask.currentLayer()
-            if self.dlg2.selectCoastlineMaskLine.currentLayer():
-                coast_mask_line_layer = self.dlg2.selectCoastlineMaskLine.currentLayer()
-            else:
-                coast_mask_line_layer = None
-
-            #Create a list of input layers
-            layers = [(ss_mask_layer, ss_mask_line_layer, "Shallow sea"),
-                      (cs_mask_layer, cs_mask_line_layer, "Continental Shelves"),
-                      (coast_mask_layer, coast_mask_line_layer, "Continents")]
-
-            #Polygonize polylines and combine them with their polygon counterparts in one temp file
-
-            for poly, line, name in layers:
-
-                # # parameters for polygonization
-                # params_poly = {'INPUT': line, 'KEEP_FIELDS': True, 'OUTPUT': 'memory:' + name}
-                # # polygonize polylines
-                # polygonized_layer = processing.run('qgis:polygonize', params_poly)['OUTPUT']
-
-                if line is not None:
-                    # Creating a temporary layer to store features
-                    temp=QgsVectorLayer("Polygon?crs=epsg:4326", "shallow sea temp", "memory")
-                    temp_provider=temp.dataProvider()
-                    line_features = line.getFeatures()  # getting features from the polyline layer
-                    attr_line=line.dataProvider().fields().toList()
-                    temp_provider.addAttributes(attr_line)
-                    temp.updateFields()
-                    poly_features=[]
-                    # this loop reads the geometries of all the polyline features and creates polygon features from the geometries
-                    for geom in line_features:
-                        #Get the geometry oof features
-                        line_geometry=geom.geometry()
-
-                        #checking if the geometry is polyline or multipolyline
-                        if line_geometry.wkbType() == QgsWkbTypes.LineString:
-                            line_coords = line_geometry.asPolyline()
-                        elif line_geometry.wkbType() == QgsWkbTypes.MultiLineString:
-                            line_coords = line_geometry.asMultiPolyline()
-                        else:
-                            print("The geometry is neither polyline nor multipolyline")
-                        poly_geometry = QgsGeometry.fromPolygonXY(line_coords)
-                        feature =QgsFeature()
-                        feature.setGeometry(poly_geometry)
-                        feature.setAttributes(geom.attributes())
-                        poly_features.append(feature)
-                    temp_provider.addFeatures(poly_features)
-                    poly_features=None
-                    fixed_line = processing.run('native:fixgeometries', {'INPUT': temp, 'OUTPUT': 'memory:' + name})[
-                        'OUTPUT']
-                else:
-                    pass
-                # parameters for layer merging
-                fixed_poly = processing.run('native:fixgeometries', {'INPUT': poly, 'OUTPUT': 'memory:' + name})[
-                    'OUTPUT']
-                if line is not None:
-                    layers_to_merge = [fixed_poly, fixed_line]
-                    params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:' + name}
-                    temp_layer = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
-                    fixed_poly=None
-                    fixed_line=None
-                else:
-                    temp_layer=fixed_poly
-                    fixed_poly=None
-
-                if name == "Shallow sea":
-                    ss_temp = temp_layer
-                    temp_layer = None
-                elif name == "Continental Shelves":
-                    cs_temp = temp_layer
-                    temp_layer = None
-                elif name == "Continents":
-                    coast_temp = temp_layer
-                    temp_layer = None
-
-            # Extracting masks by running difference algorithm
-            #Parameters for difference algorithm
-            params={'INPUT': ss_temp, 'OVERLAY': cs_temp, 'OUTPUT': 'memory:Shallow sea'}
-            ss_extracted =processing.run('native:difference', params)["OUTPUT"]
-            ss_temp = None  # remove shallow sea masks layer, becasue we don't need it anymore. This will release memory.
-            params={'INPUT': cs_temp, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:Continental Shelves'}
-            cs_extracted = processing.run('native:difference', params)["OUTPUT"]
-            cs_temp = None
-            """Combining the extracted masks in one shape file. """
-            layers_to_merge = [ss_extracted, cs_extracted]
-            params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:ss+cs'}
-            ss_and_cs_extracted = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
-
-            # Running difference algorithm to remove geometries that overlap with the coastlines
-            # Parameters for difference algorithm.
-            params = {'INPUT': ss_and_cs_extracted, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:ss+cs'}
-            masks_layer = processing.run('native:difference', params)["OUTPUT"]
-            layers_to_merge = [masks_layer, coast_temp]
-            params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:Final extracted masks'}
-            final_masks = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
-
-
-            # renderer = QgsCategorizedSymbolRenderer("mask_type")
-            # masks_layer.setRenderer(renderer)
-
-            #Write the final masks file on disk
-            out_file = os.path.join(out_path, "Extracted general masks.shp")
-
-            #Check if the file is already created. Acts like overwrite
-            if os.path.exists(out_file):
-                driver = ogr.GetDriverByName('ESRI Shapefile')
-                driver.DeleteDataSource(out_file) # Delete the file, if it is already created.
-
-            # Saving the results into a shape file
-            error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, out_file, "UTF-8", masks_layer.crs(), "ESRI Shapefile")
-            if error == QgsVectorFileWriter.NoError:
-                print("the masks shape file has been saved successfully")
-
-            #Get the saved shape file for adding to map canvas
-            layer = QgsVectorLayer(out_file, "Extracted ma sks", "ogr")
-            #Add the masks layer to map canvas
-            QgsProject.instance().addMapLayer(layer)
-
-
-
-
-
-
-    def topo_modifier_dlg_load(self):
-
-        self.dlg3 = TopoModifierDialog()
-
-        # show the dialog
-        self.dlg3.show()
-        # Run the dialog event loop
-        #result = self.dlg3.exec_()
-
-        # # Set up logging to use the dlg3 text widget as a handler
-        #self.log_widget=self.dlg3.logText
-
-        # See if OK was pressed
-        # if result:
-
-
-        self.dlg3.runButton.pressed.connect(self.run_topo_modifier)
-
-    def run_topo_modifier(self):
-        # get the log widget
-        log = self.dlg3.log
-        out_path = self.dlg3.outputPath.filePath()
-
-        log('Starting')
-        # self.dlg3.setVisible(True)
-        self.dlg3.Tabs.setCurrentIndex(1)
-        # Get the topography as an array
-
-        log('Getting the raster layer')
-        topo_layer = self.dlg3.baseTopoBox.currentLayer()
-        topo_extent = topo_layer.extent()
-        topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
-        topo = topo_ds.GetRasterBand(1).ReadAsArray()
-        geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
-        nrows, ncols = np.shape(topo)
-
-        if not topo is None:
-            log(('Size of the Topography raster: ', str(topo.shape)))
-        else:
-            log('There is a problem with reading the Topography raster')
-
-        # Get the vector masks
-        log('Getting the vector layer')
-        mask_layer = self.dlg3.masksBox.currentLayer()
-
-        if mask_layer.isValid:
-            log('The mask layer is loaded properly')
-        else:
-            log('There is a problem with the mask layer - not loaded properly')
-
-
-
-        if self.dlg3.useAllMasksBox.isChecked() == True:
-            # Get features from the mask_layer
-            features = mask_layer.getFeatures()
-
-        # Midifying the topography raster with different formula for different masks
-        else:
-
-            # Get features by attrtibute from the masks layer - the attributes are fetched in the 'layer' field
-            field = self.dlg3.maskNameField.currentField()
-            value = self.dlg3.maskNameText.text()
-
-            log(('Fetching the ', value, ' masks from the field: ', field))
-
-            expr = QgsExpression(QgsExpression().createFieldEqualityExpression(field, value))
-            features = mask_layer.getFeatures(QgsFeatureRequest(expr))
-
-            # Make sure if any feature is returned by our query above
-            # If the field name or the name of mask is not specified correctly, our feature itterator (features)
-            # will be empty and "any" statement will return false.
-
-            assert (any(True for _ in
-                        features)), "Your query did not return any record. Please, check if you specified correct field for the names of masks, and that you have typed the name of a mask correctly."
-
-            # Get the features in the feature itterator again, because during the assertion we already itterated over the iterator and it is empty now.
-            features = mask_layer.getFeatures(QgsFeatureRequest(expr))
-
-        # Create a directory for temporary vector files
-        path = os.path.join(out_path, "vector_masks")
-
-        if not os.path.exists(path):
-            try:
-                os.mkdir(path)
-            except OSError:
-                log("Creation of the directory %s failed" % path)
-            else:
-                log("Successfully created the directory %s " % path)
-        else:
-            log("The folder raster_masks is already created.")
-
-        # Check if the formula mode of topography modification is checked
-        # Otherwise minimum and maximum values will be used to calculate the formula
-        if self.dlg3.formulaCheckBox.isChecked():
-
-            # Get the fields
-            fields = mask_layer.fields().toList()
-
-            # Get the field names to be able to fetch formulas from the attributes table
-            field_names = [i.name() for i in fields]
-
-            # If formula field is not selected, the whole topography
-            # raster is modified with one formula, which is taken from the textbox in the dialog
-            # Check if formula field is specified
-            if self.dlg3.formulaField.currentField():  # the QgsFieldCombobox returns string with the name of field - we check if it is empty - empty string = False (bool) in python
-                formula_field = self.dlg3.formulaField.currentField()
-
-
-                # Get the position of the formula field in the table of attributes
-                # This will help us to get the formula of a mask by it's position
-                formula_pos = field_names.index(formula_field)
-
-                formula=None
-
-            else:
-                formula = self.dlg3.formulaText.text()
-                log(('formula for topography modification is: ', formula))
-
-
-           #Get the minimum and maximum bounding values for selecting the elevation values that should be modified.
-            # Values outside the bounding values will not be touched.
-            if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.minValueField.currentField():
-                min_value_field=self.dlg3.minValueField.currentField()
-
-                # Get the position of the formula field in the table of attributes
-                # This will help us to get the formula of a mask by it's position
-                min_value_pos = field_names.index(min_value_field)
-
-
-                min_value=None
-            elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
-                min_value=self.dlg3.minValueSpin.value()
-            else:
-                min_value=None
-
-            if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.maxValueField.currentField():
-                max_value_field = self.dlg3.maxValueField.currentField()
-
-
-                # Get the position of the formula field in the table of attributes
-                # This will help us to get the formula of a mask by it's position
-                max_value_pos = field_names.index(max_value_field)
-
-
-                max_value = None
-            elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
-                max_value = self.dlg3.maxValueSpin.value()
-            else:
-                max_value=None
-
-
-            #if formula_field is None:
-                """
-                # Create a temporary layer to store the extracted masks
-                temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-                temp_dp = temp_layer.dataProvider()
-                temp_dp.addFeatures(features)
-
-                # Create a temporary shapefile to store extracted masks before rasterizing them
-                out_file = os.path.join(path, 'masks_for_topo_modification.shp')
-
-                if os.path.exists(out_file):
-                    driver = ogr.GetDriverByName('ESRI Shapefile')
-                    driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
-                error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", temp_layer.crs(),
-                                                                "ESRI Shapefile")
-                if error == QgsVectorFileWriter.NoError:
-                    log("The  shape file" + out_file + "has been created and saved successfully")
-
-                # Rasterize extracted masks
-                v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows, 'r_masks_for_modification')
-
-                # Modify the topography
-
-               
-                    
-
-                x = at.mod_formula(topo,formula,r_masks)
-                """
-
-
-
-            # If formula field is selected, the formula is taken from attribute field
-            # and the topography regions are modified according to each mask's formula
-            #else:
-
-            mask_number = 0
-            for feat in features:
-                mask_number += 1
-
-                #Get the formula, min and max values, if they are different foor each feature.
-                if formula==None:
-                    feat_formula = feat.attributes()[formula_pos]
-
-                else:
-                    feat_formula=formula
-
-                # Check if the formula field contains the formula
-                if feat_formula == NULL or ('x' in feat_formula) == False:
-                    log("Mask " + str(mask_number) + " does not contain any formula.")
-                    log(
-                        "You might want to check if the field for formula is specified correctly in the plugin dialog.")
-                    continue
-                if min_value==None and 'min_value_field' in locals():
-                    feat_min_value=feat.attributes()[min_value_pos]
-                elif min_value==None:
-                    feat_min_value=None
-                else:
-                    feat_min_value=min_value
-
-                if max_value==None and 'max_value_field' in locals():
-                    feat_max_value=feat.attributes()[max_value_pos]
-                elif max_value==None:
-                    feat_max_value=None
-                else:
-                    feat_max_value=max_value
-
-
-
-                # Create a temporary layer to store the extracted masks
-                temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-                temp_dp = temp_layer.dataProvider()
-                temp_dp.addAttributes(fields)
-                temp_layer.updateFields()
-
-                temp_dp.addFeature(feat)
-
-                # Create a temporary shapefile to store extracted masks before rasterizing them
-                out_file = os.path.join(path, 'masks_for_topo_modification.shp')
-
-                if os.path.exists(out_file):
-                    driver = ogr.GetDriverByName('ESRI Shapefile')
-                    driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
-                error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", temp_layer.crs(),
-                                                                "ESRI Shapefile")
-                if error == QgsVectorFileWriter.NoError:
-                    log("The  shape file" + out_file + "has been created and saved successfully")
-
-                # Rasterize extracted masks
-                v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
-                                              'r_masks_for_modification')
-                v_layer = None
-
-
-                # Modify the topography
-                x=topo
-                in_array=x[r_masks == 1]
-
-
-                x[r_masks == 1] = at.mod_formula(in_array,feat_formula,feat_min_value,feat_max_value)
-
-        else:
-            # Get the final minimum and maximum values either from a
-            # specified field in the attribute table or from the spinboxes.
-            if self.dlg3.minMaxFromAttrCheckBox.isChecked():
-                # Get the fields from the layer
-                fields = mask_layer.fields().toList()
-                # Get the field names to be able to fetch formulas from the attributes table
-                field_names = [i.name() for i in fields]
-                # Get the names of fields with the minimum and maximum values.
-                fmin_field = self.dlg3.minField.currentField()
-                fmax_field = self.dlg3.maxField.currentField()
-                # Get the position of the minimum and maximum fields in the table of attributes
-                # This will help us to get the values of a mask by their positions
-                fmin_pos = field_names.index(fmin_field)
-                fmax_pos = field_names.index(fmax_field)
-                mask_number = 0
-                for feat in features:
-                    mask_number += 1
-                    fmin = feat.attributes()[fmin_pos]
-                    fmax = feat.attributes()[fmax_pos]
-                    # Check if the min and max fields contain any value
-                    if fmin == NULL or fmax == NULL:
-                        log("Mask " + str(
-                            mask_number) + " does not contain final maximum or/and minimum values specified in the attributes table.")
-                        log(
-                            "You might want to check if the fields for minimum and maximum values are specified correctly in the plugin dialog.")
-                        continue
-
-                    # Create a temporary layer to store the extracted masks
-                    temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-                    temp_dp = temp_layer.dataProvider()
-                    temp_dp.addAttributes(fields)
-                    temp_layer.updateFields()
-
-                    temp_dp.addFeature(feat)
-
-                    # Create a temporary shapefile to store extracted masks before rasterizing them
-                    out_file = os.path.join(path, 'masks_for_topo_modification.shp')
-
-                    if os.path.exists(out_file):
-                        driver = ogr.GetDriverByName('ESRI Shapefile')
-                        driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
-                    error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", temp_layer.crs(),
-                                                                    "ESRI Shapefile")
-                    if error == QgsVectorFileWriter.NoError:
-                        log("The  shape file" + out_file + "has been created and saved successfully")
-
-                    # Rasterize extracted masks
-                    v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                    r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
-                                                  'r_masks_for_modification')
-                    v_layer = None
-
-                    # Modify the topography
-                    x = topo
-                    in_array = x[r_masks == 1]
-
-                    x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
-
-
-
-            else:
-                fmin = self.dlg3.minSpin.value()
-                fmax = self.dlg3.maxSpin.value()
-
-                # Create a temporary layer to store the extracted masks
-                temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-                temp_dp = temp_layer.dataProvider()
-                temp_dp.addFeatures(features)
-
-                # Create a temporary shapefile to store extracted masks before rasterizing them
-                out_file = os.path.join(path, 'masks_for_topo_modification.shp')
-
-                if os.path.exists(out_file):
-                    driver = ogr.GetDriverByName('ESRI Shapefile')
-                    driver.DeleteDataSource(out_file)  # Delete the file, if it is already created.
-                error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", temp_layer.crs(),
-                                                                "ESRI Shapefile")
-                if error == QgsVectorFileWriter.NoError:
-                    log("The  shape file" + out_file + "has been created and saved successfully")
-
-                # Rasterize extracted masks
-                v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                r_masks = vt.vector_to_raster(v_layer, out_path, geotransform, ncols, nrows,
-                                              'r_masks_for_modification')
-
-                # Modify the topography
-                x = topo
-                in_array = x[r_masks == 1]
-                x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
-
-
-
-        # Check if raster was modified. If the x matrix was assigned.
-        if 'x' in locals():
-            # Write the resulting raster array to a raster file
-            file_path = os.path.join(out_path, "paleo_dem_modified.tif")
-
-            driver = gdal.GetDriverByName('GTiff')
-            if os.path.exists(file_path):
-                driver.Delete(file_path)
-
-            raster = driver.Create(file_path, ncols, nrows, 1, gdal.GDT_Float32)
-            raster.SetGeoTransform(geotransform)
-            crs = osr.SpatialReference()
-            crs.ImportFromEPSG(4326)
-            raster.SetProjection(crs.ExportToWkt())
-            raster.GetRasterBand(1).WriteArray(x)
-            raster = None
-            rlayer = self.iface.addRasterLayer(file_path, "Modified topo- and bathymetry", "gdal")
-
-            # Filling the gaps
-            # TODO move the interpolation inside the modifying function
-            if self.dlg3.interpolationBox.isChecked():
-                result = rt.fill_no_data(rlayer)
-                if result == 0:
-                    log("Interpolation was performed sucessfuly")
-                else:
-                    log("Interpolation was not successful")
-
-
-
-            """#Rendering a symbology style for the resulting raster layer"""
-
-            stats = rlayer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
-            min = stats.minimumValue
-            max = stats.maximumValue
-            ramp_shader = QgsColorRampShader()
-            ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
-
-            lst = [QgsColorRampShader.ColorRampItem(min, QColor(0, 0, 90), str(round(min))),
-                   QgsColorRampShader.ColorRampItem(0, QColor(100, 255, 255), '0'),
-                   QgsColorRampShader.ColorRampItem(1, QColor(0, 150, 0), '1'),
-                   QgsColorRampShader.ColorRampItem(200, QColor(0, 255, 0), '200'),
-                   QgsColorRampShader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
-                   QgsColorRampShader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
-                   QgsColorRampShader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
-                   QgsColorRampShader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
-                   QgsColorRampShader.ColorRampItem(max, QColor(255, 255, 255), str(round(max)))]
-
-            ramp_shader.setColorRampItemList(lst)
-
-            # We’ll assign the color ramp to a QgsRasterShader
-            # so it can be used to symbolize a raster layer.
-            shader = QgsRasterShader()
-            shader.setRasterShaderFunction(ramp_shader)
-
-            """Finally, we need to apply the symbology we’ve create to the raster layer. 
-			First, we’ll create a renderer using our raster shader. 
-			Then we’ll Assign the renderer to our raster layer."""
-
-            renderer = QgsSingleBandPseudoColorRenderer(rlayer.dataProvider(), 1, shader)
-            rlayer.setRenderer(renderer)
-            rlayer.triggerRepaint()
-
-            log("The raster was modified successfully.")
-        else:
-            log("The plugin did not succeed because one or more parameters were set incorrectly.")
-            log("Please, check the log above.")
-
-
-
-
-    def paleocoastlines_dlg_load(self):
-        self.dlg4 = PaleocoastlinesDialog()
-
-        # show the dialog
-        self.dlg4.show()
-        # Run the dialog event loop
-        # result = self.dlg4.exec_()
-
-        # # Set up logging to use the dlg4 text widget as a handler
-        # self.log_widget=self.dlg4.logText
-
-        # See if OK was pressed
-        # if result:
-
-        self.dlg4.runButton.pressed.connect(self.run_paleocoastlines)
-
-    def run_paleocoastlines(self):
-        # get the log widget
-        log = self.dlg4.log
-        out_path = self.dlg4.outputPath.filePath()
-
-        log('Starting')
-
-        self.dlg4.Tabs.setCurrentIndex(1)
-
-
-        log('Getting the raster layer')
-        topo_layer = self.dlg4.baseTopoBox.currentLayer()
-        topo_extent = topo_layer.extent()
-        topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
-        topo = topo_ds.GetRasterBand(1).ReadAsArray()
-        geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
-        nrows, ncols = np.shape(topo)
-
-        if not topo is None:
-            log(('Size of the Topography raster: ', str(topo.shape)))
-        else:
-            log('There is a problem with reading the Topography raster')
-
-        # Get the vector masks
-        log('Getting the vector layer')
-        mask_layer = self.dlg4.masksBox.currentLayer()
-
-        if mask_layer.isValid:
-            log('The mask layer is loaded properly')
-        else:
-            log('There is a problem with the mask layer - not loaded properly')
-
-        r_masks = vt.vector_to_raster(mask_layer, out_path, geotransform, ncols, nrows,
-                                      'r_masks_for_modification')
-        #The bathymetry values that are above sea level are taken down below sea level
-        in_array=topo[(r_masks==0)*(topo>0)==1]
-        topo[(r_masks == 0) * (topo > 0) == 1]=at.mod_rescale(in_array,-100,-0.05)
-
-        #The topography values that are below sea level are taken up above sea level
-        in_array = topo[(r_masks == 1) * (topo < 0) == 1]
-        topo[(r_masks == 1) * (topo < 0) == 1]=at.mod_rescale(in_array,0.05,100)
-
-
-        # Check if raster was modified. If the x matrix was assigned.
-        if 'topo' in locals():
-            # Write the resulting raster array to a raster file
-            file_path = os.path.join(out_path, "paleo_dem_final.tif")
-
-            driver = gdal.GetDriverByName('GTiff')
-            if os.path.exists(file_path):
-                driver.Delete(file_path)
-
-            raster = driver.Create(file_path, ncols, nrows, 1, gdal.GDT_Float32)
-            raster.SetGeoTransform(geotransform)
-            crs = osr.SpatialReference()
-            crs.ImportFromEPSG(4326)
-            raster.SetProjection(crs.ExportToWkt())
-            raster.GetRasterBand(1).WriteArray(topo)
-            raster = None
-            rlayer = self.iface.addRasterLayer(file_path, "Reconstructed DEM", "gdal")
-
-            # Smoothing raster
-            if self.dlg4.smoothingBox.isChecked():
-
-                factor = self.dlg4.smFactorSpinBox.value()  # smoothing radius in grid cells. The amount of cells around the one to be smoothed.
-
-                result = rt.raster_smoothing(rlayer, factor)
-                if result == True:
-                    log("Smoothing was performed sucessfuly")
-                else:
-                    log("Smoothing was not successful")
-
-            """#Rendering a symbology style for the resulting raster layer"""
-            #TODO move rendering function to topotools and use the function inside the processing tools
-            #TODO Modify the renderer the way that it recongnizes the elevation ranges in the raster better and adapts according to that.
-            stats = rlayer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
-            min = stats.minimumValue
-            max = stats.maximumValue
-            ramp_shader = QgsColorRampShader()
-            ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
-
-            lst = [QgsColorRampShader.ColorRampItem(min, QColor(0, 0, 90), str(round(min))),
-                   QgsColorRampShader.ColorRampItem(0, QColor(100, 255, 255), '0'),
-                   QgsColorRampShader.ColorRampItem(1, QColor(0, 150, 0), '1'),
-                   QgsColorRampShader.ColorRampItem(200, QColor(0, 255, 0), '200'),
-                   QgsColorRampShader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
-                   QgsColorRampShader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
-                   QgsColorRampShader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
-                   QgsColorRampShader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
-                   QgsColorRampShader.ColorRampItem(max, QColor(255, 255, 255), str(round(max)))]
-
-            ramp_shader.setColorRampItemList(lst)
-
-            # We’ll assign the color ramp to a QgsRasterShader
-            # so it can be used to symbolize a raster layer.
-            shader = QgsRasterShader()
-            shader.setRasterShaderFunction(ramp_shader)
-
-            """Finally, we need to apply the symbology we’ve create to the raster layer. 
-            First, we’ll create a renderer using our raster shader. 
-            Then we’ll Assign the renderer to our raster layer."""
-
-            renderer = QgsSingleBandPseudoColorRenderer(rlayer.dataProvider(), 1, shader)
-            rlayer.setRenderer(renderer)
-            rlayer.triggerRepaint()
-
-            log("The raster was modified successfully.")
-
-        else:
-            log("The plugin did not succeed because one or more parameters were set incorrectly.")
-            log("Please, check the log above.")
-
-    def fill_smooth_dlg_load(self):
-        self.dlg5 = FillSmoothDialog()
-
-        # show the dialog
-        self.dlg5.show()
-
-
-        self.dlg5.runButton.pressed.connect(self.run_fill_smooth)
-
-    def run_fill_smooth(self):
-        fill_type = self.dlg5.fillingTypeBox.currentIndex()
-
-        if fill_type==0:
-            base_raster_layer=self.dlg5.baseTopoBox.currentLayer()
-            out_file_path=self.dlg5.outputPath.filePath()
-            interpolated_raster=rt.fill_no_data(base_raster_layer,out_file_path)
-
-            if self.dlg5.smoothingBox.isChecked():
-                #Get the layer for smoothing
-                interpolated_raster_layer=QgsRasterLayer(interpolated_raster, 'Interpolated DEM', 'gdal')
-
-                #Get smoothing factor
-                sm_factor=self.dlg5.smFactorSpinBox.value()
-                #Smooth the raster
-                rt.raster_smoothing(interpolated_raster_layer, sm_factor)
-
-
-            #Add the interolated raster to the map canvas
-            if self.dlg5.addToCanvasCheckBox.isChecked():
-                # Get the name of the file from its path to add the raster with this name to the map canvas.
-                file_name = os.path.splitext(os.path.basename(interpolated_raster))[0]
-                resulting_layer = self.iface.addRasterLayer(interpolated_raster, file_name,"gdal")
-                #Apply a colour palette to the added layer
-                rt.set_raster_symbology(resulting_layer)
-
-        elif fill_type==1:
-            #Get a raster layer to copy the elevation values FROM
-            from_raster_layer= self.dlg5.copyFromRasterBox.currentLayer()
-            from_raster=gdal.Open(from_raster_layer.dataProvider().dataSourceUri())
-            from_array=from_raster.GetRasterBand(1).ReadAsArray()
-
-
-            #Get a raster layer to copy the elevation values TO
-            to_raster_layer = self.dlg5.baseTopoBox.currentLayer()
-            to_raster = gdal.Open(to_raster_layer.dataProvider().dataSourceUri())
-            to_array = to_raster.GetRasterBand(1).ReadAsArray()
-
-
-            #Get a vector coontaining masks
-            mask_vector_layer=self.dlg5.masksBox.currentLayer()
-
-            #Get the path for saving the resulting raster
-            filled_raster_path=self.dlg5.outputPath.filePath()
-
-            #Rasterize masks
-            geotransform=to_raster.GetGeoTransform()
-            nrows,ncols=to_array.shape
-            out_path=os.path.dirname(self.dlg5.outputPath.filePath())
-            name_of_mask='mask_fill_a_raster_from_another.tif'
-            mask_array=vt.vector_to_raster(mask_vector_layer,out_path,geotransform,ncols, nrows, name_of_mask)
-
-            #Fill the raster
-            to_array[mask_array==1]=from_array[mask_array==1]
-
-
-            #Create a new raster for the result
-            output_raster=gdal.GetDriverByName('GTiff').Create(filled_raster_path,ncols,nrows,1,gdal.GDT_Float32)
-            output_raster.SetGeoTransform(geotransform)
-            crs=to_raster_layer.crs()
-            output_raster.SetProjection(crs.toWkt())
-            output_band=output_raster.GetRasterBand(1)
-            output_band.SetNoDataValue(np.nan)
-            output_band.WriteArray(to_array)
-            output_band.FlushCache()
-            output_raster=None
-
-            # Add the interolated raster to the map canvas
-            if self.dlg5.addToCanvasCheckBox.isChecked():
-                #Get the name of the file from its path to add the raster with this name to the map canvas.
-                file_name=os.path.splitext(os.path.basename(filled_raster_path))[0]
-                resulting_layer = self.iface.addRasterLayer(filled_raster_path, file_name, "gdal")
-                # Apply a colour palette to the added layer
-                rt.set_raster_symbology(resulting_layer)
-        elif fill_type==2:
-            pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	"""QGIS Plugin Implementation."""
+
+	def __init__(self, iface):
+		"""Constructor.
+
+		:param iface: An interface instance that will be passed to this class
+			which provides the hook by which you can manipulate the QGIS
+			application at run time.
+		:type iface: QgsInterface
+		"""
+		# Save reference to the QGIS interface
+		self.iface = iface
+		# initialize plugin directory
+		self.plugin_dir = os.path.dirname(__file__)
+		# initialize locale
+		locale = QSettings().value('locale/userLocale')[0:2]
+		locale_path = os.path.join(
+			self.plugin_dir,
+			'i18n',
+			'DEMBuilder_{}.qm'.format(locale))
+
+		if os.path.exists(locale_path):
+			self.translator = QTranslator()
+			self.translator.load(locale_path)
+
+			if qVersion() > '4.3.3':
+				QCoreApplication.installTranslator(self.translator)
+
+		# Declare instance attributes
+		self.actions = []
+		self.menu = self.tr(u'&Paleogeography')
+
+		# Create a separate toolbar for the tool
+		self.pg_toolBar = iface.mainWindow().findChild(QToolBar, u'Paleogeography')
+		if not self.pg_toolBar:
+			self.pg_toolBar = iface.addToolBar(u'Paleogeography')
+			self.pg_toolBar.setObjectName(u'Paleogeography')
+
+		# Check if plugin was started the first time in current QGIS session
+		# Must be set in initGui() to survive plugin reloads
+		self.first_start = None
+
+	# Create the tool dialog
+
+	# noinspection PyMethodMayBeStatic
+	def tr(self, message):
+		"""Get the translation for a string using Qt translation API.
+
+		We implement this ourselves since we do not inherit QObject.
+
+		:param message: String for translation.
+		:type message: str, QString
+
+		:returns: Translated version of message.
+		:rtype: QString
+		"""
+		# noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+		return QCoreApplication.translate('DEMBuilder', message)
+
+	def add_action(
+			self,
+			icon_path,
+			text,
+			callback,
+			enabled_flag = True,
+			add_to_menu = True,
+			add_to_toolbar = True,
+			status_tip = None,
+			whats_this = None,
+			parent = None):
+		"""Add a toolbar icon to the toolbar.
+
+		:param icon_path: Path to the icon for this action. Can be a resource
+			path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
+		:type icon_path: str
+
+		:param text: Text that should be shown in menu items for this action.
+		:type text: str
+
+		:param callback: Function to be called when the action is triggered.
+		:type callback: function
+
+		:param enabled_flag: A flag indicating if the action should be enabled
+			by default. Defaults to True.
+		:type enabled_flag: bool
+
+		:param add_to_menu: Flag indicating whether the action should also
+			be added to the menu. Defaults to True.
+		:type add_to_menu: bool
+
+		:param add_to_toolbar: Flag indicating whether the action should also
+			be added to the toolbar. Defaults to True.
+		:type add_to_toolbar: bool
+
+		:param status_tip: Optional text to show in a popup when mouse pointer
+			hovers over the action.
+		:type status_tip: str
+
+		:param parent: Parent widget for the new action. Defaults None.
+		:type parent: QWidget
+
+		:param whats_this: Optional text to show in the status bar when the
+			mouse pointer hovers over the action.
+
+		:returns: The action that was created. Note that the action is also
+			added to self.actions list.
+		:rtype: QAction
+		"""
+
+		icon = QIcon(icon_path)
+		action = QAction(icon, text, parent)
+		action.triggered.connect(callback)
+		action.setEnabled(enabled_flag)
+
+		if status_tip is not None:
+			action.setStatusTip(status_tip)
+
+		if whats_this is not None:
+			action.setWhatsThis(whats_this)
+
+		if add_to_toolbar:
+			# Adds plugin icon to Plugins toolbar
+			self.pg_toolBar.addAction(action)
+
+		if add_to_menu:
+			self.iface.addPluginToMenu(
+				self.menu,
+				action)
+
+		self.actions.append(action)
+
+		return action
+
+	def initGui(self):
+		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
+
+		dem_builder_icon = os.path.join(self.plugin_dir, 'icon.png')
+		mask_prep_icon = os.path.join(self.plugin_dir, 'mask.png')
+		topo_modifier_icon = os.path.join(self.plugin_dir, 'topomod.png')
+		p_coastline_icon = os.path.join(self.plugin_dir, 'paleocoastlines.png')
+		std_proc_icon = os.path.join(self.plugin_dir, 'fill_smooth.png')
+
+		self.add_action(
+			dem_builder_icon,
+			text = self.tr(u'Topography and bathymetry compiler'),
+			callback = self.dem_builder_dlg_load,
+			parent = self.iface.mainWindow())
+
+		self.add_action(
+			topo_modifier_icon,
+			text = self.tr(u'Topoggraphy modifier'),
+			callback = self.topo_modifier_dlg_load,
+			parent = self.iface.mainWindow())
+		self.add_action(
+			p_coastline_icon,
+			text = self.tr(u'Paleoshorelines reconstructor'),
+			callback = self.paleocoastlines_dlg_load,
+			parent = self.iface.mainWindow())
+		self.add_action(
+			std_proc_icon,
+			text = self.tr(u'Standard processing tools'),
+			callback = self.std_processing_dlg_load,
+			parent = self.iface.mainWindow())
+
+		self.pg_toolBar.addSeparator()
+
+		self.add_action(
+			mask_prep_icon,
+			text = self.tr(u'Mask preparator'),
+			callback = self.mask_maker_dlg_load,
+			parent = self.iface.mainWindow())
+
+		# will be set False in run()
+		self.first_start = True
+
+	def unload(self):
+		"""Removes the plugin menu item and icon from QGIS GUI."""
+		for action in self.actions:
+			self.iface.removePluginMenu(
+				self.tr(u'&Paleogeography'),
+				action)
+			self.iface.removeToolBarIcon(action)
+
+	def dem_builder_dlg_load(self):
+
+		# Create the dialog with elements (after translation) and keep reference
+		# Only create GUI ONCE in callback, so that it will only load when the plugin is started
+		if self.first_start == True:
+			self.first_start = False
+			self.dlg = DEMBuilderDialog()
+		# Show the dialog
+		self.dlg.show()
+		# When the run button is pressed, topography modification algorithm is run.
+		self.dlg.runButton.pressed.connect(self.run_dem_builder)
+
+	def run_dem_builder(self):
+		# Get the path of the output file
+		out_file_path = self.dlg.outputPath.filePath()
+
+		# getting the paleobathymetry layer
+		bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
+		bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
+		paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
+
+		# creating a base grid for compiling topography and bathymetry
+		paleo_dem = np.empty(paleo_bathy.shape)
+		paleo_dem[:] = np.nan
+		# Copy the bathymetry to the base grid. Values above sea level are set to 0.
+		paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
+		paleo_dem[paleo_bathy > 0] = 0
+
+		if self.dlg.selectOceanAge.currentLayer():
+			# getting ocean age layer
+			ocean_age_layer = self.dlg.selectOceanAge.currentLayer()
+			age_ds = gdal.Open(ocean_age_layer.dataProvider().dataSourceUri())
+			ocean_age = age_ds.GetRasterBand(1).ReadAsArray()
+
+			# create an empty array to store calculated ocean depth from age.
+			ocean_depth = np.empty(paleo_bathy.shape)
+			ocean_depth[:] = np.nan
+			r_time = self.dlg.ageBox.value()
+
+			# calculate ocean age
+			ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - r_time
+			ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
+			ocean_depth[ocean_age > 90] = -5750
+			# Update the bathymetry, keeping mueller only where agegrid is undefined
+			paleo_dem[np.isfinite(ocean_depth)] = ocean_depth[np.isfinite(ocean_depth)]
+
+		# Get the general masks layer from the dialog
+		masks_layer = self.dlg.selectMasks.currentLayer()
+
+		# Get features by attribute from the masks layer - the attributes are fetched in the 'layer' field
+		expr_ss = QgsExpression("\"layer\"='Shallow sea'")
+		expr_cs = QgsExpression("\"layer\"='Continental Shelves'")
+		expr_coast = QgsExpression("\"layer\"='Continents'")
+
+		ss_features = masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
+		cs_features = masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
+		coast_features = masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
+
+		ss_n = 0
+		for feature in ss_features:
+			ss_n += 1
+
+		cs_n = 0
+		for feature in cs_features:
+			cs_n += 1
+		coast_n = 0
+		for feature in coast_features:
+			coast_n += 1
+
+		if coast_n > 0:
+
+			# Get the features again, because in the loop above they reset.
+			ss_features = masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
+			cs_features = masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
+			coast_features = masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
+
+			# Create temporary layers to store extracted masks
+			ss_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary ss", "memory")
+			ss_prov = ss_temp.dataProvider()
+			cs_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary cs", "memory")
+			cs_prov = cs_temp.dataProvider()
+			coast_temp = QgsVectorLayer("Polygon?crs=epsg:4326", "Temporary coastline", "memory")
+			coast_prov = coast_temp.dataProvider()
+
+			# Add extracted features (masks) to the temporary layers
+			ss_prov.addFeatures(ss_features)
+			cs_prov.addFeatures(cs_features)
+			coast_prov.addFeatures(coast_features)
+
+			# Prepare the parameters for rasterization of the masks
+			out_path = os.path.dirname(out_file_path)
+			geotransform = bathy_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
+			nrows, ncols = np.shape(
+				paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
+
+			# Save the extracted masks to be able to rasterize them
+			# TODO Figure out how to use in-memory vector layer to rasterize. The gdal.RasterizeLayer takes OGRLayerSadow, whereas in-memory layers are QgsVectorLayer.
+			# Create a directory for the vector masks
+
+			if not os.path.exists(os.path.join(out_path, "vector_masks")):
+				os.makedirs(os.path.join(out_path, "vector_masks"))
+
+			# Output files
+			ss_out_file = os.path.join(out_path, "vector_masks", "Shallow_sea.shp")
+			cs_out_file = os.path.join(out_path, "vector_masks", "Continental_shelves.shp")
+			coast_out_file = os.path.join(out_path, "vector_masks", "Coastline.shp")
+
+			layers = [(ss_temp, ss_out_file, "ShallowSea"), (cs_temp, cs_out_file, "ContinentalShelves"),
+			          (coast_temp, coast_out_file, "Coastline")]
+			for layer, out_file, name in layers:
+				# Check if the file is already created. Acts like overwrite
+				if os.path.exists(out_file):
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+					if deleted:
+						pass
+					else:
+						print(out_file + "is not deleted.")
+
+				error = QgsVectorFileWriter.writeAsVectorFormat(layer, out_file, "UTF-8", layer.crs(), "ESRI Shapefile")
+				if error[0] == QgsVectorFileWriter.NoError:
+					print("The  shape file {} has been created and saved successfully".format(os.path.basename(out_file)))
+				else:
+					print("The {} shapefile is not created because {}".format(os.path.basename(out_file), error[1]))
+				if name == "ShallowSea":
+					ss_temp = QgsVectorLayer(out_file, "Shallow sea masks", "ogr")
+				elif name == "ContinentalShelves":
+					cs_temp = QgsVectorLayer(out_file, "Continental Shelves masks", "ogr")
+				elif name == "Coastline":
+					coast_temp = QgsVectorLayer(out_file, "Continental Shelves masks", "ogr")
+
+			# Rasterize extracted masks
+			ss_mask = vt.vector_to_raster(ss_temp, geotransform, ncols, nrows)
+			cs_mask = vt.vector_to_raster(cs_temp, geotransform, ncols, nrows)
+			coast_mask = vt.vector_to_raster(coast_temp, geotransform, ncols, nrows)
+
+			# Check if the shallow sea bathhymetry raster and shallow sea masks are defined.
+			if self.dlg.selectSbathy.currentLayer() and ss_n > 0:
+				# getting the shallow sea bathymetry
+				s_bathy_layer = self.dlg.selectSbathy.currentLayer()
+				sbathy_ds = gdal.Open(s_bathy_layer.dataProvider().dataSourceUri())
+				s_bathy = sbathy_ds.GetRasterBand(1).ReadAsArray()
+
+				# Modify bathymetry according to masks
+				s_bathy[s_bathy < paleo_dem] = paleo_dem[
+					s_bathy < paleo_dem]  # remove parts that are deeper than current bathymetry
+				paleo_dem[ss_mask == 1] = s_bathy[ss_mask == 1]
+
+			if self.dlg.selectSbathy.currentLayer() and cs_n > 0:
+				# Replace continental shelf by shallow region depth where the latter is deeper and less than 2000m
+				shelf_depth = self.dlg.shelfDepthBox.value()
+				paleo_dem[cs_mask == 1] = shelf_depth
+				paleo_dem[((cs_mask == 1) * (s_bathy > -2000) * (s_bathy < shelf_depth)) == 1] = s_bathy[
+					((cs_mask == 1) * (s_bathy > -2000) * (s_bathy < shelf_depth)) == 1]
+
+			# Fill the land area with the present day rotated topography
+
+			# Read the Bedrock topography from the dialog
+			topo = self.dlg.selectBrTopo.currentLayer()
+			# Get the data provider to access the data
+			topo_ds = gdal.Open(topo.dataProvider().dataSourceUri())
+			# Read the data as a an array of data
+			topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
+			paleo_dem[coast_mask == 1] = topo_br[coast_mask == 1]
+
+			# Close all the temporary vector layers
+			cs_temp = None
+			ss_temp = None
+			coast_temp = None
+
+			# Remove the shapefiles of the temporary vector layers from the disk. Also remove the temporary folder created for them.
+			temp_files = [ss_out_file, cs_out_file, coast_out_file]
+			deleted_n = 0
+			for out_file in temp_files:
+				if os.path.exists(out_file):
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+					if deleted:
+						deleted_n += 1
+
+			if deleted_n > 2:
+				if os.path.exists(os.path.join(out_path, "vector_masks")):
+					shutil.rmtree(os.path.join(out_path, "vector_masks"))
+				else:
+					print(
+						'I created a temporary folder with some shapefiles: ' + os.path.join(out_path, "vector_masks"))
+					print('And could not delete it. You may delete it manually.')
+
+
+		else:
+
+			# getting the paleobathymetry layer
+			bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
+			bathy_ds = gdal.Open(bathy_layer.dataProvider().dataSourceUri())
+			paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
+
+			# creating a base grid for compiling topography and bathymetry
+			paleo_dem = np.empty(paleo_bathy.shape)
+			paleo_dem[:] = np.nan
+			paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
+			paleo_dem[paleo_bathy < -12000] = np.nan
+			paleo_dem[paleo_bathy > 0] = 0
+
+
+			# this line gets the user-defined directory for storing the output files and prepares some variables for rasterization process
+
+			geotransform = bathy_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
+			nrows, ncols = np.shape(
+				paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
+			# Get the general masks layer from the dialog
+			masks_layer = self.dlg.selectMasks.currentLayer()
+
+			# Rasterize masks layer
+			coast_mask = vt.vector_to_raster(masks_layer, geotransform, ncols, nrows)
+
+			# Fill the land area with the present day rotated topography
+
+			# Read the Bedrock topography from the dialog
+			topo = self.dlg.selectBrTopo.currentLayer()
+			# Get the data provider to access the data
+			topo_ds = gdal.Open(topo.dataProvider().dataSourceUri())
+			# Read the data as an array of data
+			topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
+			paleo_dem[coast_mask == 1] = topo_br[coast_mask == 1]
+
+
+		nrows, ncols = np.shape(paleo_dem)
+		geotransform = bathy_ds.GetGeoTransform()
+
+		raster = gdal.GetDriverByName('GTiff').Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+		raster.SetGeoTransform(geotransform)
+		crs = osr.SpatialReference()
+		crs.ImportFromEPSG(4326)
+		raster.SetProjection(crs.ExportToWkt())
+		raster.GetRasterBand(1).WriteArray(paleo_dem)
+		raster.GetRasterBand(1).SetNoDataValue(np.nan)
+		raster = None
+		file_name = os.path.splitext(os.path.basename(out_file_path))[0]
+		rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+
+		# Rendering a symbology style for the resulting raster layer.
+		rt.set_raster_symbology(rlayer)
+
+	def mask_maker_dlg_load(self):
+
+		# Create the tool dialog
+		self.dlg2 = MaskMakerDialog()
+		# show the dialog
+		self.dlg2.show()
+
+		# When the run button is pressed, topography modification algorythm is run.
+		self.dlg2.runButton.pressed.connect(self.run_mask_maker)
+
+	def run_mask_maker(self):
+		out_file_path = self.dlg2.outputFile.filePath()
+		# this line gets the user-defined directoory for storing the output files
+		out_path = os.path.dirname(out_file_path)
+
+		# Combining polygons and polylines
+
+		# Get all the input layers
+		# a) Shallow sea masks
+		ss_mask_layer = self.dlg2.selectSsMask.currentLayer()
+		if self.dlg2.selectSsMaskLine.currentLayer():
+			ss_mask_line_layer = self.dlg2.selectSsMaskLine.currentLayer()
+		else:
+			ss_mask_line_layer = None
+		# b) Continental Shelves masks
+		cs_mask_layer = self.dlg2.selectCshMask.currentLayer()
+		if self.dlg2.selectCshMaskLine.currentLayer():
+			cs_mask_line_layer = self.dlg2.selectCshMaskLine.currentLayer()
+		else:
+			cs_mask_line_layer = None
+		# c) Coastline masks
+		coast_mask_layer = self.dlg2.selectCoastlineMask.currentLayer()
+		if self.dlg2.selectCoastlineMaskLine.currentLayer():
+			coast_mask_line_layer = self.dlg2.selectCoastlineMaskLine.currentLayer()
+		else:
+			coast_mask_line_layer = None
+
+		# Create a list of input layers
+		layers = [(ss_mask_layer, ss_mask_line_layer, "Shallow sea"),
+		          (cs_mask_layer, cs_mask_line_layer, "Continental Shelves"),
+		          (coast_mask_layer, coast_mask_line_layer, "Continents")]
+
+		# Polygonize polylines and combine them with their polygon counterparts in one temp file
+
+		for poly, line, name in layers:
+
+			# # parameters for polygonization
+			# params_poly = {'INPUT': line, 'KEEP_FIELDS': True, 'OUTPUT': 'memory:' + name}
+			# # polygonize polylines
+			# polygonized_layer = processing.run('qgis:polygonize', params_poly)['OUTPUT']
+
+			if line is not None:
+				# Creating a temporary layer to store features
+				temp = QgsVectorLayer("Polygon?crs=epsg:4326", "shallow sea temp", "memory")
+				temp_provider = temp.dataProvider()
+				line_features = line.getFeatures()  # getting features from the polyline layer
+				attr_line = line.dataProvider().fields().toList()
+				temp_provider.addAttributes(attr_line)
+				temp.updateFields()
+				poly_features = []
+				# this loop reads the geometries of all the polyline features and creates polygon features from the geometries
+				for geom in line_features:
+					# Get the geometry oof features
+					line_geometry = geom.geometry()
+
+					# checking if the geometry is polyline or multipolyline
+					if line_geometry.wkbType() == QgsWkbTypes.LineString:
+						line_coords = line_geometry.asPolyline()
+					elif line_geometry.wkbType() == QgsWkbTypes.MultiLineString:
+						line_coords = line_geometry.asMultiPolyline()
+					else:
+						print("The geometry is neither polyline nor multipolyline")
+					poly_geometry = QgsGeometry.fromPolygonXY(line_coords)
+					feature = QgsFeature()
+					feature.setGeometry(poly_geometry)
+					feature.setAttributes(geom.attributes())
+					poly_features.append(feature)
+				temp_provider.addFeatures(poly_features)
+				poly_features = None
+				fixed_line = processing.run('native:fixgeometries', {'INPUT': temp, 'OUTPUT': 'memory:' + name})[
+					'OUTPUT']
+			else:
+				pass
+			# parameters for layer merging
+			fixed_poly = processing.run('native:fixgeometries', {'INPUT': poly, 'OUTPUT': 'memory:' + name})[
+				'OUTPUT']
+			if line is not None:
+				layers_to_merge = [fixed_poly, fixed_line]
+				params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:' + name}
+				temp_layer = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+				fixed_poly = None
+				fixed_line = None
+			else:
+				temp_layer = fixed_poly
+				fixed_poly = None
+
+			if name == "Shallow sea":
+				ss_temp = temp_layer
+				temp_layer = None
+			elif name == "Continental Shelves":
+				cs_temp = temp_layer
+				temp_layer = None
+			elif name == "Continents":
+				coast_temp = temp_layer
+				temp_layer = None
+
+		# Extracting masks by running difference algorithm
+		# Parameters for difference algorithm
+		params = {'INPUT': ss_temp, 'OVERLAY': cs_temp, 'OUTPUT': 'memory:Shallow sea'}
+		ss_extracted = processing.run('native:difference', params)["OUTPUT"]
+		ss_temp = None  # remove shallow sea masks layer, becasue we don't need it anymore. This will release memory.
+		params = {'INPUT': cs_temp, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:Continental Shelves'}
+		cs_extracted = processing.run('native:difference', params)["OUTPUT"]
+		cs_temp = None
+		"""Combining the extracted masks in one shape file. """
+		layers_to_merge = [ss_extracted, cs_extracted]
+		params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:ss+cs'}
+		ss_and_cs_extracted = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+
+		# Running difference algorithm to remove geometries that overlap with the coastlines
+		# Parameters for difference algorithm.
+		params = {'INPUT': ss_and_cs_extracted, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:ss+cs'}
+		masks_layer = processing.run('native:difference', params)["OUTPUT"]
+		layers_to_merge = [masks_layer, coast_temp]
+		params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:Final extracted masks'}
+		final_masks = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+
+
+
+		# Check if the file is already created. Acts like overwrite
+		if os.path.exists(out_file_path):
+			driver = ogr.GetDriverByName('ESRI Shapefile')
+			driver.DeleteDataSource(out_file_path)  # Delete the file, if it is already created.
+
+		# Saving the results into a shape file
+		error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, out_file_path, "UTF-8", masks_layer.crs(),
+		                                                "ESRI Shapefile")
+		if error[0] == QgsVectorFileWriter.NoError:
+			print("The {} shapefile has been saved successfully".format(os.path.basename(out_file_path)))
+		else:
+			print("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file_path), error[1]))
+
+		# Get the saved shape file for adding to map canvas
+		layer = QgsVectorLayer(out_file_path, "Extracted ma sks", "ogr")
+		# Add the masks layer to map canvas
+		QgsProject.instance().addMapLayer(layer)
+
+	def topo_modifier_dlg_load(self):
+
+		# Get the dialog
+		self.dlg3 = TopoModifierDialog()
+
+		# show the dialog
+		self.dlg3.show()
+
+		# When the run button is pressed, topography modification algorythm is run.
+		self.dlg3.runButton.pressed.connect(self.run_topo_modifier)
+
+	def run_topo_modifier(self):
+
+		# get the log widget
+		log = self.dlg3.log
+		out_file_path = self.dlg3.outputPath.filePath()
+		out_path = os.path.dirname(out_file_path)
+
+		log('Starting')
+
+		self.dlg3.Tabs.setCurrentIndex(1)
+		# Get the topography as an array
+
+		log('Getting the raster layer')
+		topo_layer = self.dlg3.baseTopoBox.currentLayer()
+		topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
+		topo = topo_ds.GetRasterBand(1).ReadAsArray()
+		geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
+		nrows, ncols = np.shape(topo)
+
+		if topo is not None:
+			log(('Size of the Topography raster: ', str(topo.shape)))
+		else:
+			log('There is a problem with reading the Topography raster')
+
+		# Get the vector masks
+		log('Getting the vector layer')
+		mask_layer = self.dlg3.masksBox.currentLayer()
+
+		if mask_layer.isValid:
+			log('The mask layer is loaded properly')
+		else:
+			log('There is a problem with the mask layer - not loaded properly')
+
+		if self.dlg3.useAllMasksBox.isChecked():
+			# Get features from the mask_layer
+			features = mask_layer.getFeatures()
+
+		# Modifying the topography raster with different formula for different masks
+		else:
+			# Get features by attribute from the masks layer - the attributes are fetched in the selected field.
+			field = self.dlg3.maskNameField.currentField()
+			value = self.dlg3.maskNameText.text()
+
+			log(('Fetching the ', value, ' masks from the field: ', field))
+
+			expr = QgsExpression(QgsExpression().createFieldEqualityExpression(field, value))
+			features = mask_layer.getFeatures(QgsFeatureRequest(expr))
+
+			# Make sure if any feature is returned by our query above
+			# If the field name or the name of mask is not specified correctly, our feature iterator (features)
+			# will be empty and "any" statement will return false.
+
+			assert (any(True for _ in features)), \
+				"Your query did not return any record. Please, check if you specified correct field " \
+				"for the names of masks, and that you have typed the name of a mask correctly."
+
+			# Get the features in the feature iterator again, because during the assertion
+			# we already iterated over the iterator and it is empty now.
+			features = mask_layer.getFeatures(QgsFeatureRequest(expr))
+
+		# Create a directory for temporary vector files
+		path = os.path.join(out_path, "vector_masks")
+
+		if not os.path.exists(path):
+			try:
+				os.mkdir(path)
+			except OSError:
+				log("Creation of the directory %s failed" % path)
+			else:
+				log("Successfully created the directory %s " % path)
+		else:
+			log("The folder raster_masks is already created.")
+
+		# Check if the formula mode of topography modification is checked
+		# Otherwise minimum and maximum values will be used to calculate the formula
+		if self.dlg3.formulaCheckBox.isChecked():
+
+			# Get the fields
+			fields = mask_layer.fields().toList()
+
+			# Get the field names to be able to fetch formulas from the attributes table
+			field_names = [i.name() for i in fields]
+
+			# If formula field is not selected, the whole topography
+			# raster is modified with one formula, which is taken from the textbox in the dialog.
+			# Check if formula field is specified.
+			# The QgsFieldCombobox returns string with the name of field -
+			# we check if it is empty - empty string = False (bool) in python
+			if self.dlg3.formulaField.currentField():
+				formula_field = self.dlg3.formulaField.currentField()
+				# Get the position of the formula field in the table of attributes
+				# This will help us to get the formula of a mask by it's position
+				formula_pos = field_names.index(formula_field)
+				formula = None
+			else:
+				formula = self.dlg3.formulaText.text()
+				formula_pos = None
+				log(('formula for topography modification is: ', formula))
+
+			# Get the minimum and maximum bounding values for selecting the elevation values that should be modified.
+			# Values outside the bounding values will not be touched.
+			if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.minValueField.currentField():
+				min_value_field = self.dlg3.minValueField.currentField()
+
+				# Get the position of the formula field in the table of attributes
+				# This will help us to get the formula of a mask by it's position
+				min_value_pos = field_names.index(min_value_field)
+				min_value = None
+
+			elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
+				min_value = self.dlg3.minValueSpin.value()
+				min_value_field = None
+				min_value_pos = None
+			else:
+				min_value = None
+				min_value_field = None
+				min_value_pos = None
+
+			if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.maxValueField.currentField():
+				max_value_field = self.dlg3.maxValueField.currentField()
+				# Get the position of the formula field in the table of attributes
+				# This will help us to get the formula of a mask by it's position
+				max_value_pos = field_names.index(max_value_field)
+				max_value = None
+			elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
+				max_value = self.dlg3.maxValueSpin.value()
+				max_value_field = None
+				max_value_pos = None
+			else:
+				max_value = None
+				max_value_field = None
+				max_value_pos = None
+
+			mask_number = 0
+			for feat in features:
+				mask_number += 1
+				# Get the formula, min and max values, if they are different for each feature.
+				if formula is None:
+					feat_formula = feat.attributes()[formula_pos]
+				else:
+					feat_formula = formula
+
+				# Check if the formula field contains the formula
+				if feat_formula == NULL or ('x' in feat_formula) is False:
+					log("Mask " + str(mask_number) + " does not contain any formula.")
+					log("You might want to check if the field for formula is "
+					    "specified correctly in the plugin dialog.")
+					continue
+				if min_value is None and min_value_field is not None:
+					feat_min_value = feat.attributes()[min_value_pos]
+				elif min_value is None:
+					feat_min_value = None
+				else:
+					feat_min_value = min_value
+
+				if max_value is None and max_value_field is not None:
+					feat_max_value = feat.attributes()[max_value_pos]
+				elif max_value is None:
+					feat_max_value = None
+				else:
+					feat_max_value = max_value
+
+				# Create a temporary layer to store the extracted masks
+				temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+				temp_dp = temp_layer.dataProvider()
+				temp_dp.addAttributes(fields)
+				temp_layer.updateFields()
+
+				temp_dp.addFeature(feat)
+
+				# Create a temporary shapefile to store extracted masks before rasterizing them
+				out_file = os.path.join(path, 'masks_for_topo_modification.shp')
+
+				if os.path.exists(out_file):
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+
+				error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8",
+				                                                temp_layer.crs(), "ESRI Shapefile")
+				if error[0] == QgsVectorFileWriter.NoError:
+					log("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
+				else:
+					log("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file), error[1]))
+
+				# Rasterize extracted masks
+				v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
+				r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
+				v_layer = None
+
+				# Modify the topography
+				x = topo
+				in_array = x[r_masks == 1]
+				x[r_masks == 1] = at.mod_formula(in_array, feat_formula, feat_min_value, feat_max_value)
+
+		else:
+			# Get the final minimum and maximum values either from a
+			# specified field in the attribute table or from the spinboxes.
+			if self.dlg3.minMaxFromAttrCheckBox.isChecked():
+				# Get the fields from the layer
+				fields = mask_layer.fields().toList()
+				# Get the field names to be able to fetch minimum and maximum values from the attributes table
+				field_names = [i.name() for i in fields]
+				# Get the names of fields with the minimum and maximum values.
+				fmin_field = self.dlg3.minField.currentField()
+				fmax_field = self.dlg3.maxField.currentField()
+				# Get the position of the minimum and maximum fields in the table of attributes
+				# This will help us to get the values of a mask by their positions
+				fmin_pos = field_names.index(fmin_field)
+				fmax_pos = field_names.index(fmax_field)
+				mask_number = 0
+				for feat in features:
+					mask_number += 1
+					fmin = feat.attributes()[fmin_pos]
+					fmax = feat.attributes()[fmax_pos]
+					# Check if the min and max fields contain any value
+					if fmin == NULL or fmax == NULL:
+						log("Mask " + str(mask_number) +
+						    " does not contain final maximum or/and minimum values specified in the attributes table.")
+						log("You might want to check if the fields for minimum and "
+						    "maximum values are specified correctly in the plugin dialog.")
+						continue
+
+					# Create a temporary layer to store the extracted masks
+					temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+					temp_dp = temp_layer.dataProvider()
+					temp_dp.addAttributes(fields)
+					temp_layer.updateFields()
+
+					temp_dp.addFeature(feat)
+
+					# Create a temporary shapefile to store extracted masks before rasterizing them
+					out_file = os.path.join(path, 'masks_for_topo_modification.shp')
+
+					if os.path.exists(out_file):
+						deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+					error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8",
+					                                                temp_layer.crs(), "ESRI Shapefile")
+					if error[0] == QgsVectorFileWriter.NoError:
+						log("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
+					else:
+						log("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file), error[1]))
+
+					# Rasterize extracted masks
+					v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
+					r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
+					v_layer = None
+
+					# Modify the topography
+					x = topo
+					in_array = x[r_masks == 1]
+
+					x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
+			else:
+				fmin = self.dlg3.minSpin.value()
+				fmax = self.dlg3.maxSpin.value()
+
+				# Create a temporary layer to store the extracted masks
+				temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+				temp_dp = temp_layer.dataProvider()
+				temp_dp.addFeatures(features)
+
+				# Create a temporary shapefile to store extracted masks before rasterizing them
+				out_file = os.path.join(path, 'masks_for_topo_modification.shp')
+
+				if os.path.exists(out_file):
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+
+				error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8",
+				                                                temp_layer.crs(), "ESRI Shapefile")
+				if error == QgsVectorFileWriter.NoError:
+					log("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
+				else:
+					log("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file), error[1]))
+
+				# Rasterize extracted masks
+				v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
+				r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
+				v_layer = None
+
+				# Modify the topography
+				x = topo
+				in_array = x[r_masks == 1]
+				x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
+
+		# Check if raster was modified. If the x matrix was assigned.
+		if 'x' in locals():
+			# Write the resulting raster array to a raster file
+			driver = gdal.GetDriverByName('GTiff')
+			if os.path.exists(out_file_path):
+				driver.Delete(out_file_path)
+
+			raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+			raster.SetGeoTransform(geotransform)
+			crs = osr.SpatialReference()
+			crs.ImportFromEPSG(4326)
+			raster.SetProjection(crs.ExportToWkt())
+			raster.GetRasterBand(1).WriteArray(x)
+			raster = None
+			layer_name = os.path.splitext(os.path.basename(out_file_path))[0]
+			rlayer = self.iface.addRasterLayer(out_file_path, layer_name, "gdal")
+
+			# Rendering a symbology style for the resulting raster layer
+			rt.set_raster_symbology(rlayer)
+
+			#Delete temporary files and folders
+			log('Deleting temporary files and folders.')
+
+			if os.path.exists(out_file):
+				deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+				if deleted:
+					log("The %s shapefile is deleted successfully." % str(os.path.basename(out_file)))
+				else:
+					log("The %s shapefile is NOT deleted." % str(os.path.basename(out_file)))
+
+			if os.path.exists(path):
+				try:
+					shutil.rmtree(path)
+				except OSError:
+					log("The directory %s is not deleted." % path)
+				else:
+					log("The directory %s is successfully deleted" % path)
+
+
+			log("The raster was modified successfully.")
+		else:
+			log("The plugin did not succeed because one or more parameters were set incorrectly.")
+			log("Please, check the log above.")
+
+	def paleocoastlines_dlg_load(self):
+		self.dlg4 = PaleocoastlinesDialog()
+
+		# show the dialog
+		self.dlg4.show()
+		# Run the dialog event loop
+		# result = self.dlg4.exec_()
+
+		# # Set up logging to use the dlg4 text widget as a handler
+		# self.log_widget=self.dlg4.logText
+
+		# See if OK was pressed
+		# if result:
+
+		self.dlg4.runButton.pressed.connect(self.run_paleocoastlines)
+
+	def run_paleocoastlines(self):
+		# get the log widget
+		log = self.dlg4.log
+
+		log('Starting')
+
+		self.dlg4.Tabs.setCurrentIndex(1)
+
+		log('Getting the raster layer')
+		topo_layer = self.dlg4.baseTopoBox.currentLayer()
+		topo_extent = topo_layer.extent()
+		topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
+		topo = topo_ds.GetRasterBand(1).ReadAsArray()
+		geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
+		nrows, ncols = np.shape(topo)
+
+		if not topo is None:
+			log(('Size of the Topography raster: ', str(topo.shape)))
+		else:
+			log('There is a problem with reading the Topography raster')
+
+		# Get the vector masks
+		log('Getting the vector layer')
+		mask_layer = self.dlg4.masksBox.currentLayer()
+
+		if mask_layer.isValid:
+			log('The mask layer is loaded properly')
+		else:
+			log('There is a problem with the mask layer - not loaded properly')
+
+		r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
+		# The bathymetry values that are above sea level are taken down below sea level
+		in_array = topo[(r_masks == 0) * (topo > 0) == 1]
+		topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, -100, -0.05)
+
+		# The topography values that are below sea level are taken up above sea level
+		in_array = topo[(r_masks == 1) * (topo < 0) == 1]
+		topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.05, 100)
+
+		# Check if raster was modified. If the x matrix was assigned.
+		if 'topo' in locals():
+			# Write the resulting raster array to a raster file
+			out_file_path = self.dlg4.outputPath.filePath()
+
+			driver = gdal.GetDriverByName('GTiff')
+			if os.path.exists(out_file_path):
+				driver.Delete(out_file_path)
+
+			raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+			raster.SetGeoTransform(geotransform)
+			crs = osr.SpatialReference()
+			crs.ImportFromEPSG(4326)
+			raster.SetProjection(crs.ExportToWkt())
+			raster.GetRasterBand(1).WriteArray(topo)
+			raster = None
+
+			# Add the resulting layer to the Qgis map canvas.
+			file_name = os.path.splitext(os.path.basename(out_file_path))[0]  # Name of the file to be added.
+			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+
+			# Rendering a symbology style for the resulting raster layer
+			rt.set_raster_symbology(rlayer)
+
+			log("The raster was modified successfully.")
+
+		else:
+			log("The plugin did not succeed because one or more parameters were set incorrectly.")
+			log("Please, check the log above.")
+
+	def std_processing_dlg_load(self):
+		self.dlg5 = StdProcessingDialog()
+
+		# show the dialog
+		self.dlg5.show()
+
+		self.dlg5.runButton.pressed.connect(self.run_std_processing)
+
+	def run_std_processing(self):
+		processing_type = self.dlg5.fillingTypeBox.currentIndex()
+
+		if processing_type == 0:
+			base_raster_layer = self.dlg5.baseTopoBox.currentLayer()
+			out_file_path = self.dlg5.outputPath.filePath()
+			interpolated_raster = rt.fill_no_data(base_raster_layer, out_file_path)
+
+			if self.dlg5.smoothingBox.isChecked():
+				# Get the layer for smoothing
+				interpolated_raster_layer = QgsRasterLayer(interpolated_raster, 'Interpolated DEM', 'gdal')
+
+				# Get smoothing factor
+				sm_factor = self.dlg5.smFactorSpinBox.value()
+				# Smooth the raster
+				rt.raster_smoothing(interpolated_raster_layer, sm_factor)
+
+			# Add the interolated raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_name = os.path.splitext(os.path.basename(interpolated_raster))[0]
+				resulting_layer = self.iface.addRasterLayer(interpolated_raster, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)
+
+		elif processing_type == 1:
+			# Get a raster layer to copy the elevation values FROM
+			from_raster_layer = self.dlg5.copyFromRasterBox.currentLayer()
+			from_raster = gdal.Open(from_raster_layer.dataProvider().dataSourceUri())
+			from_array = from_raster.GetRasterBand(1).ReadAsArray()
+
+			# Get a raster layer to copy the elevation values TO
+			to_raster_layer = self.dlg5.baseTopoBox.currentLayer()
+			to_raster = gdal.Open(to_raster_layer.dataProvider().dataSourceUri())
+			to_array = to_raster.GetRasterBand(1).ReadAsArray()
+
+			# Get a vector coontaining masks
+			mask_vector_layer = self.dlg5.masksBox.currentLayer()
+
+			# Get the path for saving the resulting raster
+			filled_raster_path = self.dlg5.outputPath.filePath()
+
+			# Rasterize masks
+			geotransform = to_raster.GetGeoTransform()
+			nrows, ncols = to_array.shape
+			out_path = os.path.dirname(self.dlg5.outputPath.filePath())
+
+			mask_array = vt.vector_to_raster(mask_vector_layer, geotransform, ncols, nrows)
+
+			# Fill the raster
+			to_array[mask_array == 1] = from_array[mask_array == 1]
+
+			# Create a new raster for the result
+			output_raster = gdal.GetDriverByName('GTiff').Create(filled_raster_path, ncols, nrows, 1, gdal.GDT_Float32)
+			output_raster.SetGeoTransform(geotransform)
+			crs = to_raster_layer.crs()
+			output_raster.SetProjection(crs.toWkt())
+			output_band = output_raster.GetRasterBand(1)
+			output_band.SetNoDataValue(np.nan)
+			output_band.WriteArray(to_array)
+			output_band.FlushCache()
+			output_raster = None
+
+			# Add the interpolated raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_name = os.path.splitext(os.path.basename(filled_raster_path))[0]
+				resulting_layer = self.iface.addRasterLayer(filled_raster_path, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)
+		elif processing_type == 2:
+			raster_to_smooth_layer = self.dlg5.baseTopoBox.currentLayer()
+			smoothing_factor = self.dlg5.smFactorSpinBox.value()
+			output_file = self.dlg5.outputPath.filePath()
+
+			smoothed_raster_layer = rt.raster_smoothing(raster_to_smooth_layer, smoothing_factor, output_file)
+
+			# Add the smoothed raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_path = smoothed_raster_layer.dataProvider().dataSourceUri()
+				file_name = os.path.splitext(os.path.basename(file_path))[0]
+				resulting_layer = self.iface.addRasterLayer(file_path, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)
+
+		elif processing_type == 3:
+			# Get the output file path
+			out_file_path = self.dlg5.outputPath.filePath()
+			# Get the bedrock topography raster
+			topo_br_layer = self.dlg5.baseTopoBox.currentLayer()
+			topo_br_ds = gdal.Open(topo_br_layer.dataProvider().dataSourceUri())
+			topo_br_data = topo_br_ds.GetRasterBand(1).ReadAsArray()
+
+			# Get the ice surface topography raster
+			topo_ice_layer = self.dlg5.selectIceTopoBox.currentLayer()
+			topo_ice_ds = gdal.Open(topo_ice_layer.dataProvider().dataSourceUri())
+			topo_ice_data = topo_ice_ds.GetRasterBand(1).ReadAsArray()
+
+			# Get the masks
+			mask_layer = self.dlg5.masksBox.currentLayer()
+
+			if self.dlg5.masksFromCoastCheckBox.isChecked():
+				# Get features from the masks layer
+				expr = QgsExpression(
+					"lower(\"NAME\") LIKE '%greenland%' OR lower(\"NAME\") LIKE '%antarctic%' OR lower(\"NAME\") LIKE '%marie byrd%' OR lower(\"NAME\") LIKE '%ronne ice%' OR lower(\"NAME\") LIKE '%thurston%' OR lower(\"NAME\") LIKE '%admundsen%'")
+
+				features = mask_layer.getFeatures(QgsFeatureRequest(expr))
+				temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+				temp_prov = temp_layer.dataProvider()
+				temp_prov.addFeatures(features)
+
+				path = os.path.join(os.path.dirname(out_file_path), 'vector_masks')
+				if not os.path.exists(path):
+					try:
+						os.mkdir(path)
+					except OSError:
+						print("Creation of the directory %s failed" % path)
+					else:
+						print("Successfully created the directory %s " % path)
+
+				out_file = os.path.join(path, 'isostat_comp_masks.shp')
+				if os.path.exists(out_file):
+					#function deleteShapeFile return bool True iif deleted False if not
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+					if deleted:
+						print(out_file + "has been deleted.")
+					else:
+						print(out_file + "is not deleted.")
+
+				error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", mask_layer.crs(),
+				                                                "ESRI Shapefile")
+				if error[0] == QgsVectorFileWriter.NoError:
+					print("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
+				else:
+					print("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file), error[1]))
+
+				# Rasterize extracted masks
+				geotransform = topo_br_ds.GetGeoTransform()
+				nrows, ncols = np.shape(topo_br_data)
+				v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
+				r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
+
+				# Close  the temporary vector layer
+				v_layer = None
+
+				# Remove the shapefile of the temporary vector layer from the disk. Also remove the temporary folder created for it.
+
+				if os.path.exists(out_file):
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+					if deleted:
+						if os.path.exists(path):
+							shutil.rmtree(path)
+						else:
+							print('I created a temporary folder with a shapefile at: ' + os.path.join(path))
+							print('And could not delete it. You may need delete it manually.')
+
+
+			else:
+				geotransform = topo_br_ds.GetGeoTransform()
+				nrows, ncols = np.shape(topo_br_data)
+				r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
+
+			# Compensate for ice load
+			rem_amount = self.dlg5.iceAmountSpinBox.value()  # the amount of ice that needs to be removed.
+			comp_factor = 0.3 * (topo_ice_data[r_masks == 1] - topo_br_data[r_masks == 1]) * rem_amount / 100
+			comp_factor[np.isnan(comp_factor)] = 0
+			comp_factor[comp_factor < 0] = 0
+			topo_br_data[r_masks == 1] = topo_br_data[r_masks == 1] + comp_factor
+
+			# Create a new raster for the result
+			output_raster = gdal.GetDriverByName('GTiff').Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+			output_raster.SetGeoTransform(geotransform)
+			crs = topo_br_layer.crs()
+			output_raster.SetProjection(crs.toWkt())
+			output_band = output_raster.GetRasterBand(1)
+			output_band.SetNoDataValue(np.nan)
+			output_band.WriteArray(topo_br_data)
+			output_band.FlushCache()
+			output_raster = None
+
+			# Add the interpolated raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_name = os.path.splitext(os.path.basename(out_file_path))[0]
+				resulting_layer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)

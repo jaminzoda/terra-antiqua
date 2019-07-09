@@ -27,9 +27,11 @@ import os
 from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtCore import QUrl,QFile, QFileInfo
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 
 from qgis.core import QgsMapLayerProxyModel
+from qgis.utils import showPluginHelp
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -48,25 +50,18 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        #Specify the types for compilation
-        #list of options
-        options=['Baatsen-2016', 'Poblette']
-        self.reconstructionTypeBox.addItems(options)
-        #Elements of dialog are changed appropriately, when a reconstruction type is selected
-        self.reconstructionTypeBox.currentIndexChanged.connect(self.typeOfReconstruction)
-
-
-
         # clear the values in the dialog elements
         self.ageBox.setClearValue(0)
         self.ageBox.clear()  # clear the spinbox for the age of reconstructiton
         self.shelfDepthBox.setClearValue(0)
         self.shelfDepthBox.clear()  # clear the spinbox for the shelf detph
         # Setting the file widget in the storage mode
-        self.outputFile.setStorageMode(self.outputFile.GetDirectory)
+        self.outputPath.setStorageMode(self.outputPath.SaveFile)
+        self.outputPath.setFilter('*.tif;;*.tiff')
+
+
         # defining types of the layers to be shown for each combobox
         # raster layers comboboxes
-
         #Ocean age
         self.selectOceanAge.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.selectOceanAge.setLayer(None)
@@ -87,81 +82,27 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectBrTopo.setLayer(None)
 
 
-        #Ice topography
-        self.selectIceTopo.setFilters(QgsMapLayerProxyModel.RasterLayer)
-        self.selectIceTopo.setLayer(None)
-        self.selectIceTopo.setEnabled(False)
-        self.selectTopoIceButton.setEnabled(False)
+
 
 
         # vector layers comboboxes
         self.selectMasks.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.selectMasks.setLayer(None)
 
-
-        #Enable Ice toopography combobox, if the appropriate checkbox is checked
-        self.isoStatBox.stateChanged.connect(self.enableIceTopoBox)
-
-        self.selectBathyButton.clicked.connect(self.addLayerToOceanAge)
+        self.selectBathyButton.clicked.connect(self.addLayerToPaleoBathy)
         self.selectPBathyButton.clicked.connect(self.addLayerToPaleoBathy)
         self.selectSBathyButton.clicked.connect(self.addLayerToSBathy)
         self.selectTopoBrButton.clicked.connect(self.addLayerToTopoBr)
-        self.selectTopoIceButton.clicked.connect(self.addLayerToTopoIce)
+
         self.selectMasksButton.clicked.connect(self.addLayerToMasks)
 
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_DEMCompiler.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
+        showPluginHelp()
 
-
-
-
-    #Change the elements of the dialog based on the type of reconstruction
-    def typeOfReconstruction(self):
-        current_index=self.reconstructionTypeBox.currentIndex()
-        if current_index==1:
-            self.selectOceanAge.setEnabled(False)
-            self.selectOceanAge.hide()
-            self.oceanAgeLabel.hide()
-            self.selectBathyButton.hide()
-
-            self.selectSbathy.setEnabled(False)
-            self.selectSbathy.hide()
-            self.shallowSeaLabel.hide()
-            self.selectSBathyButton.hide()
-
-            self.ageBox.setEnabled(False)
-            self.ageBox.hide()
-            self.ageBoxLabel.hide()
-
-            self.shelfDepthBox.setEnabled(False)
-            self.shelfDepthBox.hide()
-            self.shelfDepthBoxLabel.hide()
-
-        elif current_index==0:
-            self.selectOceanAge.setEnabled(True)
-            self.selectOceanAge.show()
-            self.oceanAgeLabel.show()
-            self.selectBathyButton.show()
-
-            self.selectSbathy.setEnabled(True)
-            self.selectSbathy.show()
-            self.shallowSeaLabel.show()
-            self.selectSBathyButton.show()
-
-            self.ageBox.setEnabled(True)
-            self.ageBox.show()
-            self.ageBoxLabel.show()
-
-            self.shelfDepthBox.setEnabled(True)
-            self.shelfDepthBox.show()
-            self.shelfDepthBoxLabel.show()
-
-    #Function for enbling Ice topography combobox
-    def enableIceTopoBox(self, state):
-        if state > 0:
-            self.selectIceTopo.setEnabled(True)
-            self.selectTopoIceButton.setEnabled(True)
-        else:
-            self.selectIceTopo.setEnabled(False)
-            self.selectTopoIceButton.setEnabled(False)
 
     #Functions for adding layers from disk to comboboxes
     def addLayerToOceanAge(self):
@@ -176,8 +117,7 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
     def addLayerToTopoBr(self):
         self.openRasterFromDisk(self.selectBrTopo)
 
-    def addLayerToTopoIce(self):
-        self.openRasterFromDisk(self.selectIceTopo)
+
 
     def addLayerToMasks(self):
         self.openVectorFromDisk(self.selectMasks)
