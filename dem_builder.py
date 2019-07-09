@@ -443,8 +443,6 @@ class DEMBuilder:
             paleo_dem = np.empty(paleo_bathy.shape)
             paleo_dem[:] = np.nan
             paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-            paleo_dem[paleo_bathy<-12000]=np.nan
-            
             paleo_dem[paleo_bathy > 0] = 0
 
             # this line gets the user-defined directory for storing the output files and prepares some variables for rasterization process
@@ -482,7 +480,6 @@ class DEMBuilder:
         crs.ImportFromEPSG(4326)
         raster.SetProjection(crs.ExportToWkt())
         raster.GetRasterBand(1).WriteArray(paleo_dem)
-        raster.GetRasterBand(1).SetNoDataValue(np.nan)
         raster = None
         file_name=os.path.splitext(os.path.basename(out_file_path))[0]
         rlayer=self.iface.addRasterLayer(out_file_path, file_name, "gdal")
