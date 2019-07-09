@@ -105,7 +105,7 @@
              <item>
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Select aa vector  layer with the rotated  paleoshorelines:</string>
+                <string>Select a vector  layer with the rotated  paleoshorelines:</string>
                </property>
               </widget>
              </item>

@@ -19,8 +19,7 @@ class RasterTools(QgsRasterLayer):
 	def __init__(self):
 		super.__init__(self)
 
-
-	def fill_no_data(self, out_file_path, no_data_value=None):
+	def fill_no_data(self, out_file_path, no_data_value = None):
 		"""
 		Fils the missing data by interpolating from edges.
 		:param in_layer: QgsRasterLayer
@@ -29,7 +28,7 @@ class RasterTools(QgsRasterLayer):
 		:return: String - the path of the output file.
 		"""
 		# (1) Get the input raster dataset
-		rlayer=self
+		rlayer = self
 		raster_ds = gdal.Open(rlayer.dataProvider().dataSourceUri())
 		in_band = raster_ds.GetRasterBand(1)
 		in_array = in_band.ReadAsArray()
@@ -42,12 +41,11 @@ class RasterTools(QgsRasterLayer):
 		if no_data_value != None:
 			in_array[in_array == no_data_value] = np.nan
 
-
 		# (2) Define the parameters for creating a mask raster of valid values.
-		#TODO move this mask into the temporary directory of the OS
-		path=os.path.split(rlayer.dataProvider().dataSourceUri())[0]
-		mask_name="mask_"+os.path.split(rlayer.dataProvider().dataSourceUri())[1]
-		mask_file=os.path.join(path,mask_name)
+		# TODO move this mask into the temporary directory of the OS
+		path = os.path.split(rlayer.dataProvider().dataSourceUri())[0]
+		mask_name = "mask_" + os.path.split(rlayer.dataProvider().dataSourceUri())[1]
+		mask_file = os.path.join(path, mask_name)
 		geotransform = raster_ds.GetGeoTransform()
 		cols = in_array.shape[1]
 		rows = in_array.shape[0]
@@ -57,7 +55,7 @@ class RasterTools(QgsRasterLayer):
 		out_array[np.isnan(in_array)] = np.nan
 		out_array[np.isfinite(in_array)] = 1
 
-		#Create Target - TIFF
+		# Create Target - TIFF
 		out_raster = gdal.GetDriverByName('GTiff').Create(mask_file, cols, rows, 1, gdal.GDT_Byte)
 		out_raster.SetGeoTransform(geotransform)
 		crs = osr.SpatialReference()
@@ -69,33 +67,33 @@ class RasterTools(QgsRasterLayer):
 		out_band.FlushCache()
 		out_raster = None
 
-
 		# (3) Interpolation (filling the gaps)
-		#Interpolation using the python bindings (package) of gdal
+		# Interpolation using the python bindings (package) of gdal
 
-		#result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
+		# result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
 		#						 maxSearchDist = 100, smoothingIterations = 0)
 
-		#interpolation with the processinig module
-		input_layer=rlayer.dataProvider().dataSourceUri()
-		mask=QgsRasterLayer(mask_file,'Validity mask', 'gdal')
-		mask_layer=mask.dataProvider().dataSourceUri()
-		processing.run("gdal:fillnodata",{'INPUT': input_layer, 'BAND': 1,'DISTANCE': 100, 'ITERATIONS': 0, 'NO_MASK': False, 'MASK_LAYER': mask_layer,'OUTPUT': out_file_path})
+		# interpolation with the processinig module
+		input_layer = rlayer.dataProvider().dataSourceUri()
+		mask = QgsRasterLayer(mask_file, 'Validity mask', 'gdal')
+		mask_layer = mask.dataProvider().dataSourceUri()
+		processing.run("gdal:fillnodata",
+		               {'INPUT': input_layer, 'BAND': 1, 'DISTANCE': 100, 'ITERATIONS': 0, 'NO_MASK': False,
+		                'MASK_LAYER': mask_layer, 'OUTPUT': out_file_path})
 
 		in_band.FlushCache()
 
 		raster_ds = None
 
-
 		# (4) delete the validity mask file
-		mask=None
+		mask = None
 		driver = gdal.GetDriverByName('GTiff')
 		if os.path.exists(mask_file):
 			driver.Delete(mask_file)
 
 		return out_file_path
 
-	def raster_smoothing(self, factor, out_file=None):
+	def raster_smoothing(self, factor, out_file = None):
 		"""
 		Smoothes values of pixels in a raster  by averaging  values around them
 		:param self, in_layer: input raster layer (QgsRasterLayer) for smoothing
@@ -103,38 +101,35 @@ class RasterTools(QgsRasterLayer):
 		:return:QgsRasterLayer. Smoothed raster layer.
 		"""
 
-
 		raster_ds = gdal.Open(self.dataProvider().dataSourceUri(), gdalconst.GA_Update)
 		in_band = raster_ds.GetRasterBand(1)
 		in_array = in_band.ReadAsArray()
-		rows=in_array.shape[0]
-		cols=in_array.shape[1]
+		rows = in_array.shape[0]
+		cols = in_array.shape[1]
 
-		out_array=np.zeros(in_array.shape)
+		out_array = np.zeros(in_array.shape)
 
-
-		for i in range(rows-1):
-			for j in range(cols-1):
+		for i in range(rows - 1):
+			for j in range(cols - 1):
 				# Define smoothing mask; periodic boundary along date line
-				x_vector = np.mod((np.arange((j - factor), (j + factor + 1))), (cols-1))
+				x_vector = np.mod((np.arange((j - factor), (j + factor + 1))), (cols - 1))
 				x_vector = x_vector.reshape(1, len(x_vector))
-				y_vector = np.arange(np.maximum(0, i - factor), (np.minimum((rows-1), i + factor) + 1), 1)
+				y_vector = np.arange(np.maximum(0, i - factor), (np.minimum((rows - 1), i + factor) + 1), 1)
 				y_vector = y_vector.reshape(len(y_vector), 1)
 				out_array[i, j] = np.mean(in_array[y_vector, x_vector])
 
-
-		#Write the smoothed raster
-		#If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
-		if out_file!=None:
+		# Write the smoothed raster
+		# If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
+		if out_file != None:
 			if os.path.exists(out_file):
-				driver=gdal.GetDriverByName('GTiff')
+				driver = gdal.GetDriverByName('GTiff')
 				driver.Delete(out_file)
-			geotransform=raster_ds.GetGeoTransform()
-			smoothed_raster=gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Float32)
+			geotransform = raster_ds.GetGeoTransform()
+			smoothed_raster = gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Float32)
 			smoothed_raster.SetGeoTransform(geotransform)
 			crs = self.crs()
 			smoothed_raster.SetProjection(crs.toWkt())
-			smoothed_band=smoothed_raster.GetRasterBand(1)
+			smoothed_band = smoothed_raster.GetRasterBand(1)
 			smoothed_band.WriteArray(out_array)
 			smoothed_band.FlushCache()
 
@@ -142,18 +137,17 @@ class RasterTools(QgsRasterLayer):
 			raster_ds = None
 			smoothed_raster = None
 
-			#Get the resulting layer to return
-			smoothed_layer=QgsRasterLayer(out_file,'Smoothed paleoDEM', 'gdal')
+			# Get the resulting layer to return
+			smoothed_layer = QgsRasterLayer(out_file, 'Smoothed paleoDEM', 'gdal')
 		else:
 			in_band.WriteArray(out_array)
 			in_band.FlushCache()
 
-			#Close the dataset
+			# Close the dataset
 			raster_ds = None
 
-			#Get the resulting layer to return
+			# Get the resulting layer to return
 			smoothed_layer = QgsRasterLayer(self.dataProvider().dataSourceUri(), 'Smoothed paleoDEM', 'gdal')
-
 
 		return smoothed_layer
 
@@ -164,20 +158,20 @@ class RasterTools(QgsRasterLayer):
 		"""
 
 		stats = self.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
-		min = stats.minimumValue
-		max = stats.maximumValue
+		min_elev = stats.minimumValue
+		max_elev = stats.maximumValue
 		ramp_shader = QgsColorRampShader()
 		ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
-		lst = [ramp_shader.ColorRampItem(min, QColor(0, 0, 90), str(round(min))),
-			   ramp_shader.ColorRampItem(0, QColor(100, 255, 255), '0'),
-			   ramp_shader.ColorRampItem(1, QColor(0, 150, 0), '1'),
-			   ramp_shader.ColorRampItem(200, QColor(0, 255, 0), '200'),
-			   ramp_shader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
-			   ramp_shader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
-			   ramp_shader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
-			   ramp_shader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
-			   ramp_shader.ColorRampItem(max, QColor(255, 255, 255), str(round(max)))]
+		lst = [ramp_shader.ColorRampItem(min_elev, QColor(0, 0, 90), str(round(min_elev))),
+		       ramp_shader.ColorRampItem(0, QColor(100, 255, 255), '0'),
+		       ramp_shader.ColorRampItem(1, QColor(0, 150, 0), '1'),
+		       ramp_shader.ColorRampItem(200, QColor(0, 255, 0), '200'),
+		       ramp_shader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
+		       ramp_shader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
+		       ramp_shader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
+		       ramp_shader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
+		       ramp_shader.ColorRampItem(max_elev, QColor(255, 255, 255), str(round(max_elev)))]
 
 		ramp_shader.setColorRampItemList(lst)
 
@@ -195,7 +189,6 @@ class RasterTools(QgsRasterLayer):
 		self.triggerRepaint()
 
 
-
 class VectorTools(QgsVectorLayer):
 	def __init__(self):
 		super.__init__(self)
@@ -210,7 +203,7 @@ class VectorTools(QgsVectorLayer):
 		:return: Numpy array.
 		"""
 
-		# Opening the shapefile of the layer specified in the user dialog combobox selectSsMask
+		# Opening the shapefile of the input layer
 		try:
 			in_shapefile = ogr.Open(self.source())
 
@@ -232,13 +225,13 @@ class VectorTools(QgsVectorLayer):
 		band = mask_raster.GetRasterBand(1)
 		band.SetNoDataValue(NoData_value)
 
-		#Rasterize mask layer
+		# Rasterize mask layer
 		gdal.RasterizeLayer(mask_raster, [1], v_layer, burn_values = [1])
 		band.FlushCache()
-		raster_array=band.ReadAsArray()
-		in_shapefile=None
-		v_layer=None
-		mask_raster=None
+		raster_array = band.ReadAsArray()
+		in_shapefile = None
+		v_layer = None
+		mask_raster = None
 
 		return raster_array
 
@@ -246,7 +239,8 @@ class VectorTools(QgsVectorLayer):
 class ArrayTools(np.ndarray):
 	def __init__(self):
 		super.__init__(self)
-	def mod_min_max(self, fmin:int, fmax:int):
+
+	def mod_min_max(self, fmin: int, fmax: int):
 		"""
 		Modifies the elevation/bathimetry
 		values based on the current and provided
@@ -257,17 +251,17 @@ class ArrayTools(np.ndarray):
 		:param fmax: final maximum value of elevation/bathymetry.
 		:return: modified array of eleveation/bathymetry values.
 		"""
-		in_array=self
-		#Define the initial minimum and maximum values of the array
-		#imin = in_array.min()
+		in_array = self
+		# Define the initial minimum and maximum values of the array
+		# imin = in_array.min()
 		imax = in_array[np.isfinite(in_array)].max()
-		out_array=in_array
+		out_array = in_array
 
-		ratio=(imax-fmin)/(fmax-fmin)
-		out_array[out_array>=fmin]=fmin+(in_array[in_array>=fmin]-fmin)/ratio
+		ratio = (imax - fmin) / (fmax - fmin)
+		out_array[out_array >= fmin] = fmin + (in_array[in_array >= fmin] - fmin) / ratio
 		return out_array
 
-	def mod_rescale(self, min:int, max:int):
+	def mod_rescale(self, min: int, max: int):
 		"""
 		Modifies the elevation/bathimetry
 		values based on the current and provided
@@ -278,17 +272,17 @@ class ArrayTools(np.ndarray):
 		:param fmax: final maximum value of elevation/bathymetry.
 		:return: modified array of eleveation/bathymetry values.
 		"""
-		in_array=self
-		#Define the initial minimum and maximum values of the array
-		#imin = in_array.min()
+		in_array = self
+		# Define the initial minimum and maximum values of the array
+
 		imax = in_array[np.isfinite(in_array)].max()
-		imin=in_array[np.isfinite(in_array)].min()
-		out_array=in_array
-		out_array[:]=(max-min)*(out_array[:]-imin)/(imax-imin)+min
+		imin = in_array[np.isfinite(in_array)].min()
+		out_array = in_array
+		out_array[:] = (max - min) * (out_array[:] - imin) / (imax - imin) + min
 
 		return out_array
 
-	def mod_formula(self, formula, min=None, max=None):
+	def mod_formula(self, formula, min = None, max = None):
 		"""
 		:input self (numpy array): an input array that contains elevation values.
 		:param formula: the formula to be used for topography modification.
@@ -297,72 +291,31 @@ class ArrayTools(np.ndarray):
 		:return: numpy array of modified elevation values.
 		"""
 
-		topo=self
+		topo = self
 
-		x=np.empty(topo.shape)
+		x = np.empty(topo.shape)
 		x.fill(np.nan)
-		if min!=None and max!=None:
-			index='x[(x>min)*(x<max)==1]'
-			x[(topo>min)*(topo<max)==1]=topo[(topo>min)*(topo<max)==1]
+		if min != None and max != None:
+			index = 'x[(x>min)*(x<max)==1]'
+			x[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
 			new_formula = formula.replace('x', index)
-			x[(topo>min)*(topo<max)==1] = eval(new_formula)
+			x[(topo > min) * (topo < max) == 1] = eval(new_formula)
 
-		elif min!=None and max==None:
+		elif min != None and max == None:
 			index = 'x[x>min]'
-			x[topo>min] = topo[topo>min]
+			x[topo > min] = topo[topo > min]
 			new_formula = formula.replace('x', index)
-			x[topo>min]= eval(new_formula)
-		elif min==None and max!=None:
+			x[topo > min] = eval(new_formula)
+		elif min == None and max != None:
 			index = 'x[x<max]'
-			x[topo<max]= topo[topo<max]
+			x[topo < max] = topo[topo < max]
 			new_formula = formula.replace('x', index)
-			x[topo<max]=eval(new_formula)
+			x[topo < max] = eval(new_formula)
 		else:
-			x= topo
+			x = topo
 			new_formula = formula
-			x[:]=eval(new_formula)
+			x[:] = eval(new_formula)
 
-
-
-		topo[np.isfinite(x)]=x[np.isfinite(x)]
+		topo[np.isfinite(x)] = x[np.isfinite(x)]
 
 		return topo
-	# def interpolate(self, no_data_value):
-	# 	"""
-	# 	:input array: an input numpy array which contains nan values wherever the raster has gaps.
-	# 	:no_data_value: if a raster contains no_data_values defined customly, like 9999, they should be set to np.nan before interpolation for masking the areas with valid/invalid values.
-	# 	:return: returns a numpy array (with gaps filled by IDW interpolation).
-	# 	"""
-	#
-	# 	in_array=self
-	# 	if no_data_value != None:
-	# 		in_array[in_array == no_data_value] = np.nan
-	#
-	# 	#Define the parameters for creating a mask raster of valid values.
-	# 	path=os.path.split(rlayer.dataProvider().dataSourceUri())[0]
-	# 	mask_name="mask_"+os.path.split(rlayer.dataProvider().dataSourceUri())[1]
-	# 	mask_file=os.path.join(path,mask_name)
-	# 	geotransform = raster_ds.GetGeoTransform()
-	# 	cols = in_array.shape[1]
-	# 	rows = in_array.shape[0]
-	#
-	# 	out_array = np.ones(in_array.shape)
-	#
-	# 	out_array[np.isnan(in_array)] = np.nan
-	# 	out_array[np.isfinite(in_array)] = 1
-	#
-	# 	#Create Target - TIFF
-	# 	out_raster = gdal.GetDriverByName('GTiff').Create(mask_file, cols, rows, 1, gdal.GDT_Byte)
-	# 	out_raster.SetGeoTransform(geotransform)
-	# 	out_band = out_raster.GetRasterBand(1)
-	# 	out_band.SetNoDataValue(np.nan)
-	# 	out_band.WriteArray(out_array)
-	#
-	# 	result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
-	# 							 maxSearchDist = 100, smoothingIterations = 0)
-	# 	in_band.FlushCache()
-	#
-	# 	raster_ds = None
-	# 	out_raster = None
-	# 	return result
-
