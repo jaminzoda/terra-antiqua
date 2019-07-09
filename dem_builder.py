@@ -430,7 +430,6 @@ class DEMBuilder:
 			paleo_dem = np.empty(paleo_bathy.shape)
 			paleo_dem[:] = np.nan
 			paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-			paleo_dem[paleo_bathy < -12000] = np.    nan
 			paleo_dem[paleo_bathy > 0] = 0
 
 
