@@ -2,6 +2,9 @@
 # Created by https://www.gitignore.io/api/linux,python,pycharm
 # Edit at https://www.gitignore.io/?templates=linux,python,pycharm
 
+### Mac ###
+/help/*
+
 ### Linux ###
 *~
 
@@ -10,7 +13,7 @@
 
 # KDE directory preferences
 .directory
-
+.pb_tool.cfg
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
 
@@ -131,6 +134,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -253,3 +257,14 @@ $RECYCLE.BIN/
 .my-credentials
 
 # End of https://www.gitignore.io/api/python,windows,pycharm
+*.doctree
+*.doctree
+help/build/html/.buildinfo
+help/build/html/_static/basic.css
+help/build/html/_static/doctools.js
+help/build/html/_static/documentation_options.js
+help/build/html/_static/searchtools.js
+help/build/html/genindex.html
+help/build/html/index.html
+help/build/html/search.html
+help/build/html/searchindex.js
