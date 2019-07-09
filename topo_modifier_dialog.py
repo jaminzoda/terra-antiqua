@@ -19,7 +19,8 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         #Set the mode of QgsFileWidget to directory mode
-        self.outputPath.setStorageMode(self.outputPath.GetDirectory)
+        self.outputPath.setStorageMode(self.outputPath.SaveFile)
+        self.outputPath.setFilter('Raster file - *.tif;;Raster file - *.tiff')
         #Base topography layer
         self.baseTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.baseTopoBox.setLayer(None)
