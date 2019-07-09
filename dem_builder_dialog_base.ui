@@ -42,141 +42,16 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-147</y>
-            <width>507</width>
-            <height>583</height>
+            <y>-157</y>
+            <width>448</width>
+            <height>458</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
            <item>
-            <widget class="QGroupBox" name="groupBox_4">
-             <property name="title">
-              <string>Reconstruction type</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_14">
-              <item>
-               <widget class="QComboBox" name="reconstructionTypeBox"/>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="title">
-              <string>Bathymetry rasters</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout">
-              <item row="0" column="0">
-               <layout class="QVBoxLayout" name="verticalLayout_2">
-                <item>
-                 <widget class="QLabel" name="oceanAgeLabel">
-                  <property name="text">
-                   <string>Ocean age</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout">
-                  <item>
-                   <widget class="QgsMapLayerComboBox" name="selectOceanAge">
-                    <property name="currentText">
-                     <string/>
-                    </property>
-                    <property name="allowEmptyLayer">
-                     <bool>true</bool>
-                    </property>
-                    <property name="showCrs">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QToolButton" name="selectBathyButton">
-                    <property name="text">
-                     <string>...</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-              <item row="2" column="0">
-               <layout class="QVBoxLayout" name="verticalLayout_3">
-                <item>
-                 <widget class="QLabel" name="label_2">
-                  <property name="text">
-                   <string>Paleoocean bathimetry</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_2">
-                  <item>
-                   <widget class="QgsMapLayerComboBox" name="selectPaleoBathy">
-                    <property name="allowEmptyLayer">
-                     <bool>false</bool>
-                    </property>
-                    <property name="showCrs">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QToolButton" name="selectPBathyButton">
-                    <property name="text">
-                     <string>...</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="0">
-               <layout class="QVBoxLayout" name="verticalLayout_4">
-                <item>
-                 <widget class="QLabel" name="shallowSeaLabel">
-                  <property name="text">
-                   <string>Shallow sea bathymetry</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_3">
-                  <item>
-                   <widget class="QgsMapLayerComboBox" name="selectSbathy">
-                    <property name="allowEmptyLayer">
-                     <bool>true</bool>
-                    </property>
-                    <property name="showCrs">
-                     <bool>true</bool>
-                    </property>
-                    <property name="excludedProviders">
-                     <stringlist>
-                      <string>&quot;ogr&quot;</string>
-                     </stringlist>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QToolButton" name="selectSBathyButton">
-                    <property name="text">
-                     <string>...</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <widget class="QGroupBox" name="groupBox">
              <property name="title">
-              <string>Topography</string>
+              <string>Topography raster</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
@@ -219,37 +94,68 @@
                 </item>
                </layout>
               </item>
-              <item>
-               <widget class="QCheckBox" name="isoStatBox">
-                <property name="maximumSize">
-                 <size>
-                  <width>325</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Perform isostatic compensation for Greenland  and Antarctica</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_6">
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Bathymetry rasters</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="1" column="0">
+               <layout class="QVBoxLayout" name="verticalLayout_2">
                 <item>
-                 <widget class="QLabel" name="label_9">
+                 <widget class="QLabel" name="oceanAgeLabel">
                   <property name="text">
-                   <string>Ice surface topography</string>
+                   <string>Ocean age  [OPTIONAL]</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_6">
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetNoConstraint</enum>
-                  </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout">
                   <item>
-                   <widget class="QgsMapLayerComboBox" name="selectIceTopo">
-                    <property name="enabled">
+                   <widget class="QgsMapLayerComboBox" name="selectOceanAge">
+                    <property name="currentText">
+                     <string/>
+                    </property>
+                    <property name="allowEmptyLayer">
                      <bool>true</bool>
+                    </property>
+                    <property name="showCrs">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="selectBathyButton">
+                    <property name="text">
+                     <string>...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="0">
+               <layout class="QVBoxLayout" name="verticalLayout_4">
+                <item>
+                 <widget class="QLabel" name="shallowSeaLabel">
+                  <property name="text">
+                   <string>Shallow sea bathymetry [OPTIONAL]</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_3">
+                  <item>
+                   <widget class="QgsMapLayerComboBox" name="selectSbathy">
+                    <property name="editable">
+                     <bool>false</bool>
+                    </property>
+                    <property name="currentText">
+                     <string/>
                     </property>
                     <property name="allowEmptyLayer">
                      <bool>true</bool>
@@ -258,19 +164,95 @@
                      <bool>true</bool>
                     </property>
                     <property name="excludedProviders">
-                     <stringlist>
-                      <string>&quot;gdal&quot;</string>
-                     </stringlist>
+                     <stringlist/>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QToolButton" name="selectTopoIceButton">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
+                   <widget class="QToolButton" name="selectSBathyButton">
                     <property name="text">
                      <string>...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="0">
+               <layout class="QVBoxLayout" name="verticalLayout_3">
+                <item>
+                 <widget class="QLabel" name="label_2">
+                  <property name="text">
+                   <string>Reconstructed  paleobathimetry</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <widget class="QgsMapLayerComboBox" name="selectPaleoBathy">
+                    <property name="allowEmptyLayer">
+                     <bool>false</bool>
+                    </property>
+                    <property name="showCrs">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="selectPBathyButton">
+                    <property name="text">
+                     <string>...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,1">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <item>
+                   <widget class="QLabel" name="ageBoxLabel">
+                    <property name="text">
+                     <string>Age of reconstruction (Ma)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QgsSpinBox" name="ageBox">
+                    <property name="maximum">
+                     <number>4500</number>
+                    </property>
+                    <property name="singleStep">
+                     <number>5</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <item>
+                   <widget class="QLabel" name="shelfDepthBoxLabel">
+                    <property name="text">
+                     <string>Shelf depth (m)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QgsSpinBox" name="shelfDepthBox">
+                    <property name="minimum">
+                     <number>-1000</number>
+                    </property>
+                    <property name="maximum">
+                     <number>100</number>
+                    </property>
+                    <property name="singleStep">
+                     <number>10</number>
                     </property>
                    </widget>
                   </item>
@@ -292,7 +274,7 @@
                 <item>
                  <widget class="QLabel" name="label_8">
                   <property name="text">
-                   <string>Polygon layer</string>
+                   <string>General masks</string>
                   </property>
                  </widget>
                 </item>
@@ -331,82 +313,54 @@
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,1">
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
-               <item>
-                <widget class="QLabel" name="ageBoxLabel">
-                 <property name="text">
-                  <string>Age of reconstruction (Ma)</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QgsSpinBox" name="ageBox">
-                 <property name="maximum">
-                  <number>4500</number>
-                 </property>
-                 <property name="singleStep">
-                  <number>5</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_10">
-               <item>
-                <widget class="QLabel" name="shelfDepthBoxLabel">
-                 <property name="text">
-                  <string>Shelf depth (m)</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QgsSpinBox" name="shelfDepthBox">
-                 <property name="minimum">
-                  <number>-1000</number>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
-                 </property>
-                 <property name="singleStep">
-                  <number>10</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
               <widget class="QLabel" name="label_7">
                <property name="text">
-                <string>Output directory</string>
+                <string>Output file path:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputFile"/>
+              <widget class="QgsFileWidget" name="outputPath"/>
              </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
         </widget>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit">
+        <widget class="QTextBrowser" name="helpBox">
          <property name="maximumSize">
           <size>
-           <width>191</width>
+           <width>250</width>
            <height>16777215</height>
           </size>
          </property>
-         <property name="placeholderText">
-          <string>Help shall be displayed here.</string>
+         <property name="source">
+          <url>
+           <string>file:///help_text/help_DEMCompiler.html</string>
+          </url>
+         </property>
+         <property name="searchPaths">
+          <stringlist/>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -432,14 +386,72 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="button_box">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_10">
+     <item>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_11">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_12">
+       <item>
+        <widget class="QLabel" name="warningLabel">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="runButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Run</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="closeButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Close</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -463,34 +475,34 @@
  <resources/>
  <connections>
   <connection>
-   <sender>button_box</sender>
-   <signal>accepted()</signal>
+   <sender>closeButton</sender>
+   <signal>clicked()</signal>
    <receiver>DEMBuilderDialogBase</receiver>
-   <slot>accept()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
+     <x>716</x>
+     <y>406</y>
     </hint>
     <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
+     <x>382</x>
+     <y>214</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>button_box</sender>
-   <signal>rejected()</signal>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
    <receiver>DEMBuilderDialogBase</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
+     <x>717</x>
+     <y>374</y>
     </hint>
     <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
+     <x>382</x>
+     <y>214</y>
     </hint>
    </hints>
   </connection>
