@@ -27,9 +27,11 @@ import os
 from PyQt5 import uic
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtCore import QUrl,QFile, QFileInfo
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 
 from qgis.core import QgsMapLayerProxyModel
+from qgis.utils import showPluginHelp
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -93,6 +95,14 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectTopoBrButton.clicked.connect(self.addLayerToTopoBr)
 
         self.selectMasksButton.clicked.connect(self.addLayerToMasks)
+
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_DEMCompiler.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
+        showPluginHelp()
+
 
     #Functions for adding layers from disk to comboboxes
     def addLayerToOceanAge(self):

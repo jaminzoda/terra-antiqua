@@ -42,8 +42,8 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-108</y>
-            <width>507</width>
+            <y>-157</y>
+            <width>448</width>
             <height>458</height>
            </rect>
           </property>
@@ -59,7 +59,7 @@
                 <item>
                  <widget class="QLabel" name="label_4">
                   <property name="text">
-                   <string>Bedrock topography (Isostatic compensation can be done separately later).</string>
+                   <string>Bedrock topography</string>
                   </property>
                  </widget>
                 </item>
@@ -108,7 +108,7 @@
                 <item>
                  <widget class="QLabel" name="oceanAgeLabel">
                   <property name="text">
-                   <string>Present day  ocean age raster (rotated to time t) [OPTIONAL]</string>
+                   <string>Ocean age  [OPTIONAL]</string>
                   </property>
                  </widget>
                 </item>
@@ -143,7 +143,7 @@
                 <item>
                  <widget class="QLabel" name="shallowSeaLabel">
                   <property name="text">
-                   <string>Present day shallow sea bathymetry (rotated to time t) [OPTIONAL]</string>
+                   <string>Shallow sea bathymetry [OPTIONAL]</string>
                   </property>
                  </widget>
                 </item>
@@ -184,7 +184,7 @@
                 <item>
                  <widget class="QLabel" name="label_2">
                   <property name="text">
-                   <string>Paleoocean bathimetry raster</string>
+                   <string>Reconstructed  paleobathimetry</string>
                   </property>
                  </widget>
                 </item>
@@ -274,7 +274,7 @@
                 <item>
                  <widget class="QLabel" name="label_8">
                   <property name="text">
-                   <string>A vector polygon layer with general (global) masks (e.g. coastlines)</string>
+                   <string>General masks</string>
                   </property>
                  </widget>
                 </item>
@@ -344,15 +344,23 @@
         </widget>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit">
+        <widget class="QTextBrowser" name="helpBox">
          <property name="maximumSize">
           <size>
-           <width>191</width>
+           <width>250</width>
            <height>16777215</height>
           </size>
          </property>
-         <property name="placeholderText">
-          <string>Help shall be displayed here.</string>
+         <property name="source">
+          <url>
+           <string>file:///help_text/help_DEMCompiler.html</string>
+          </url>
+         </property>
+         <property name="searchPaths">
+          <stringlist/>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
