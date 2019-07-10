@@ -1,5 +1,12 @@
 <html>
     <body>
-        help
+        This tool allows to modify the elevation values of a topography raster in a given area. That area must be defined by a mask contained in a .shp file.
+        In the fields “Input layers”, select the raster that you want to edit and the vector layer containing the masks of the areas to be modified.
+        
+        The topography modification may be performed using min and max values or using a formula of your own. These min and max values correspond to the resulting elevation.
+        In case you don’t have a formula and just know the min and max values for the resulting topography of your area of interest, tick the corresponding box and enter the minimum and maximum values. They may be entered manually or selected from the attribute table.
+        In case you have a formula you want to use for the modification, tick the corresponding box and enter the formula in the text field or, if the formula is in the attribute table (eg. It’s different for each mask) select the field where it’s contained. You will still need to enter a maximum and minimum bounding values or choose to take it automatically from the attribute table.
+        
+        You may also use other options such as interpolation and smoothing.
     </body>
 
