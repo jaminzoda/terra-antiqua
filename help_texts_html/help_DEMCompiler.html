@@ -1,4 +1,40 @@
 <html>
     <body>
-        help
+        The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction.
+        This may be done differently depending on which files are available.
+        
+        You need three types of data:
+        
+        
+        
+        
+        1) Bathymetry rasters
+        
+        
+        Field - Paleoocean bathymetry raster: Select your bathymetry file, already reconstructed to the desired time (eg. Mueller et al. 2008).
+        
+        Field (optional) - Ocean age: If you have a present day ocean age raster, select it from the list  (it must be rotated to its position at the time of reconstruction)
+        In this case you will have to specify the age of the reconstruction in the corresponding field.
+        
+        Field (optional) - Shallow sea bathymetry: If you have a present day shallow bathymetry raster, enter it too (rotated to its position at the time of reconstruction)
+        In this case you will have to specify a maximum depth (in m) for the continental shelf.
+        
+        
+        2) Topography raster
+        
+        
+        Field - Bedrock topography: Enter the raster containing the topography.
+        Note: You need the bedrock topography here.
+        If you have data for the ice topography, you may perform an isostatic compensation using the “standard processing tools”.
+        
+        
+        
+        3) Masks
+        
+        Field - General masks: To perform the compilation you need a vector polygon layer with general masks covering the tectonic blocks.
+        
+        
+        
+        4) Field - Output file path: Specify an output directory and a file name.
+
     </body>
