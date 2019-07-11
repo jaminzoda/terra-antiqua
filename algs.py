@@ -1,16 +1,23 @@
+import os.path
 import os
+import os.path
 import os.path
 import shutil
 import tempfile
+
 import numpy as np
-from osgeo import gdal, osr
-from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsExpression, QgsFeatureRequest
+import processing
 from PyQt5.QtCore import QThread, pyqtSignal
+from osgeo import gdal, osr, ogr
+from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsExpression, QgsFeatureRequest, \
+	QgsWkbTypes, QgsProject, QgsGeometry, QgsFeature
+
 
 # Import the code for the dialog
-from .topotools import RasterTools as rt
 from .topotools import VectorTools as vt
-from .dem_builder_dialog import DEMBuilderDialog
+
+
+# Import the code for the dialog
 
 
 class TopoBathyCompiler(QThread):
@@ -318,4 +325,217 @@ class TopoBathyCompiler(QThread):
 
 	def kill(self):
 		self.killed = True
+
+
+
+
+class MaskMaker(QThread):
+	change_value = pyqtSignal(int)
+	finished = pyqtSignal(bool, object)
+	log = pyqtSignal(object)
+	def __init__(self, dlg, parent=None):
+		super(MaskMaker, self).__init__(parent)
+		self.dlg = dlg
+		self.killed = False
+
+	def run(self):
+		self.log.emit("The processing  has started")
+		progress_count = 0
+		# Get the path of the output file
+		if not self.dlg.outputPath.filePath():
+			temp_dir = tempfile.gettempdir()
+			out_file_path = os.path.join(temp_dir, 'Extracted_general_masks.shp')
+		else:
+			out_file_path = self.dlg.outputPath.filePath()
+
+		out_path = os.path.dirname(out_file_path)
+
+		# Combining polygons and polylines
+
+		# Get all the input layers
+		# a) Shallow sea masks
+		ss_mask_layer = self.dlg.selectSsMask.currentLayer()
+		if self.dlg.selectSsMaskLine.currentLayer():
+			ss_mask_line_layer = self.dlg.selectSsMaskLine.currentLayer()
+		else:
+			ss_mask_line_layer = None
+		# b) Continental Shelves masks
+		cs_mask_layer = self.dlg.selectCshMask.currentLayer()
+		if self.dlg.selectCshMaskLine.currentLayer():
+			cs_mask_line_layer = self.dlg.selectCshMaskLine.currentLayer()
+		else:
+			cs_mask_line_layer = None
+		# c) Coastline masks
+		coast_mask_layer = self.dlg.selectCoastlineMask.currentLayer()
+		if self.dlg.selectCoastlineMaskLine.currentLayer():
+			coast_mask_line_layer = self.dlg.selectCoastlineMaskLine.currentLayer()
+		else:
+			coast_mask_line_layer = None
+
+		# Create a list of input layers
+		layers = [(ss_mask_layer, ss_mask_line_layer, "Shallow sea"),
+				  (cs_mask_layer, cs_mask_line_layer, "Continental Shelves"),
+				  (coast_mask_layer, coast_mask_line_layer, "Continents")]
+
+		# Polygonize polylines and combine them with their polygon counterparts in one temp file
+
+		#Send progress feedback
+		progress_count += 5
+		self.change_value.emit(progress_count)
+
+		for poly, line, name in layers:
+
+			if self.killed:
+				break
+
+			if line is not None:
+				# Creating a temporary layer to store features
+				temp = QgsVectorLayer("Polygon?crs=epsg:4326", "shallow sea temp", "memory")
+				temp_provider = temp.dataProvider()
+				line_features = line.getFeatures()  # getting features from the polyline layer
+				attr_line = line.dataProvider().fields().toList()
+				temp_provider.addAttributes(attr_line)
+				temp.updateFields()
+				poly_features = []
+				# this loop reads the geometries of all the polyline features and creates polygon features from the geometries
+				for geom in line_features:
+					# Get the geometry oof features
+					line_geometry = geom.geometry()
+
+					# checking if the geometry is polyline or multipolyline
+					if line_geometry.wkbType() == QgsWkbTypes.LineString:
+						line_coords = line_geometry.asPolyline()
+					elif line_geometry.wkbType() == QgsWkbTypes.MultiLineString:
+						line_coords = line_geometry.asMultiPolyline()
+					else:
+						self.log.emit("The geometry is neither polyline nor multipolyline")
+					poly_geometry = QgsGeometry.fromPolygonXY(line_coords)
+					feature = QgsFeature()
+					feature.setGeometry(poly_geometry)
+					feature.setAttributes(geom.attributes())
+					poly_features.append(feature)
+				temp_provider.addFeatures(poly_features)
+				poly_features = None
+				fixed_line = processing.run('native:fixgeometries', {'INPUT': temp, 'OUTPUT': 'memory:' + name})[
+					'OUTPUT']
+				self.log.emit("polylines in {} have been polygonized.".format(line.name()))
+			else:
+				pass
+			# parameters for layer merging
+			fixed_poly = processing.run('native:fixgeometries', {'INPUT': poly, 'OUTPUT': 'memory:' + name})[
+				'OUTPUT']
+			if line is not None:
+				self.log.emit("Invalid geometries in {} and {} have been fixed.".format(poly.name(), line.name()))
+			else:
+				self.log.emit("Invalid geometries in {} have been fixed.".format(poly.name()))
+			if line is not None:
+				layers_to_merge = [fixed_poly, fixed_line]
+				params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:' + name}
+				temp_layer = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+				fixed_poly = None
+				fixed_line = None
+				self.log.emit("Polygonized polylines from {} are merged with polygons from {}.".format(line.name(),poly.name()))
+			else:
+				temp_layer = fixed_poly
+				fixed_poly = None
+
+			if name == "Shallow sea":
+				ss_temp = temp_layer
+				temp_layer = None
+			elif name == "Continental Shelves":
+				cs_temp = temp_layer
+				temp_layer = None
+			elif name == "Continents":
+				coast_temp = temp_layer
+				temp_layer = None
+
+			# Send progress feedback
+			progress_count += 10
+			self.change_value.emit(progress_count)
+
+
+		#Check if the cancel button was pressed
+		if not self.killed:
+			# Extracting masks by running difference algorithm
+			# Parameters for difference algorithm
+			params = {'INPUT': ss_temp, 'OVERLAY': cs_temp, 'OUTPUT': 'memory:Shallow sea'}
+			ss_extracted = processing.run('native:difference', params)["OUTPUT"]
+			ss_temp = None  # remove shallow sea masks layer, becasue we don't need it anymore. This will release memory.
+
+			# Send progress feedback
+			progress_count += 10
+			self.change_value.emit(progress_count)
+			self.log.emit("Shallow sea masks extracted.")
+
+		if not self.killed:
+			params = {'INPUT': cs_temp, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:Continental Shelves'}
+			cs_extracted = processing.run('native:difference', params)["OUTPUT"]
+			cs_temp = None
+
+
+			# Send progress feedback
+			progress_count += 10
+			self.change_value.emit(progress_count)
+			self.log.emit("Continental shelf  masks extracted.")
+
+		if not self.killed:
+			# Combining the extracted masks in one shape file.
+			layers_to_merge = [ss_extracted, cs_extracted]
+			params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:ss+cs'}
+			ss_and_cs_extracted = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+
+			# Send progress feedback
+			progress_count += 10
+			self.change_value.emit(progress_count)
+
+		if not self.killed:
+			# Running difference algorithm to remove geometries that overlap with the coastlines
+			# Parameters for difference algorithm.
+			params = {'INPUT': ss_and_cs_extracted, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:ss+cs'}
+			masks_layer = processing.run('native:difference', params)["OUTPUT"]
+
+			# Send progress feedback
+			progress_count += 5
+			self.change_value.emit(progress_count)
+
+			self.log.emit("Continents masks extracted.")
+
+		if not self.killed:
+			layers_to_merge = [masks_layer, coast_temp]
+			params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:Final extracted masks'}
+			final_masks = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+
+			# Send progress feedback
+			progress_count += 5
+			self.change_value.emit(progress_count)
+			self.log.emit("Masks merged in one layer.")
+
+
+
+		# Check if the file is already created. Acts like overwrite
+		if os.path.exists(out_file_path):
+			driver = ogr.GetDriverByName('ESRI Shapefile')
+			driver.DeleteDataSource(out_file_path)  # Delete the file, if it is already created.
+
+		# Saving the results into a shape file
+		error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, out_file_path, "UTF-8", masks_layer.crs(),
+														"ESRI Shapefile")
+		if error[0] == QgsVectorFileWriter.NoError:
+			self.log.emit("The {} shapefile has been saved successfully".format(os.path.basename(out_file_path)))
+		else:
+			self.log.emit("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file_path), error[1]))
+
+		if not self.killed:
+			self.change_value.emit(100)
+			self.log.emit("The resulting shapefile is saved at {}.".format(out_file_path))
+			self.finished.emit(True, out_file_path)
+		else:
+			self.finished.emit(False, "")
+
+
+
+	def kill(self):
+		self.killed = True
+
+
 
