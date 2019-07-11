@@ -24,9 +24,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_13">
    <item>
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QTabWidget" name="Tabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -59,7 +59,7 @@
                 <item>
                  <widget class="QLabel" name="label_4">
                   <property name="text">
-                   <string>Bedrock topography</string>
+                   <string>Bedrock topography*</string>
                   </property>
                  </widget>
                 </item>
@@ -184,7 +184,7 @@
                 <item>
                  <widget class="QLabel" name="label_2">
                   <property name="text">
-                   <string>Reconstructed  paleobathimetry</string>
+                   <string>Reconstructed  paleobathimetry*</string>
                   </property>
                  </widget>
                 </item>
@@ -274,7 +274,7 @@
                 <item>
                  <widget class="QLabel" name="label_8">
                   <property name="text">
-                   <string>General masks</string>
+                   <string>General masks*</string>
                   </property>
                  </widget>
                 </item>
@@ -322,7 +322,11 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath"/>
+              <widget class="QgsFileWidget" name="outputPath">
+               <property name="defaultRoot">
+                <string/>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -372,12 +376,12 @@
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_9">
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit_2">
-         <property name="readOnly">
-          <bool>true</bool>
+        <widget class="QTextEdit" name="logText">
+         <property name="autoFormatting">
+          <set>QTextEdit::AutoAll</set>
          </property>
-         <property name="placeholderText">
-          <string>Logs shall be displayed here.</string>
+         <property name="textInteractionFlags">
+          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
          </property>
         </widget>
        </item>
@@ -396,6 +400,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="cancelButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -413,6 +420,13 @@
     <layout class="QHBoxLayout" name="horizontalLayout_11">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_12">
+       <item>
+        <widget class="QLabel" name="warning_label">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QLabel" name="warningLabel">
          <property name="text">
@@ -483,22 +497,6 @@
     <hint type="sourcelabel">
      <x>716</x>
      <y>406</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>382</x>
-     <y>214</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cancelButton</sender>
-   <signal>clicked()</signal>
-   <receiver>DEMBuilderDialogBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>717</x>
-     <y>374</y>
     </hint>
     <hint type="destinationlabel">
      <x>382</x>
