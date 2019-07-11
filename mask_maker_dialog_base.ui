@@ -24,7 +24,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_11">
    <item>
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QTabWidget" name="Tabs">
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -47,9 +47,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-173</y>
-              <width>495</width>
-              <height>472</height>
+              <y>-263</y>
+              <width>500</width>
+              <height>558</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -64,7 +64,7 @@
                   <item>
                    <widget class="QLabel" name="label_4">
                     <property name="text">
-                     <string>Polygon layer</string>
+                     <string>Polygon layer*</string>
                     </property>
                    </widget>
                   </item>
@@ -151,7 +151,7 @@
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout">
                   <item>
-                   <widget class="QgsFileWidget" name="outputFile"/>
+                   <widget class="QgsFileWidget" name="outputPath"/>
                   </item>
                  </layout>
                 </item>
@@ -169,7 +169,7 @@
                   <item>
                    <widget class="QLabel" name="label_5">
                     <property name="text">
-                     <string>Polygon layer</string>
+                     <string>Polygon layer*</string>
                     </property>
                    </widget>
                   </item>
@@ -258,7 +258,7 @@
                   <item>
                    <widget class="QLabel" name="label_8">
                     <property name="text">
-                     <string>Polygon layer</string>
+                     <string>Polygon layer*</string>
                     </property>
                    </widget>
                   </item>
@@ -374,74 +374,6 @@
          </item>
         </layout>
        </item>
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_11">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_12">
-           <item>
-            <widget class="QLabel" name="warningLabel">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="runButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Run</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="closeButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Close</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-       <item row="1" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_10">
-         <item>
-          <widget class="QProgressBar" name="progressBar">
-           <property name="value">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cancelButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_2">
@@ -450,18 +382,75 @@
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-         <property name="placeholderText">
-          <string>Logs shall be displayed here.</string>
-         </property>
-        </widget>
+        <widget class="QTextEdit" name="logText"/>
        </item>
       </layout>
      </widget>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_10">
+     <item>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_12">
+     <item>
+      <widget class="QLabel" name="warningLabel">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="runButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Run</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -479,22 +468,6 @@
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>cancelButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MaskMakerDialogBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>704</x>
-     <y>361</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>382</x>
-     <y>214</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>closeButton</sender>
    <signal>clicked()</signal>

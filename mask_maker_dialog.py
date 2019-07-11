@@ -36,14 +36,23 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectSsMask.setLayer(None)
         self.selectSsMaskLine.setFilters(QgsMapLayerProxyModel.LineLayer)
         self.selectSsMaskLine.setLayer(None)
-        self.outputFile.setStorageMode(self.outputFile.SaveFile)
-        self.outputFile.setFilter('*.shp')
+        self.outputPath.setStorageMode(self.outputPath.SaveFile)
+        self.outputPath.setFilter('*.shp')
         self.selectCoastButton.clicked.connect(self.addLayerToCoastPolygon)
         self.selectCoastLineButton.clicked.connect(self.addLayerToCoastPolyline)
         self.selectCsButton.clicked.connect(self.addLayerToCshPolygon)
         self.selectCsLineButton.clicked.connect(self.addLayerToCshPolyline)
         self.selectSsButton.clicked.connect(self.addLayerToSsPolygon)
         self.selectSsLineButton.clicked.connect(self.addLayerToSsPolyline)
+
+        #Check the mandatory field
+        self.runButton.setEnabled(False)
+        self.cancelButton.setEnabled(False)
+        mandatory_fields = [self.selectCoastlineMask.layerChanged,
+                            self.selectCshMask.layerChanged,
+                            self.selectSsMask.layerChanged]
+        for i in mandatory_fields:
+            i.connect(self.enable_run_button)
 
 
     def addLayerToCoastPolygon(self):
@@ -70,6 +79,25 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
             vlayer = QgsVectorLayer(fname, name, 'ogr')
             QgsProject.instance().addMapLayer(vlayer)
             box.setLayer(vlayer)
+
+    def set_progress_value(self, value):
+        self.progressBar.setValue(value)
+
+    def reset_progress_value(self):
+        self.progressBar.setValue(0)
+
+    def enable_run_button(self):
+        mandatory_fields = [self.selectCoastlineMask.currentLayer(),
+                            self.selectCshMask.currentLayer(),
+                            self.selectSsMask.currentLayer()]
+        if all(mandatory_fields):
+            self.runButton.setEnabled(True)
+            self.warningLabel.setText('')
+        else:
+            self.warningLabel.setText('Please, select all the mandatory fields that are marked by *.')
+            self.warningLabel.setStyleSheet('color:red')
+
+
 
 
 
