@@ -25,6 +25,7 @@ import shutil
 import os.path
 import sys
 import logging
+import datetime
 import numpy as np
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVariant
 from PyQt5.QtGui import QIcon, QColor
@@ -44,6 +45,7 @@ from .std_proc_dialog import StdProcessingDialog
 from .topotools import RasterTools as rt
 from .topotools import ArrayTools as at
 from .topotools import VectorTools as vt
+from .algs import TopoBathyCompiler
 
 
 # Initialize Qt resources from file resources.py
@@ -236,13 +238,53 @@ class DEMBuilder:
 
 		# Create the dialog with elements (after translation) and keep reference
 		# Only create GUI ONCE in callback, so that it will only load when the plugin is started
-		if self.first_start == True:
-			self.first_start = False
-			self.dlg = DEMBuilderDialog()
+		# if self.first_start == True:
+		# 	self.first_start = False
+		self.dlg = DEMBuilderDialog()
 		# Show the dialog
 		self.dlg.show()
+		self.dlg.Tabs.setCurrentIndex(0)
 		# When the run button is pressed, topography modification algorithm is run.
-		self.dlg.runButton.pressed.connect(self.run_dem_builder)
+		self.dlg.runButton.clicked.connect(self.start_topo_bathy_compiler)
+		self.dlg.cancelButton.clicked.connect(self.stop_topo_bathy_compiler)
+
+	def start_topo_bathy_compiler(self):
+		self.dlg.Tabs.setCurrentIndex(1)
+		self.dlg.cancelButton.setEnabled(True)
+		self.dlg.runButton.setEnabled(False)
+		self.tbc_thread = TopoBathyCompiler(self.dlg)
+		self.tbc_thread.change_value.connect(self.dlg.set_progress_value)
+		self.tbc_thread.log.connect(self.print_log)
+		self.tbc_thread.start()
+		self.tbc_thread.finished.connect(self.add_result_to_canvas)
+
+	def stop_topo_bathy_compiler(self):
+		self.tbc_thread.kill()
+		self.dlg.reset_progress_value()
+		self.dlg.cancelButton.setEnabled(False)
+		self.dlg.runButton.setEnabled(True)
+		self.print_log("The paleoDEM was NOT compiled, because the user canceled processing.")
+
+	def add_result_to_canvas(self, finished, out_file_path):
+		if finished is True:
+			self.dlg.cancelButton.setEnabled(True)
+			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
+			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+
+			#Rendering a symbology style for the resulting raster layer.
+			rt.set_raster_symbology(rlayer)
+
+			self.print_log("The compiler has compiled topography and bathymetry sucessfully,")
+			self.print_log("and added the resulting paleoDEM to the map canvas.")
+
+	def print_log(self, msg):
+		# get the current time
+		time = datetime.datetime.now()
+		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+		self.dlg.logText.textCursor().insertText("{} - {} \n".format(time, msg))
+
+
+
 
 	def run_dem_builder(self):
 		# Get the path of the output file

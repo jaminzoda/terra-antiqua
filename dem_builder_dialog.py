@@ -96,12 +96,23 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.selectMasksButton.clicked.connect(self.addLayerToMasks)
 
+        #Enable runButton
+        self.runButton.setEnabled(False)
+        mandatory_fields = [self.selectBrTopo.layerChanged,
+                            self.selectPaleoBathy.layerChanged,
+                            self.selectMasks.layerChanged]
+        for i in mandatory_fields:
+            i.connect(self.enable_run_button)
+
+
+
+
         #set the help text in the  help box (QTextBrowser)
         path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_DEMCompiler.html")
         help_file = open(path_to_file, 'r', encoding='utf-8')
         help_text = help_file.read()
         self.helpBox.setHtml(help_text)
-        showPluginHelp()
+
 
 
     #Functions for adding layers from disk to comboboxes
@@ -137,12 +148,28 @@ class DEMBuilderDialog(QtWidgets.QDialog, FORM_CLASS):
     def openRasterFromDisk(self, box):
         fd = QFileDialog()
         filter = "Raster files (*.jpg *.tif *.grd *.nc *.png *.tiff)"
-        fname,_ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
+        fname, _ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
 
         if fname:
-            name,_ = os.path.splitext(os.path.basename(fname))
+            name, _ = os.path.splitext(os.path.basename(fname))
             rlayer = QgsRasterLayer(fname, name, 'gdal')
             QgsProject.instance().addMapLayer(rlayer)
             box.setLayer(rlayer)
 
+    def set_progress_value(self, value):
+        self.progressBar.setValue(value)
+
+    def reset_progress_value(self):
+        self.progressBar.setValue(0)
+
+    def enable_run_button(self):
+        mandatory_fields = [self.selectBrTopo.currentLayer(),
+                            self.selectPaleoBathy.currentLayer(),
+                            self.selectMasks.currentLayer()]
+        if all(mandatory_fields):
+            self.runButton.setEnabled(True)
+            self.warningLabel.setText('')
+        else:
+            self.warningLabel.setText('Please, select all the mandatory fields.')
+            self.warningLabel.setStyleSheet('color:red')
 
