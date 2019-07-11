@@ -517,13 +517,14 @@ class MaskMaker(QThread):
 			driver = ogr.GetDriverByName('ESRI Shapefile')
 			driver.DeleteDataSource(out_file_path)  # Delete the file, if it is already created.
 
-		# Saving the results into a shape file
-		error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, out_file_path, "UTF-8", masks_layer.crs(),
-														"ESRI Shapefile")
-		if error[0] == QgsVectorFileWriter.NoError:
-			self.log.emit("The {} shapefile has been saved successfully".format(os.path.basename(out_file_path)))
-		else:
-			self.log.emit("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file_path), error[1]))
+		if not self.killed:
+			# Saving the results into a shape file
+			error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, out_file_path, "UTF-8", masks_layer.crs(),
+															"ESRI Shapefile")
+			if error[0] == QgsVectorFileWriter.NoError:
+				self.log.emit("The {} shapefile has been saved successfully".format(os.path.basename(out_file_path)))
+			else:
+				self.log.emit("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file_path), error[1]))
 
 		if not self.killed:
 			self.change_value.emit(100)
