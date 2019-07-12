@@ -164,7 +164,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QTextBrowser" name="helpBox">
+        <widget class="QTextBrowser" name="InfoBox">
          <property name="maximumSize">
           <size>
            <width>200</width>
@@ -285,7 +285,7 @@
  <tabstops>
   <tabstop>runButton</tabstop>
   <tabstop>Tabs</tabstop>
-  <tabstop>helpBox</tabstop>
+  <tabstop>InfoBox</tabstop>
   <tabstop>closeButton</tabstop>
   <tabstop>cancelButton</tabstop>
  </tabstops>
