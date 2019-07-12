@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
-    <height>429</height>
+    <width>880</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -43,7 +43,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>448</width>
+            <width>493</width>
             <height>458</height>
            </rect>
           </property>
@@ -351,7 +351,7 @@
         <widget class="QTextBrowser" name="helpBox">
          <property name="maximumSize">
           <size>
-           <width>250</width>
+           <width>320</width>
            <height>16777215</height>
           </size>
          </property>

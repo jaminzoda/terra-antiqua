@@ -34,6 +34,10 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         # Enable/disable  masks field depending on the state of the checkbox associated with it.
         self.useAllMasksBox.stateChanged.connect(self.enableMaskField)
         self.masksBox.layerChanged.connect(self.setFieldsInLayer)
+
+        #Set formula tetxt field enabled/disabled
+        self.formulaField.fieldChanged.connect(self.enableFormulaText)
+
         self.logText.clear()
         self.logText.setReadOnly(True)
         #Set formula groupbox or minimum and maximum values group boxes enabled/disabled
@@ -55,8 +59,11 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         #Change the state of groupboxes, when the state of checkboxes is changed
         self.formulaCheckBox.stateChanged.connect(self.setFormulaEnabled)
         self.minMaxCheckBox.stateChanged.connect(self.setMinMaxEnabled)
+
         #Set the groupbox for specifying minimum and maximum elevation values that should be modified disabled/enabled
         self.min_maxValueCheckBox.stateChanged.connect(self.setBoundingValuesForModification)
+        self.minMaxValuesFromAttrCheckBox.setChecked(True)
+        self.setBoundingValuesFromAttrEnabled(1)
         self.minMaxValuesFromAttrCheckBox.stateChanged.connect(self.setBoundingValuesFromAttrEnabled)
         self.minMaxValuesFromSpinCheckBox.stateChanged.connect(self.setBoundingValuesFromSpinEnabled)
         #Set fields for minimum and maximum values enabled/disabled
@@ -69,8 +76,12 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.masksBox.layerChanged.connect(self.enableRunButton)
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
 
+
     def enableFormulaText(self):
-        pass
+        if self.formulaField.currentField():
+            self.formulaText.setEnabled(False)
+        else:
+            self.formulaText.setEnabled(True)
 
 
 
@@ -82,7 +93,7 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.warningLabel.setText('Please, select all the mandatory fields.')
             self.warningLabel.setStyleSheet('color:red')
 
-        # Function for enbling comboboxes for specifying a column in the attribute table
+        # Function for enabling comboboxes for specifying a column in the attribute table
         # of the masks  layer where the names of the masks are stored. This will be used
         # to query only masks, which we need.
 
@@ -123,12 +134,42 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.maskNameField.setLayer(self.masksBox.currentLayer())
 
         self.formulaField.setLayer(self.masksBox.currentLayer())
+        fields = self.masksBox.currentLayer().fields().toList()
+        field_names = [i.name() for i in fields]
+        for field_name in field_names:
+            if field_name.lower() == "formula":
+                self.formulaField.setField(field_name)
 
+        # Final minimum and maximum values of the area to modified by initial and final min-max.
         self.minField.setLayer(self.masksBox.currentLayer())
         self.maxField.setLayer(self.masksBox.currentLayer())
 
+        #Bounding values for selecting the range to modify with formula
         self.minValueField.setLayer(self.masksBox.currentLayer())
+        #Trying to find the minimum bounding value field automatically and set it to the combobox.
+        names_to_check = ["min", "min_mod", "mod_min", "min_value", "minimum"]
+        for field_name in field_names:
+            if not self.minValueField.currentField():
+                for name in names_to_check:
+                    if field_name.lower() == name:
+                        self.minValueField.setField(field_name)
+                        break
+            else:
+                break
+
         self.maxValueField.setLayer(self.masksBox.currentLayer())
+        # Trying to find the maximum bounding value field automatically and set it to the combobox.
+        names_to_check = ["max", "max_mod", "mod_max", "max_value", "maximum"]
+        for field_name in field_names:
+            if not self.maxValueField.currentField():
+                for name in names_to_check:
+                    if field_name.lower() == name:
+                        self.maxValueField.setField(field_name)
+                        break
+            else:
+                break
+
+
 
     # Set the groupbox for formula enabled.
     def setFormulaEnabled(self, state):
