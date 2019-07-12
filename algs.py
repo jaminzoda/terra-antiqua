@@ -613,6 +613,7 @@ class TopoModifier(QThread):
 
 				self.log.emit(('Fetching the ', value, ' masks from the field: ', field))
 
+				#TODO add ability to specify several names for the masks
 				expr = QgsExpression(QgsExpression().createFieldEqualityExpression(field, value))
 				features = mask_layer.getFeatures(QgsFeatureRequest(expr))
 
