@@ -45,7 +45,7 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectSsButton.clicked.connect(self.addLayerToSsPolygon)
         self.selectSsLineButton.clicked.connect(self.addLayerToSsPolyline)
 
-        #Check the mandatory field
+        #Check the mandatory fields
         self.runButton.setEnabled(False)
         self.cancelButton.setEnabled(False)
         mandatory_fields = [self.selectCoastlineMask.layerChanged,

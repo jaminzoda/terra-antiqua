@@ -297,7 +297,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QTextBrowser" name="InfoBox">
+        <widget class="QTextBrowser" name="helpBox">
          <property name="maximumSize">
           <size>
            <width>200</width>
@@ -317,18 +317,15 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_11">
        <item row="0" column="0">
-        <widget class="QPlainTextEdit" name="logText">
-         <property name="autoFillBackground">
-          <bool>false</bool>
+        <widget class="QTextBrowser" name="logText">
+         <property name="autoFormatting">
+          <set>QTextEdit::AutoAll</set>
          </property>
-         <property name="readOnly">
+         <property name="textInteractionFlags">
+          <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+         </property>
+         <property name="openExternalLinks">
           <bool>true</bool>
-         </property>
-         <property name="backgroundVisible">
-          <bool>false</bool>
-         </property>
-         <property name="placeholderText">
-          <string>Here we shall see the log messages.</string>
          </property>
         </widget>
        </item>
@@ -421,29 +418,12 @@
  <tabstops>
   <tabstop>runButton</tabstop>
   <tabstop>Tabs</tabstop>
-  <tabstop>InfoBox</tabstop>
+  <tabstop>helpBox</tabstop>
   <tabstop>closeButton</tabstop>
-  <tabstop>logText</tabstop>
   <tabstop>cancelButton</tabstop>
  </tabstops>
  <resources/>
  <connections>
-  <connection>
-   <sender>cancelButton</sender>
-   <signal>clicked()</signal>
-   <receiver>FillSmoothDialogBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>649</x>
-     <y>374</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>348</x>
-     <y>214</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>closeButton</sender>
    <signal>clicked()</signal>
