@@ -1,1 +1,2 @@
-Help for Isostatic compensation
+This tool compensates the loss of ice mass in the poles. The values of the DEM values will be modified in the areas where there is a noticeable presence of 
+Field - 
