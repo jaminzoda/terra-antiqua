@@ -71,7 +71,7 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.runButton.setEnabled(True)
             self.warningLabel.setText('')
         else:
-            self.warningLabel.setText('Plaese, select all the mandatory fields.')
+            self.warningLabel.setText('Please, select all the mandatory fields.')
             self.warningLabel.setStyleSheet('color:red')
 
         # Function for enbling comboboxes for specifying a column in the attribute table

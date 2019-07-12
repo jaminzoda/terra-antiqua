@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/plugins/dem_builder" >
         <file>icon.png</file>
+        <file>help_text/help_DEMCompiler.html</file>
     </qresource>
 </RCC>
