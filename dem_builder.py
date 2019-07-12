@@ -20,32 +20,27 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
-import shutil
-import os.path
-import sys
-import logging
 import datetime
-import numpy as np
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVariant
-from PyQt5.QtGui import QIcon, QColor
-from PyQt5.QtWidgets import QAction, QToolBar
-from osgeo import gdal, osr, ogr
-from qgis.core import QgsVectorFileWriter, QgsRasterLayer, QgsVectorLayer, QgsExpression, QgsFeatureRequest, \
-	QgsMessageLog, QgsRasterBandStats, QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer, \
-	QgsWkbTypes, QgsProject, QgsGeometry, NULL, QgsFeature
+import os
+import os.path
+import shutil
 
-import processing
+import numpy as np
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction, QToolBar
+from osgeo import gdal
+from qgis.core import QgsVectorFileWriter, QgsRasterLayer, QgsVectorLayer, QgsExpression, QgsFeatureRequest
+
+from .algs import TopoBathyCompiler, MaskMaker, TopoModifier, PaleoShorelines
 # Import the code for the dialog
 from .dem_builder_dialog import DEMBuilderDialog
 from .mask_maker_dialog import MaskMakerDialog
-from .topo_modifier_dialog import TopoModifierDialog
 from .paleoshorelines_dialog import PaleoshorelinesDialog
 from .std_proc_dialog import StdProcessingDialog
+from .topo_modifier_dialog import TopoModifierDialog
 from .topotools import RasterTools as rt
-from .topotools import ArrayTools as at
 from .topotools import VectorTools as vt
-from .algs import TopoBathyCompiler, MaskMaker, TopoModifier
 
 
 # Initialize Qt resources from file resources.py
@@ -207,7 +202,7 @@ class DEMBuilder:
 		self.add_action(
 			p_coastline_icon,
 			text=self.tr(u'Paleoshorelines reconstructor'),
-			callback=self.paleocoastlines_dlg_load,
+			callback=self.load_paleoshorelines,
 			parent=self.iface.mainWindow())
 		self.add_action(
 			std_proc_icon,
@@ -416,90 +411,63 @@ class DEMBuilder:
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
 		self.dlg3.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
-	def paleocoastlines_dlg_load(self):
+	def load_paleoshorelines(self):
 		self.dlg4 = PaleoshorelinesDialog()
 
 		# show the dialog
 		self.dlg4.show()
-		# Run the dialog event loop
-		# result = self.dlg4.exec_()
 
-		# # Set up logging to use the dlg4 text widget as a handler
-		# self.log_widget=self.dlg4.logText
+		# When the run button is clicked, the MaskMaker algorithm is ran.
+		self.dlg4.runButton.clicked.connect(self.start_paleoshorelines)
+		self.dlg4.cancelButton.clicked.connect(self.stop_paleoshorelines)
 
-		# See if OK was pressed
-		# if result:
+	def start_paleoshorelines(self):
+		self.dlg4.Tabs.setCurrentIndex(1)  # switch to the log tab.
+		self.dlg4.cancelButton.setEnabled(True)
+		self.dlg4.runButton.setEnabled(False)
+		self.ps_thread = PaleoShorelines(self.dlg4)
+		self.ps_thread.change_value.connect(self.dlg4.set_progress_value)
+		self.ps_thread.log.connect(self.ps_print_log)
+		self.ps_thread.start()
+		self.ps_thread.finished.connect(self.ps_add_result_to_canvas)
 
-		self.dlg4.runButton.pressed.connect(self.run_paleocoastlines)
+	def stop_paleoshorelines(self):
+		self.ps_thread.kill()
+		self.dlg4.reset_progress_value()
+		self.dlg4.cancelButton.setEnabled(False)
+		self.dlg4.runButton.setEnabled(True)
+		self.ps_print_log("The topography was NOT modified, because the user canceled processing.")
+		self.ps_print_log("Or something went wrong. Please, refer to the log above for more details.")
+		self.dlg4.warningLabel.setText('Error!')
+		self.dlg4.warningLabel.setStyleSheet('color:red')
 
-	def run_paleocoastlines(self):
-		# get the log widget
-		log = self.dlg4.log
+	def finish_paleoshorelines(self):
+		self.dlg4.cancelButton.setEnabled(False)
+		self.dlg4.runButton.setEnabled(True)
+		self.dlg4.warningLabel.setText('Done!')
+		self.dlg4.warningLabel.setStyleSheet('color:green')
 
-		log('Starting')
-
-		self.dlg4.Tabs.setCurrentIndex(1)
-
-		log('Getting the raster layer')
-		topo_layer = self.dlg4.baseTopoBox.currentLayer()
-		topo_extent = topo_layer.extent()
-		topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
-		topo = topo_ds.GetRasterBand(1).ReadAsArray()
-		geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
-		nrows, ncols = np.shape(topo)
-
-		if not topo is None:
-			log(('Size of the Topography raster: ', str(topo.shape)))
-		else:
-			log('There is a problem with reading the Topography raster')
-
-		# Get the vector masks
-		log('Getting the vector layer')
-		mask_layer = self.dlg4.masksBox.currentLayer()
-
-		if mask_layer.isValid:
-			log('The mask layer is loaded properly')
-		else:
-			log('There is a problem with the mask layer - not loaded properly')
-
-		r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
-		# The bathymetry values that are above sea level are taken down below sea level
-		in_array = topo[(r_masks == 0) * (topo > 0) == 1]
-		topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, -100, -0.05)
-
-		# The topography values that are below sea level are taken up above sea level
-		in_array = topo[(r_masks == 1) * (topo < 0) == 1]
-		topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.05, 100)
-
-		# Check if raster was modified. If the x matrix was assigned.
-		if 'topo' in locals():
-			# Write the resulting raster array to a raster file
-			out_file_path = self.dlg4.outputPath.filePath()
-
-			driver = gdal.GetDriverByName('GTiff')
-			if os.path.exists(out_file_path):
-				driver.Delete(out_file_path)
-
-			raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
-			raster.SetGeoTransform(geotransform)
-			crs = osr.SpatialReference()
-			crs.ImportFromEPSG(4326)
-			raster.SetProjection(crs.ExportToWkt())
-			raster.GetRasterBand(1).WriteArray(topo)
-			raster = None
-
-			# Add the resulting layer to the Qgis map canvas.
-			file_name = os.path.splitext(os.path.basename(out_file_path))[0]  # Name of the file to be added.
+	def ps_add_result_to_canvas(self, finished, out_file_path):
+		if finished is True:
+			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
 			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
-
-			# Rendering a symbology style for the resulting raster layer
-			rt.set_raster_symbology(rlayer)
-
-			log("The raster was modified successfully.")
-
+			if rlayer:
+				rt.set_raster_symbology(rlayer)
+				self.ps_print_log("The paleoshorelines are set successfully,")
+				self.ps_print_log(
+					"and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))
+			else:
+				self.ps_print_log("The algorithm has set  paleoshorelines successfully,")
+				self.ps_print_log("however the resulting layer did not load. You may need to load it manually.")
+			self.finish_paleoshorelines()
 		else:
-			log("The plugin did not succeed because one or more parameters were set incorrectly.")
-			log("Please, check the log above.")
+			self.stop_paleoshorelines()
+
+	def ps_print_log(self, msg):
+		# get the current time
+		time = datetime.datetime.now()
+		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+		self.dlg4.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 	def std_processing_dlg_load(self):
 		self.dlg5 = StdProcessingDialog()
