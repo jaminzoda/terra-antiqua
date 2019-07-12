@@ -54,6 +54,11 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
         for i in mandatory_fields:
             i.connect(self.enable_run_button)
 
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_MaskMaker.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
 
     def addLayerToCoastPolygon(self):
         self.openVectorFromDisk(self.selectCoastlineMask)

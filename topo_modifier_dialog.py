@@ -44,6 +44,13 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.minMaxGroupBox.setCollapsed(True)
         self.formulaGroupBox.setCollapsed(False)
         self.min_maxValueCheckBox.setChecked(True)
+        
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_TopographyModifier.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
+        
         #Change the state of groupboxes, when the state of checkboxes is changed
         self.formulaCheckBox.stateChanged.connect(self.setFormulaEnabled)
         self.minMaxCheckBox.stateChanged.connect(self.setMinMaxEnabled)
