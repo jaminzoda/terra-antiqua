@@ -47,7 +47,12 @@ class PaleoshorelinesDialog(QtWidgets.QDialog, FORM_CLASS):
         self.runButton.setEnabled(False)
         self.masksBox.layerChanged.connect(self.enableRunButton)
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
-
+        
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_Paleoshorelines.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
 
 
     def enableRunButton(self):
