@@ -1,13 +1,11 @@
 #This script creates a dialog form for our second tool in the plugin
+
 import os
 
-from PyQt5 import uic
 from PyQt5 import QtWidgets
+from PyQt5 import uic
 from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
-import os
-import datetime
-
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'paleoshorelines_dialog_base.ui'))
@@ -191,27 +189,8 @@ class PaleoshorelinesDialog(QtWidgets.QDialog, FORM_CLASS):
             self.maxValueSpin.setEnabled(True)
             self.minMaxValuesFromAttrCheckBox.setChecked(False)
 
+    def set_progress_value(self, value):
+        self.progressBar.setValue(value)
 
-
-
-    def log(self,msgs):
-        #get the current time
-        time=datetime.datetime.now()
-        time=str(time.hour)+':'+str(time.minute)+':'+str(time.second)
-        msg=' '
-        for m in msgs:
-            msg=msg+' '+m
-
-        # inserting log messages into the qplantextedit widget
-        self.logText.textCursor().insertText(time+' - '+msg+' \n')
-
-       #log_handler.setFormatter(logging.Formatter('\n %(asctime)s - %(levelname)s - %(message)s'))
-
-
-
-
-
-
-
-
-
+    def reset_progress_value(self):
+        self.progressBar.setValue(0)
