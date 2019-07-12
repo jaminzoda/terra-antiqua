@@ -82,6 +82,12 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
         self.runButton.setEnabled(False)
         self.masksBox.layerChanged.connect(self.enableRunButton)
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
+        
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/Interpolation.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
 
 
 
@@ -107,6 +113,12 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             self.iceAmountSpinBox.hide()
             self.masksFromCoastCheckBox.hide()
 
+            #set the help text in the  help box (QTextBrowser)
+            path_to_file = os.path.join(os.path.dirname(__file__),"help_text/Interpolation.html")
+            help_file = open(path_to_file, 'r', encoding='utf-8')
+            help_text = help_file.read()
+            self.helpBox.setHtml(help_text)
+        
         elif current_index == 1:
             self.copyFromRasterBox.show()
             self.copyFromRasterLabel.show()
@@ -126,6 +138,12 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             self.iceAmountSpinBox.hide()
             self.masksFromCoastCheckBox.hide()
 
+            #set the help text in the  help box (QTextBrowser)
+            path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_FillFromAnotherRaster.html")
+            help_file = open(path_to_file, 'r', encoding='utf-8')
+            help_text = help_file.read()
+            self.helpBox.setHtml(help_text)
+                
         elif current_index==2:
             self.copyFromRasterBox.hide()
             self.copyFromRasterLabel.hide()
@@ -146,6 +164,12 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             self.iceAmountLabel.hide()
             self.iceAmountSpinBox.hide()
             self.masksFromCoastCheckBox.hide()
+
+            #set the help text in the  help box (QTextBrowser)
+            path_to_file = os.path.join(os.path.dirname(__file__),"help_text/Smoothing.html")
+            help_file = open(path_to_file, 'r', encoding='utf-8')
+            help_text = help_file.read()
+            self.helpBox.setHtml(help_text)
 
         elif current_index==3:
             self.copyFromRasterBox.hide()
@@ -168,7 +192,11 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             self.masksFromCoastCheckBox.show()
 
 
-
+            #set the help text in the  help box (QTextBrowser)
+            path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_IsostaticCompensation.html")
+            help_file = open(path_to_file, 'r', encoding='utf-8')
+            help_text = help_file.read()
+            self.helpBox.setHtml(help_text)
 
 
 
