@@ -96,9 +96,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>498</width>
-            <height>825</height>
+            <y>-161</y>
+            <width>518</width>
+            <height>939</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -156,27 +156,6 @@
                 </item>
                </layout>
               </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QgsCollapsibleGroupBox" name="maskSelectionGroup">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>Mask selection</string>
-             </property>
-             <property name="collapsed">
-              <bool>false</bool>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
                <widget class="QCheckBox" name="useAllMasksBox">
                 <property name="text">
@@ -187,7 +166,7 @@
               <item>
                <widget class="QLabel" name="label_3">
                 <property name="text">
-                 <string>Specify the coolumn, which contains names of the masks and enter the name of the mask.</string>
+                 <string>Specify the column, which contains names of the masks and enter the name of the mask.</string>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
@@ -250,10 +229,10 @@
                 <property name="title">
                  <string>Formula for topography modification</string>
                 </property>
-                <property name="collapsed">
+                <property name="collapsed" stdset="0">
                  <bool>false</bool>
                 </property>
-                <property name="saveCollapsedState">
+                <property name="saveCollapsedState" stdset="0">
                  <bool>true</bool>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -271,7 +250,7 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,1">
                    <item>
                     <widget class="QgsFieldComboBox" name="formulaField">
-                     <property name="allowEmptyFieldName">
+                     <property name="allowEmptyFieldName" stdset="0">
                       <bool>true</bool>
                      </property>
                     </widget>
@@ -477,7 +456,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QgsFileWidget" name="outputPath"/>
+               <widget class="QgsFileWidget" name="outputPath" native="true"/>
               </item>
              </layout>
             </widget>
@@ -611,6 +590,16 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
+  </customwidget>
+  <customwidget>
    <class>QgsCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>qgscollapsiblegroupbox.h</header>
@@ -620,16 +609,6 @@
    <class>QgsFieldComboBox</class>
    <extends>QComboBox</extends>
    <header>qgsfieldcombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsFileWidget</class>
-   <extends>QWidget</extends>
-   <header>qgsfilewidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsMapLayerComboBox</class>
-   <extends>QComboBox</extends>
-   <header>qgsmaplayercombobox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -641,8 +620,6 @@
   <tabstop>selectTopoBaseButton</tabstop>
   <tabstop>masksBox</tabstop>
   <tabstop>selectMasksButton</tabstop>
-  <tabstop>maskSelectionGroup</tabstop>
-  <tabstop>useAllMasksBox</tabstop>
   <tabstop>maskNameField</tabstop>
   <tabstop>maskNameText</tabstop>
   <tabstop>minMaxCheckBox</tabstop>
