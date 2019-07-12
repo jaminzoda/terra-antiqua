@@ -40,12 +40,12 @@ import processing
 from .dem_builder_dialog import DEMBuilderDialog
 from .mask_maker_dialog import MaskMakerDialog
 from .topo_modifier_dialog import TopoModifierDialog
-from .paleocoastlines_dialog import PaleocoastlinesDialog
+from .paleoshorelines_dialog import PaleoshorelinesDialog
 from .std_proc_dialog import StdProcessingDialog
 from .topotools import RasterTools as rt
 from .topotools import ArrayTools as at
 from .topotools import VectorTools as vt
-from .algs import TopoBathyCompiler, MaskMaker
+from .algs import TopoBathyCompiler, MaskMaker, TopoModifier
 
 
 # Initialize Qt resources from file resources.py
@@ -202,7 +202,7 @@ class DEMBuilder:
 		self.add_action(
 			topo_modifier_icon,
 			text=self.tr(u'Topoggraphy modifier'),
-			callback=self.topo_modifier_dlg_load,
+			callback=self.load_topo_modifier,
 			parent=self.iface.mainWindow())
 		self.add_action(
 			p_coastline_icon,
@@ -264,24 +264,37 @@ class DEMBuilder:
 		self.dlg.cancelButton.setEnabled(False)
 		self.dlg.runButton.setEnabled(True)
 		self.tbc_print_log("The paleoDEM was NOT compiled, because the user canceled processing.")
+		self.tbc_print_log("Or something went wrong. Please, refer to the log above for more details.")
+		self.dlg.warningLabel.setText('Error!')
+		self.dlg.warningLabel.setStyleSheet('color:red')
+
+	def finish_topo_bathy_compiler(self):
+		self.dlg.cancelButton.setEnabled(False)
+		self.dlg.runButton.setEnabled(True)
+		self.dlg.warningLabel.setText('Done!')
+		self.dlg.warningLabel.setStyleSheet('color:green')
 
 	def tbc_add_result_to_canvas(self, finished, out_file_path):
 		if finished is True:
-			self.dlg.cancelButton.setEnabled(True)
 			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
 			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
-
-			# Rendering a symbology style for the resulting raster layer.
-			rt.set_raster_symbology(rlayer)
-
-			self.tbc_print_log("The compiler has compiled topography and bathymetry sucessfully,")
-			self.tbc_print_log("and added the resulting paleoDEM to the map canvas.")
+			if rlayer:
+				# Rendering a symbology style for the resulting raster layer.
+				rt.set_raster_symbology(rlayer)
+				self.tbc_print_log("The compiler has compiled topography and bathymetry sucessfully,")
+				self.tbc_print_log("and added the resulting paleoDEM to the map canvas.")
+			else:
+				self.tbc_print_log("The topography and bathymetry compiling algorithm has extracted masks successfully,")
+				self.tbc_print_log("however the resulting layer did not load. You may need to load it manually.")
+			self.finish_topo_bathy_compiler()
+		else:
+			self.stop_topo_bathy_compiler()
 
 	def tbc_print_log(self, msg):
 		# get the current time
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg.logText.textCursor().insertText("{} - {} \n".format(time, msg))
+		self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 
 
@@ -312,11 +325,19 @@ class DEMBuilder:
 		self.dlg2.reset_progress_value()
 		self.dlg2.cancelButton.setEnabled(False)
 		self.dlg2.runButton.setEnabled(True)
-		self.tbc_print_log("The paleoDEM was NOT compiled, because the user canceled processing.")
+		self.mm_print_log("The paleoDEM was NOT compiled, because the user canceled processing.")
+		self.mm_print_log("Or something went wrong. Please, refer to the log above for more details.")
+		self.dlg2.warningLabel.setText('Error!')
+		self.dlg2.warningLabel.setStyleSheet('color:red')
+
+	def finish_mask_maker(self):
+		self.dlg2.cancelButton.setEnabled(False)
+		self.dlg2.runButton.setEnabled(True)
+		self.dlg2.warningLabel.setText('Done!')
+		self.dlg2.warningLabel.setStyleSheet('color:green')
 
 	def mm_add_result_to_canvas(self, finished, out_file_path):
 		if finished is True:
-			self.dlg2.cancelButton.setEnabled(True)
 			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
 			vlayer = self.iface.addVectorLayer(out_file_path, file_name, "ogr")
 			if vlayer:
@@ -324,355 +345,79 @@ class DEMBuilder:
 				self.mm_print_log("and added the resulting layer to the map canvas.")
 			else:
 				self.mm_print_log("The mask preparation algorithm has extracted masks successfully,")
-				self.mm_print_log("however the resulting layer did not load. You may need to load it manualy.")
+				self.mm_print_log("however the resulting layer did not load. You may need to load it manually.")
+			self.finish_mask_maker()
+		else:
+			self.stop_mask_maker()
 	def mm_print_log(self, msg):
 		# get the current time
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg2.logText.textCursor().insertText("{} - {} \n".format(time, msg))
+		self.dlg2.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 
 
-	def topo_modifier_dlg_load(self):
+	def load_topo_modifier(self):
 
 		# Get the dialog
 		self.dlg3 = TopoModifierDialog()
 
 		# show the dialog
 		self.dlg3.show()
+		self.dlg3.Tabs.setCurrentIndex(0) #make sure the parameters tab is displayed on load.
+		# When the run button is pressed, topography modification algorithm is ran.
+		self.dlg3.runButton.clicked.connect(self.start_topo_modifier)
+		self.dlg3.cancelButton.clicked.connect(self.stop_topo_modifier)
 
-		# When the run button is pressed, topography modification algorythm is run.
-		self.dlg3.runButton.pressed.connect(self.run_topo_modifier)
+	def start_topo_modifier(self):
+		self.dlg3.Tabs.setCurrentIndex(1) #switch to the log tab.
+		self.dlg3.cancelButton.setEnabled(True)
+		self.dlg3.runButton.setEnabled(False)
+		self.tm_thread = TopoModifier(self.dlg3)
+		self.tm_thread.change_value.connect(self.dlg3.set_progress_value)
+		self.tm_thread.log.connect(self.tm_print_log)
+		self.tm_thread.start()
+		self.tm_thread.finished.connect(self.tm_add_result_to_canvas)
 
-	def run_topo_modifier(self):
+	def stop_topo_modifier(self):
+		self.tm_thread.kill()
+		self.dlg3.reset_progress_value()
+		self.dlg3.cancelButton.setEnabled(False)
+		self.dlg3.runButton.setEnabled(True)
+		self.tm_print_log("The topography was NOT modified, because the user canceled processing.")
+		self.tm_print_log("Or something went wrong. Please, refer to the log above for more details.")
+		self.dlg3.warningLabel.setText('Error!')
+		self.dlg3.warningLabel.setStyleSheet('color:red')
 
-		# get the log widget
-		log = self.dlg3.log
-		out_file_path = self.dlg3.outputPath.filePath()
-		out_path = os.path.dirname(out_file_path)
+	def finish_topo_modifier(self):
+		self.dlg3.cancelButton.setEnabled(False)
+		self.dlg3.runButton.setEnabled(True)
+		self.dlg3.warningLabel.setText('Done!')
+		self.dlg3.warningLabel.setStyleSheet('color:green')
 
-		log('Starting')
-
-		self.dlg3.Tabs.setCurrentIndex(1)
-		# Get the topography as an array
-
-		log('Getting the raster layer')
-		topo_layer = self.dlg3.baseTopoBox.currentLayer()
-		topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
-		topo = topo_ds.GetRasterBand(1).ReadAsArray()
-		geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
-		nrows, ncols = np.shape(topo)
-
-		if topo is not None:
-			log(('Size of the Topography raster: ', str(topo.shape)))
-		else:
-			log('There is a problem with reading the Topography raster')
-
-		# Get the vector masks
-		log('Getting the vector layer')
-		mask_layer = self.dlg3.masksBox.currentLayer()
-
-		if mask_layer.isValid:
-			log('The mask layer is loaded properly')
-		else:
-			log('There is a problem with the mask layer - not loaded properly')
-
-		if self.dlg3.useAllMasksBox.isChecked():
-			# Get features from the mask_layer
-			features = mask_layer.getFeatures()
-
-		# Modifying the topography raster with different formula for different masks
-		else:
-			# Get features by attribute from the masks layer - the attributes are fetched in the selected field.
-			field = self.dlg3.maskNameField.currentField()
-			value = self.dlg3.maskNameText.text()
-
-			log(('Fetching the ', value, ' masks from the field: ', field))
-
-			expr = QgsExpression(QgsExpression().createFieldEqualityExpression(field, value))
-			features = mask_layer.getFeatures(QgsFeatureRequest(expr))
-
-			# Make sure if any feature is returned by our query above
-			# If the field name or the name of mask is not specified correctly, our feature iterator (features)
-			# will be empty and "any" statement will return false.
-
-			assert (any(True for _ in features)), \
-				"Your query did not return any record. Please, check if you specified correct field " \
-				"for the names of masks, and that you have typed the name of a mask correctly."
-
-			# Get the features in the feature iterator again, because during the assertion
-			# we already iterated over the iterator and it is empty now.
-			features = mask_layer.getFeatures(QgsFeatureRequest(expr))
-
-		# Create a directory for temporary vector files
-		path = os.path.join(out_path, "vector_masks")
-
-		if not os.path.exists(path):
-			try:
-				os.mkdir(path)
-			except OSError:
-				log("Creation of the directory %s failed" % path)
+	def tm_add_result_to_canvas(self, finished, out_file_path):
+		if finished is True:
+			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
+			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+			if rlayer:
+				rt.set_raster_symbology(rlayer)
+				self.tm_print_log("The algorithm has modified the topography of selected regions successfully,")
+				self.tm_print_log("and added the resulting layer to the map canvas with the following name: {}.".format(file_name))
 			else:
-				log("Successfully created the directory %s " % path)
+				self.tm_print_log("The algorithm has modified the topography of selected regions successfully,")
+				self.tm_print_log("however the resulting layer did not load. You may need to load it manually.")
+			self.finish_topo_modifier()
 		else:
-			log("The folder raster_masks is already created.")
+			self.stop_topo_modifier()
 
-		# Check if the formula mode of topography modification is checked
-		# Otherwise minimum and maximum values will be used to calculate the formula
-		if self.dlg3.formulaCheckBox.isChecked():
-
-			# Get the fields
-			fields = mask_layer.fields().toList()
-
-			# Get the field names to be able to fetch formulas from the attributes table
-			field_names = [i.name() for i in fields]
-
-			# If formula field is not selected, the whole topography
-			# raster is modified with one formula, which is taken from the textbox in the dialog.
-			# Check if formula field is specified.
-			# The QgsFieldCombobox returns string with the name of field -
-			# we check if it is empty - empty string = False (bool) in python
-			if self.dlg3.formulaField.currentField():
-				formula_field = self.dlg3.formulaField.currentField()
-				# Get the position of the formula field in the table of attributes
-				# This will help us to get the formula of a mask by it's position
-				formula_pos = field_names.index(formula_field)
-				formula = None
-			else:
-				formula = self.dlg3.formulaText.text()
-				formula_pos = None
-				log(('formula for topography modification is: ', formula))
-
-			# Get the minimum and maximum bounding values for selecting the elevation values that should be modified.
-			# Values outside the bounding values will not be touched.
-			if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.minValueField.currentField():
-				min_value_field = self.dlg3.minValueField.currentField()
-
-				# Get the position of the formula field in the table of attributes
-				# This will help us to get the formula of a mask by it's position
-				min_value_pos = field_names.index(min_value_field)
-				min_value = None
-
-			elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
-				min_value = self.dlg3.minValueSpin.value()
-				min_value_field = None
-				min_value_pos = None
-			else:
-				min_value = None
-				min_value_field = None
-				min_value_pos = None
-
-			if self.dlg3.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg3.maxValueField.currentField():
-				max_value_field = self.dlg3.maxValueField.currentField()
-				# Get the position of the formula field in the table of attributes
-				# This will help us to get the formula of a mask by it's position
-				max_value_pos = field_names.index(max_value_field)
-				max_value = None
-			elif self.dlg3.minMaxValuesFromSpinCheckBox.isChecked():
-				max_value = self.dlg3.maxValueSpin.value()
-				max_value_field = None
-				max_value_pos = None
-			else:
-				max_value = None
-				max_value_field = None
-				max_value_pos = None
-
-			mask_number = 0
-			for feat in features:
-				mask_number += 1
-				# Get the formula, min and max values, if they are different for each feature.
-				if formula is None:
-					feat_formula = feat.attributes()[formula_pos]
-				else:
-					feat_formula = formula
-
-				# Check if the formula field contains the formula
-				if feat_formula == NULL or ('x' in feat_formula) is False:
-					log("Mask " + str(mask_number) + " does not contain any formula.")
-					log("You might want to check if the field for formula is "
-						"specified correctly in the plugin dialog.")
-					continue
-				if min_value is None and min_value_field is not None:
-					feat_min_value = feat.attributes()[min_value_pos]
-				elif min_value is None:
-					feat_min_value = None
-				else:
-					feat_min_value = min_value
-
-				if max_value is None and max_value_field is not None:
-					feat_max_value = feat.attributes()[max_value_pos]
-				elif max_value is None:
-					feat_max_value = None
-				else:
-					feat_max_value = max_value
-
-				# Create a temporary layer to store the extracted masks
-				temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-				temp_dp = temp_layer.dataProvider()
-				temp_dp.addAttributes(fields)
-				temp_layer.updateFields()
-
-				temp_dp.addFeature(feat)
-
-				# Create a temporary shapefile to store extracted masks before rasterizing them
-				out_file = os.path.join(path, 'masks_for_topo_modification.shp')
-
-				if os.path.exists(out_file):
-					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-
-				error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8",
-																temp_layer.crs(), "ESRI Shapefile")
-				if error[0] == QgsVectorFileWriter.NoError:
-					log("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
-				else:
-					log("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file), error[1]))
-
-				# Rasterize extracted masks
-				v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-				r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
-				v_layer = None
-
-				# Modify the topography
-				x = topo
-				in_array = x[r_masks == 1]
-				x[r_masks == 1] = at.mod_formula(in_array, feat_formula, feat_min_value, feat_max_value)
-
-		else:
-			# Get the final minimum and maximum values either from a
-			# specified field in the attribute table or from the spinboxes.
-			if self.dlg3.minMaxFromAttrCheckBox.isChecked():
-				# Get the fields from the layer
-				fields = mask_layer.fields().toList()
-				# Get the field names to be able to fetch minimum and maximum values from the attributes table
-				field_names = [i.name() for i in fields]
-				# Get the names of fields with the minimum and maximum values.
-				fmin_field = self.dlg3.minField.currentField()
-				fmax_field = self.dlg3.maxField.currentField()
-				# Get the position of the minimum and maximum fields in the table of attributes
-				# This will help us to get the values of a mask by their positions
-				fmin_pos = field_names.index(fmin_field)
-				fmax_pos = field_names.index(fmax_field)
-				mask_number = 0
-				for feat in features:
-					mask_number += 1
-					fmin = feat.attributes()[fmin_pos]
-					fmax = feat.attributes()[fmax_pos]
-					# Check if the min and max fields contain any value
-					if fmin == NULL or fmax == NULL:
-						log("Mask " + str(mask_number) +
-							" does not contain final maximum or/and minimum values specified in the attributes table.")
-						log("You might want to check if the fields for minimum and "
-							"maximum values are specified correctly in the plugin dialog.")
-						continue
-
-					# Create a temporary layer to store the extracted masks
-					temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-					temp_dp = temp_layer.dataProvider()
-					temp_dp.addAttributes(fields)
-					temp_layer.updateFields()
-
-					temp_dp.addFeature(feat)
-
-					# Create a temporary shapefile to store extracted masks before rasterizing them
-					out_file = os.path.join(path, 'masks_for_topo_modification.shp')
-
-					if os.path.exists(out_file):
-						deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-					error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8",
-																	temp_layer.crs(), "ESRI Shapefile")
-					if error[0] == QgsVectorFileWriter.NoError:
-						log("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
-					else:
-						log("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file),
-																				   error[1]))
-
-					# Rasterize extracted masks
-					v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-					r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
-					v_layer = None
-
-					# Modify the topography
-					x = topo
-					in_array = x[r_masks == 1]
-
-					x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
-			else:
-				fmin = self.dlg3.minSpin.value()
-				fmax = self.dlg3.maxSpin.value()
-
-				# Create a temporary layer to store the extracted masks
-				temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
-				temp_dp = temp_layer.dataProvider()
-				temp_dp.addFeatures(features)
-
-				# Create a temporary shapefile to store extracted masks before rasterizing them
-				out_file = os.path.join(path, 'masks_for_topo_modification.shp')
-
-				if os.path.exists(out_file):
-					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-
-				error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8",
-																temp_layer.crs(), "ESRI Shapefile")
-				if error == QgsVectorFileWriter.NoError:
-					log("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
-				else:
-					log("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file), error[1]))
-
-				# Rasterize extracted masks
-				v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-				r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
-				v_layer = None
-
-				# Modify the topography
-				x = topo
-				in_array = x[r_masks == 1]
-				x[r_masks == 1] = at.mod_min_max(in_array, fmin, fmax)
-
-		# Check if raster was modified. If the x matrix was assigned.
-		if 'x' in locals():
-			# Write the resulting raster array to a raster file
-			driver = gdal.GetDriverByName('GTiff')
-			if os.path.exists(out_file_path):
-				driver.Delete(out_file_path)
-
-			raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
-			raster.SetGeoTransform(geotransform)
-			crs = osr.SpatialReference()
-			crs.ImportFromEPSG(4326)
-			raster.SetProjection(crs.ExportToWkt())
-			raster.GetRasterBand(1).WriteArray(x)
-			raster = None
-			layer_name = os.path.splitext(os.path.basename(out_file_path))[0]
-			rlayer = self.iface.addRasterLayer(out_file_path, layer_name, "gdal")
-
-			# Rendering a symbology style for the resulting raster layer
-			rt.set_raster_symbology(rlayer)
-
-			# Delete temporary files and folders
-			log('Deleting temporary files and folders.')
-
-			if os.path.exists(out_file):
-				deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-				if deleted:
-					log("The %s shapefile is deleted successfully." % str(os.path.basename(out_file)))
-				else:
-					log("The %s shapefile is NOT deleted." % str(os.path.basename(out_file)))
-
-			if os.path.exists(path):
-				try:
-					shutil.rmtree(path)
-				except OSError:
-					log("The directory %s is not deleted." % path)
-				else:
-					log("The directory %s is successfully deleted" % path)
-
-			log("The raster was modified successfully.")
-		else:
-			log("The plugin did not succeed because one or more parameters were set incorrectly.")
-			log("Please, check the log above.")
+	def tm_print_log(self, msg):
+		# get the current time
+		time = datetime.datetime.now()
+		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+		self.dlg3.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 	def paleocoastlines_dlg_load(self):
-		self.dlg4 = PaleocoastlinesDialog()
+		self.dlg4 = PaleoshorelinesDialog()
 
 		# show the dialog
 		self.dlg4.show()
