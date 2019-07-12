@@ -38,6 +38,7 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.logText.setReadOnly(True)
         #Set formula groupbox or minimum and maximum values group boxes enabled/disabled
         #Set intital states
+        self.useAllMasksBox.setChecked(True)
         self.formulaCheckBox.setChecked(True)
         self.minMaxCheckBox.setChecked(False)
         self.minMaxGroupBox.setEnabled(False)
@@ -193,17 +194,24 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
             self.maxValueSpin.setEnabled(True)
             self.minMaxValuesFromAttrCheckBox.setChecked(False)
 
+    def set_progress_value(self, value):
+        self.progressBar.setValue(value)
+
+    def reset_progress_value(self):
+        self.progressBar.setValue(0)
 
 
 
 
-    def log(self,msgs):
-        #get the current time
-        time=datetime.datetime.now()
-        time=str(time.hour)+':'+str(time.minute)+':'+str(time.second)
-        msg=' '
-        for m in msgs:
-            msg=msg+' '+m
-        # inserting log messages into the qplantextedit widget
-        self.logText.textCursor().insertText(time+' - '+msg+' \n')
-#log_handler.setFormatter(logging.Formatter('\n %(asctime)s - %(levelname)s - %(message)s'))
+
+
+#     def log(self,msgs):
+#         #get the current time
+#         time=datetime.datetime.now()
+#         time=str(time.hour)+':'+str(time.minute)+':'+str(time.second)
+#         msg=' '
+#         for m in msgs:
+#             msg=msg+' '+m
+#         # inserting log messages into the qplantextedit widget
+#         self.logText.textCursor().insertText(time+' - '+msg+' \n')
+# #log_handler.setFormatter(logging.Formatter('\n %(asctime)s - %(levelname)s - %(message)s'))

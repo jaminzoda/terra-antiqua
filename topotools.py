@@ -238,7 +238,7 @@ class VectorTools(QgsVectorLayer):
 
 class ArrayTools(np.ndarray):
 	def __init__(self):
-		super.__init__(self)
+		super().__init__()
 
 	def mod_min_max(self, fmin: int, fmax: int):
 		"""
