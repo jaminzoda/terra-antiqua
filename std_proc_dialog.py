@@ -85,7 +85,6 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 
 
 
-
     def typeOfFilling(self):
         current_index = self.fillingTypeBox.currentIndex()
         if current_index == 0:
