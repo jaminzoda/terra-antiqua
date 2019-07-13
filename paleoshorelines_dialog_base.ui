@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
-    <height>429</height>
+    <width>880</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -70,8 +70,10 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>499</width>
-            <height>270</height>
+
+               <width>512</width>
+               <height>366</height>
+
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -164,10 +166,12 @@
         </widget>
        </item>
        <item>
-        <widget class="QTextBrowser" name="helpBox">
+
+           <widget class="QTextBrowser" name="helpBox">
+
          <property name="maximumSize">
           <size>
-           <width>200</width>
+           <width>320</width>
            <height>16777215</height>
           </size>
          </property>
@@ -285,7 +289,7 @@
  <tabstops>
   <tabstop>runButton</tabstop>
   <tabstop>Tabs</tabstop>
-  <tabstop>helpBox</tabstop>
+     <tabstop>helpBox</tabstop>
   <tabstop>closeButton</tabstop>
   <tabstop>cancelButton</tabstop>
  </tabstops>

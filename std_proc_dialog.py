@@ -1,13 +1,11 @@
 #This script creates a dialog form for our second tool in the plugin
+
 import os
 
-from PyQt5 import uic
 from PyQt5 import QtWidgets
+from PyQt5 import uic
 from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
-import os
-import datetime
-
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'std_proc_dialog_base.ui'))
@@ -84,7 +82,9 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
         
         #set the help text in the  help box (QTextBrowser)
-        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_Interpolation.html")
+
+        path_to_file = os.path.join(os.path.dirname(__file__), "help_text/help_Interpolation.html")
+
         help_file = open(path_to_file, 'r', encoding='utf-8')
         help_text = help_file.read()
         self.helpBox.setHtml(help_text)
@@ -114,7 +114,9 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             self.masksFromCoastCheckBox.hide()
 
             #set the help text in the  help box (QTextBrowser)
-            path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_Interpolation.html")
+
+            path_to_file = os.path.join(os.path.dirname(__file__), "help_text/help_Interpolation.html")
+
             help_file = open(path_to_file, 'r', encoding='utf-8')
             help_text = help_file.read()
             self.helpBox.setHtml(help_text)
@@ -166,7 +168,9 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             self.masksFromCoastCheckBox.hide()
 
             #set the help text in the  help box (QTextBrowser)
-            path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_Smoothing.html")
+
+            path_to_file = os.path.join(os.path.dirname(__file__), "help_text/help_Smoothing.html")
+
             help_file = open(path_to_file, 'r', encoding='utf-8')
             help_text = help_file.read()
             self.helpBox.setHtml(help_text)
@@ -237,18 +241,6 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsProject.instance().addMapLayer(rlayer)
             box.setLayer(rlayer)
 
-    def log(self,msgs):
-        #get the current time
-        time=datetime.datetime.now()
-        time=str(time.hour)+':'+str(time.minute)+':'+str(time.second)
-        msg=' '
-        for m in msgs:
-            msg=msg+' '+m
-
-        # inserting log messages into the qplantextedit widget
-        self.logText.textCursor().insertText(time+' - '+msg+' \n')
-
-       #log_handler.setFormatter(logging.Formatter('\n %(asctime)s - %(levelname)s - %(message)s'))
 
 
 
