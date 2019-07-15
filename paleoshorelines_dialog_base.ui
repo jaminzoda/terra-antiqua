@@ -70,8 +70,10 @@
            <rect>
             <x>0</x>
             <y>0</y>
+
                <width>512</width>
                <height>366</height>
+
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -142,7 +144,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath"/>
+              <widget class="QgsFileWidget" name="outputPath" native="true"/>
              </item>
             </layout>
            </item>
@@ -164,7 +166,9 @@
         </widget>
        </item>
        <item>
+
            <widget class="QTextBrowser" name="helpBox">
+
          <property name="maximumSize">
           <size>
            <width>320</width>
