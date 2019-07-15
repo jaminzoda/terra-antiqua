@@ -6,10 +6,11 @@ import numpy as np
 import processing
 from PyQt5.QtCore import QThread, pyqtSignal
 from osgeo import gdal, osr
-from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsExpression, QgsFeatureRequest, \
+from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsRasterLayer, QgsExpression, QgsFeatureRequest, \
 	QgsWkbTypes, QgsGeometry, NULL, QgsFeature
 
 from .topotools import ArrayTools as at
+from .topotools import RasterTools as rt
 from .topotools import VectorTools as vt
 
 
@@ -1075,3 +1076,209 @@ class PaleoShorelines(QThread):
 
 	def kill(self):
 		self.killed = True
+
+
+class StandardProcessing(QThread):
+	change_value = pyqtSignal(int)
+	finished = pyqtSignal(bool, object)
+	log = pyqtSignal(object)
+
+	def __init__(self, dlg):
+		super(PaleoShorelines, self).__init__()
+		self.dlg = dlg
+		self.killed = False
+
+	def run(self):
+		processing_type = self.dlg5.fillingTypeBox.currentIndex()
+
+		if processing_type == 0:
+			base_raster_layer = self.dlg5.baseTopoBox.currentLayer()
+			out_file_path = self.dlg5.outputPath.filePath()
+			interpolated_raster = rt.fill_no_data(base_raster_layer, out_file_path)
+
+			if self.dlg5.smoothingBox.isChecked():
+				# Get the layer for smoothing
+				interpolated_raster_layer = QgsRasterLayer(interpolated_raster, 'Interpolated DEM', 'gdal')
+
+				# Get smoothing factor
+				sm_factor = self.dlg5.smFactorSpinBox.value()
+				# Smooth the raster
+				rt.raster_smoothing(interpolated_raster_layer, sm_factor)
+
+			# Add the interolated raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_name = os.path.splitext(os.path.basename(interpolated_raster))[0]
+				resulting_layer = self.iface.addRasterLayer(interpolated_raster, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)
+
+		elif processing_type == 1:
+			# Get a raster layer to copy the elevation values FROM
+			from_raster_layer = self.dlg5.copyFromRasterBox.currentLayer()
+			from_raster = gdal.Open(from_raster_layer.dataProvider().dataSourceUri())
+			from_array = from_raster.GetRasterBand(1).ReadAsArray()
+
+			# Get a raster layer to copy the elevation values TO
+			to_raster_layer = self.dlg5.baseTopoBox.currentLayer()
+			to_raster = gdal.Open(to_raster_layer.dataProvider().dataSourceUri())
+			to_array = to_raster.GetRasterBand(1).ReadAsArray()
+
+			# Get a vector coontaining masks
+			mask_vector_layer = self.dlg5.masksBox.currentLayer()
+
+			# Get the path for saving the resulting raster
+			filled_raster_path = self.dlg5.outputPath.filePath()
+
+			# Rasterize masks
+			geotransform = to_raster.GetGeoTransform()
+			nrows, ncols = to_array.shape
+			out_path = os.path.dirname(self.dlg5.outputPath.filePath())
+
+			mask_array = vt.vector_to_raster(mask_vector_layer, geotransform, ncols, nrows)
+
+			# Fill the raster
+			to_array[mask_array == 1] = from_array[mask_array == 1]
+
+			# Create a new raster for the result
+			output_raster = gdal.GetDriverByName('GTiff').Create(filled_raster_path, ncols, nrows, 1, gdal.GDT_Float32)
+			output_raster.SetGeoTransform(geotransform)
+			crs = to_raster_layer.crs()
+			output_raster.SetProjection(crs.toWkt())
+			output_band = output_raster.GetRasterBand(1)
+			output_band.SetNoDataValue(np.nan)
+			output_band.WriteArray(to_array)
+			output_band.FlushCache()
+			output_raster = None
+
+			# Add the interpolated raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_name = os.path.splitext(os.path.basename(filled_raster_path))[0]
+				resulting_layer = self.iface.addRasterLayer(filled_raster_path, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)
+		elif processing_type == 2:
+			raster_to_smooth_layer = self.dlg5.baseTopoBox.currentLayer()
+			smoothing_factor = self.dlg5.smFactorSpinBox.value()
+			output_file = self.dlg5.outputPath.filePath()
+
+			smoothed_raster_layer = rt.raster_smoothing(raster_to_smooth_layer, smoothing_factor, output_file)
+
+			# Add the smoothed raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_path = smoothed_raster_layer.dataProvider().dataSourceUri()
+				file_name = os.path.splitext(os.path.basename(file_path))[0]
+				resulting_layer = self.iface.addRasterLayer(file_path, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)
+
+		elif processing_type == 3:
+			# Get the output file path
+			out_file_path = self.dlg5.outputPath.filePath()
+			# Get the bedrock topography raster
+			topo_br_layer = self.dlg5.baseTopoBox.currentLayer()
+			topo_br_ds = gdal.Open(topo_br_layer.dataProvider().dataSourceUri())
+			topo_br_data = topo_br_ds.GetRasterBand(1).ReadAsArray()
+
+			# Get the ice surface topography raster
+			topo_ice_layer = self.dlg5.selectIceTopoBox.currentLayer()
+			topo_ice_ds = gdal.Open(topo_ice_layer.dataProvider().dataSourceUri())
+			topo_ice_data = topo_ice_ds.GetRasterBand(1).ReadAsArray()
+
+			# Get the masks
+			mask_layer = self.dlg5.masksBox.currentLayer()
+
+			if self.dlg5.masksFromCoastCheckBox.isChecked():
+				# Get features from the masks layer
+				expr = QgsExpression(
+					"lower(\"NAME\") LIKE '%greenland%' OR lower(\"NAME\") LIKE '%antarctic%' OR lower(\"NAME\") LIKE '%marie byrd%' OR lower(\"NAME\") LIKE '%ronne ice%' OR lower(\"NAME\") LIKE '%thurston%' OR lower(\"NAME\") LIKE '%admundsen%'")
+
+				features = mask_layer.getFeatures(QgsFeatureRequest(expr))
+				temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+				temp_prov = temp_layer.dataProvider()
+				temp_prov.addFeatures(features)
+
+				path = os.path.join(os.path.dirname(out_file_path), 'vector_masks')
+				if not os.path.exists(path):
+					try:
+						os.mkdir(path)
+					except OSError:
+						print("Creation of the directory %s failed" % path)
+					else:
+						print("Successfully created the directory %s " % path)
+
+				out_file = os.path.join(path, 'isostat_comp_masks.shp')
+				if os.path.exists(out_file):
+					# function deleteShapeFile return bool True iif deleted False if not
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+					if deleted:
+						print(out_file + "has been deleted.")
+					else:
+						print(out_file + "is not deleted.")
+
+				error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", mask_layer.crs(),
+																"ESRI Shapefile")
+				if error[0] == QgsVectorFileWriter.NoError:
+					print("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
+				else:
+					print("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file), error[1]))
+
+				# Rasterize extracted masks
+				geotransform = topo_br_ds.GetGeoTransform()
+				nrows, ncols = np.shape(topo_br_data)
+				v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
+				r_masks = vt.vector_to_raster(v_layer, geotransform, ncols, nrows)
+
+				# Close  the temporary vector layer
+				v_layer = None
+
+				# Remove the shapefile of the temporary vector layer from the disk. Also remove the temporary folder created for it.
+
+				if os.path.exists(out_file):
+					deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
+					if deleted:
+						if os.path.exists(path):
+							shutil.rmtree(path)
+						else:
+							print('I created a temporary folder with a shapefile at: ' + os.path.join(path))
+							print('And could not delete it. You may need delete it manually.')
+
+
+			else:
+				geotransform = topo_br_ds.GetGeoTransform()
+				nrows, ncols = np.shape(topo_br_data)
+				r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
+
+			# Compensate for ice load
+			rem_amount = self.dlg5.iceAmountSpinBox.value()  # the amount of ice that needs to be removed.
+			comp_factor = 0.3 * (topo_ice_data[r_masks == 1] - topo_br_data[r_masks == 1]) * rem_amount / 100
+			comp_factor[np.isnan(comp_factor)] = 0
+			comp_factor[comp_factor < 0] = 0
+			topo_br_data[r_masks == 1] = topo_br_data[r_masks == 1] + comp_factor
+
+			# Create a new raster for the result
+			output_raster = gdal.GetDriverByName('GTiff').Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+			output_raster.SetGeoTransform(geotransform)
+			crs = topo_br_layer.crs()
+			output_raster.SetProjection(crs.toWkt())
+			output_band = output_raster.GetRasterBand(1)
+			output_band.SetNoDataValue(np.nan)
+			output_band.WriteArray(topo_br_data)
+			output_band.FlushCache()
+			output_raster = None
+
+			# Add the interpolated raster to the map canvas
+			if self.dlg5.addToCanvasCheckBox.isChecked():
+				# Get the name of the file from its path to add the raster with this name to the map canvas.
+				file_name = os.path.splitext(os.path.basename(out_file_path))[0]
+				resulting_layer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+				# Apply a colour palette to the added layer
+				rt.set_raster_symbology(resulting_layer)
+
+	def kill(self):
+		self.killed = True
+
+	def set_change_value(self, value):
+		self.change_value
