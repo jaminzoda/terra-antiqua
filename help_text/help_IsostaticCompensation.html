@@ -1,2 +1,22 @@
-This tool compensates the loss of ice mass in the poles. The values of the DEM values will be modified in the areas where there is a noticeable presence of 
-Field - 
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    </head>
+    <title> Digital Elevation Model Compiler </title>
+    
+    <body>
+<p>
+This tool compensates the loss of ice mass in the poles. The values of the DEM will be modified in the areas where there is a noticeable difference betwen ice and bedrock topogrpahy.
+<p> <h4>Topography rasters</h4><br/>
+<b>Field - <i>Compiled topography+bathymetry raster</i></b><br/>
+Select here the raster corresponding to the bedrock topography (topography and bathymetry compiled and rotated to the time of reconstruction).<br/>
+<b>Field - <i>Ice topography raster</i></b><br/>
+Select here the raster corresponding to the ice topography (rotated to the time of reconstruction).
+<p><h4> Vector layer and parameters</h4><br/>
+<b>Field - <i>Vector layer with masks</i></b><br/>
+You need to enter a vector layer containing the masks (polygons) for the polar regions where you want to perform the isostactic compensation.<br/>
+<p><div5>If you select the option <i>get the masks from coastlines</i>, common names for polar plates will be searched among the general masks and those polygons will be used for the isostatic compensation. In this case you have to select the vector file containing the general masks (coastlines) in the previous field. Make sure you have a field called NAME and that it is populated.</div5>
+</p>
+
+</body>
+    </html>
