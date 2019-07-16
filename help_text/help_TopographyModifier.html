@@ -5,17 +5,17 @@
 <title> Topography Modification </title>
 <body>
     <p>
-    This tool allows to modify the elevation values of a topography raster in a given area. That area must be defined by a mask contained in a <i>.shp</i> file.
+    This tool allows to modify the elevation values of a topography/bathymetry raster in a given area. That area must be defined by a mask contained in a vector file <i>(Shapefile; .shp)</i>.
     </p>
     
     <p>
     <h4>I- Input layers</h4><br/>
-    Select the DEM you want to edit and the vector layer containing the masks of the areas to be modified.<br/>
-    Tick the box to use all the masks contained in the vector file.<br/>
+    Select the <b><i>topography raster </b></i>(DEM) you want to edit and the <b><i>vector layer containing the masks</b></i> of the areas to be modified.<br/>
+    Tick the box to use all the masks contained in the vector file for the topography modification.<br/>
     
-<p><div5 >
-        You may specify a single mask by selecting the column which contains its name. The name of the mask should be specified in the text box as well.
- </div5>
+<div>
+        Alternatively, you may specify a single mask by selecting the column which contains its name. The name of the mask should be specified in the text box.
+ </div>
                 
 <p>
     <h4>II- Parameters for the modification</h4><br/>
@@ -23,12 +23,15 @@
     The topography modification may be performed in two different ways:<br/>
     <b>Field - <i>Use minimum and maximum values</i></b> <br/>
     This will use a standard formula to increase or decrease the elevation while keeping the proportions of the original relief.<br/>
-    You need to specify the minimum and maximum elevation of the resulting topography. These can be taken atomatically from the attribute table (please specify the field), or they can be entered manually in the text boxes.
+    You need to specify the minimum and maximum elevation of the resulting topography. These can be taken atomatically from the attribute table (please specify the fields), or they can be entered manually in the text boxes.
     <p>
     <b> Field - <i>Use formula for topography modification</b></i><br/>
-    If you have a formula of your own, enter the formula in the text field or, if it is in the attribute table (eg. it’s different for each mask) please select the correspnding field.<br/>
-<p><div5>
-        You will need to enter a maximum and minimum bounding values or choose to take them automatically from the attribute table.<div5>
+    If you have a formula of your own, enter the formula in the text field or, if it is in the attribute table (eg. it’s different for each mask) please select the correspnding column.<br/>
+<div>
+        You may enter a minimum and maximum bounding values or choose to take them automatically from the attribute table. These are constraining the range of elevation that will be modified.</div>
+<p><h4>Output</h4><br/>
+<b>Specify the <i>Output file path</i>.</b><br>
+If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 </p>
 
 </body>
