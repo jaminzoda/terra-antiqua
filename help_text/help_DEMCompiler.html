@@ -9,41 +9,38 @@
 	The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. This may be done differently depending on which files are available.
 </p>
 
-<p>
-<b>You need three types of data.</b>
-</p>
+
+<div>The fields marked with a <b>*</b> are mandatory.</div>
 
 <p>
     <h4>I- Masks</h4><br/>
-<b>Field - <i>General masks</i></b>:<br/> To perform the compilation you need a vector polygon layer with general masks covering the tectonic blocks.
+<b>Field - <i>General masks</i></b><br/> To perform the compilation you need a vector polygon layer with general masks covering the tectonic blocks.
 </p>
-
 
 <p>
 	 <h4> II- Topography raster</h4><br/>
      
-     <b> Field - <i> Bedrock topography</i> </b>:<br/> Enter the raster containing the topography.<br/>
-     <b>Note</b>: You need the bedrock topography here.
-     <i>If you have data for the ice topography, you may perform an isostatic compensation using the "standard processing tools".</i>
-	
+     <b> Field - <i> Bedrock topography</i> </b><br/> Enter the raster containing the topography.<br/>
+     <div>You need the bedrock topography here. If you have data for the ice topography, you may perform an isostatic compensation using the "standard processing tools".</div>
 </p>
-
 <p>
 	<h4> III- Bathymetry rasters</h4><br/>
 
-    <b>Field -<i> Paleoocean bathymetry raster</i> </b> :<br/> Select your bathymetry file, already reconstructed to the desired time (eg. Mueller et al. 2008).<br/>
+    <b>Field -<i> Reconstructed paleobathymetry</i> </b> <br/> Select your bathymetry file, already reconstructed to the desired time (eg. Mueller et al. 2008).<br/>
     
-    <b> Field (optional) - <i>Ocean age</i> </b>:<br/> If you have a present day ocean age raster, select it from the list  (it must be rotated to its position at the time of reconstruction)
-    In this case you will have to specify the age of the reconstruction (Ma) in the corresponding field.<br/>
+    <b> Field (optional) - <i>Ocean age</i> </b><br/> If you have a present day ocean age raster, select it from the list.  It must be rotated to its position at the time of reconstruction.
+   You will have to specify the age of the reconstruction (Ma) in the corresponding field.<br/>
     
-    <b> Field (optional) - <i>Shallow sea bathymetry</i> </b> :<br/> If you have a present day shallow bathymetry raster, enter it too (rotated to its position at the time of reconstruction)
-    In this case you will have to specify a maximum depth (in m) for the continental shelf.
+    <b> Field (optional) - <i>Shallow sea bathymetry</i> </b> <br/> If you have a present day shallow bathymetry raster, enter it here (rotated to its position at the time of reconstruction).
+    You will have to specify a maximum depth (in m) for the continental shelf.
 </p>
 
 <p>
 	<h4> Output</h4><br/>
-<b>Field - <i>Output file path</i></b>: Specify an output directory and a file name.</p>
+    
+    <b>Specify the <i>Output file path</i>.</b><br>
+    If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 
+</p>
 </body>
-
 </html>

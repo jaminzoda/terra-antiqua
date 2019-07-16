@@ -36,10 +36,10 @@ p5 {
     background-color:#E7EACC;
     
 }
-div5 {
-    background-color: #EADCCC;
-    width: 100px;
-    border: 0px solid black;
+div {
+    background-color: #FFFEB5;
+    width: 80%;
+    border: 1px solid black;
     padding: 4px;
     margin: 4px;
 }

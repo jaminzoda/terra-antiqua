@@ -1,6 +1,0 @@
-Colours for the additional info in the helpBox.
-
-Light orange/red/brown: #EADCCC
-Light green/olive: #E7EACC
-Light blue/gray: #DBE3ED
-Yellow: #FFFEB5
