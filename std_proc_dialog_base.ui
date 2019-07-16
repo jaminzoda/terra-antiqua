@@ -69,9 +69,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>-40</y>
             <width>493</width>
-            <height>435</height>
+            <height>412</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -94,7 +94,7 @@
              <item>
               <widget class="QLabel" name="baseRasterLabel">
                <property name="text">
-                <string>Select the compiled topography+bathymetry  raster:</string>
+                <string>Select the compiled raster:</string>
                </property>
               </widget>
              </item>
@@ -260,13 +260,6 @@
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QCheckBox" name="addToCanvasCheckBox">
-               <property name="text">
-                <string>Add the resulting raster to the map canvas. </string>
-               </property>
-              </widget>
-             </item>
              <item>
               <widget class="QLabel" name="outputLabel">
                <property name="text">
