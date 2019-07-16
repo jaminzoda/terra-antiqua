@@ -72,6 +72,9 @@
             <y>-40</y>
             <width>493</width>
             <height>412</height>
+            <y>-156</y>
+            <width>479</width>
+            <height>497</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -95,6 +98,7 @@
               <widget class="QLabel" name="baseRasterLabel">
                <property name="text">
                 <string>Select the compiled raster:</string>
+                <string>Compiled raster (DEM):</string>
                </property>
               </widget>
              </item>
@@ -119,7 +123,7 @@
              <item>
               <widget class="QLabel" name="iceTopoLabel">
                <property name="text">
-                <string>Select the  Ice topography raster (rotated to time t):</string>
+                <string>Ice topography raster:</string>
                </property>
               </widget>
              </item>
@@ -169,7 +173,7 @@
              <item>
               <widget class="QLabel" name="masksBoxLabel">
                <property name="text">
-                <string>Select a vector  layer with the masks:</string>
+                <string>Masks:</string>
                </property>
               </widget>
              </item>
@@ -192,7 +196,7 @@
            <item>
             <widget class="QCheckBox" name="masksFromCoastCheckBox">
              <property name="text">
-              <string>Get the masks from coastlines (NAME field should be populated with names of the regions).</string>
+              <string>Get the masks from coastlines.</string>
              </property>
             </widget>
            </item>
@@ -207,7 +211,7 @@
              <item>
               <widget class="QLabel" name="iceAmountLabel">
                <property name="text">
-                <string>Amount of the ice to  remove (in % ):</string>
+                <string>Amount of the ice to be removed (in % ):</string>
                </property>
               </widget>
              </item>
@@ -268,7 +272,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath"/>
+              <widget class="QgsFileWidget" name="outputPath" native="true"/>
              </item>
             </layout>
            </item>

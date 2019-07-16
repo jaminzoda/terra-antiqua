@@ -42,9 +42,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>493</width>
-            <height>458</height>
+            <y>-235</y>
+            <width>463</width>
+            <height>562</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -70,13 +70,13 @@
                   </property>
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectMasks">
-                    <property name="allowEmptyLayer">
+                    <property name="allowEmptyLayer" stdset="0">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs">
+                    <property name="showCrs" stdset="0">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders">
+                    <property name="excludedProviders" stdset="0">
                      <stringlist>
                       <string>&quot;gdal&quot;</string>
                      </stringlist>
@@ -119,13 +119,13 @@
                   </property>
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectBrTopo">
-                    <property name="allowEmptyLayer">
+                    <property name="allowEmptyLayer" stdset="0">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs">
+                    <property name="showCrs" stdset="0">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders">
+                    <property name="excludedProviders" stdset="0">
                      <stringlist>
                       <string>&quot;gdal&quot;</string>
                      </stringlist>
@@ -157,7 +157,7 @@
                 <item>
                  <widget class="QLabel" name="oceanAgeLabel">
                   <property name="text">
-                   <string>Ocean age  [OPTIONAL]</string>
+                   <string>Ocean age </string>
                   </property>
                  </widget>
                 </item>
@@ -168,10 +168,10 @@
                     <property name="currentText">
                      <string/>
                     </property>
-                    <property name="allowEmptyLayer">
+                    <property name="allowEmptyLayer" stdset="0">
                      <bool>true</bool>
                     </property>
-                    <property name="showCrs">
+                    <property name="showCrs" stdset="0">
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -192,7 +192,7 @@
                 <item>
                  <widget class="QLabel" name="shallowSeaLabel">
                   <property name="text">
-                   <string>Shallow sea bathymetry [OPTIONAL]</string>
+                   <string>Shallow sea bathymetry</string>
                   </property>
                  </widget>
                 </item>
@@ -206,13 +206,13 @@
                     <property name="currentText">
                      <string/>
                     </property>
-                    <property name="allowEmptyLayer">
+                    <property name="allowEmptyLayer" stdset="0">
                      <bool>true</bool>
                     </property>
-                    <property name="showCrs">
+                    <property name="showCrs" stdset="0">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders">
+                    <property name="excludedProviders" stdset="0">
                      <stringlist/>
                     </property>
                    </widget>
@@ -233,7 +233,7 @@
                 <item>
                  <widget class="QLabel" name="label_2">
                   <property name="text">
-                   <string>Reconstructed  paleobathimetry*</string>
+                   <string>Reconstructed  paleobathymetry*</string>
                   </property>
                  </widget>
                 </item>
@@ -241,10 +241,10 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectPaleoBathy">
-                    <property name="allowEmptyLayer">
+                    <property name="allowEmptyLayer" stdset="0">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs">
+                    <property name="showCrs" stdset="0">
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -322,8 +322,8 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath">
-               <property name="defaultRoot">
+              <widget class="QgsFileWidget" name="outputPath" native="true">
+               <property name="defaultRoot" stdset="0">
                 <string/>
                </property>
               </widget>
