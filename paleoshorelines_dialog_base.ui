@@ -70,10 +70,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-
-               <width>512</width>
-               <height>366</height>
-
+            <width>494</width>
+            <height>341</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -82,7 +80,7 @@
              <item>
               <widget class="QLabel" name="label">
                <property name="text">
-                <string>Select the topography raster:</string>
+                <string>Compiled raster (DEM):</string>
                </property>
               </widget>
              </item>
@@ -107,7 +105,7 @@
              <item>
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Select a vector  layer with the rotated  paleoshorelines:</string>
+                <string>Rotated paleoshorelines:</string>
                </property>
               </widget>
              </item>
@@ -166,9 +164,7 @@
         </widget>
        </item>
        <item>
-
-           <widget class="QTextBrowser" name="helpBox">
-
+        <widget class="QTextBrowser" name="helpBox">
          <property name="maximumSize">
           <size>
            <width>320</width>
@@ -215,9 +211,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="cancelButton">
-          <property name="enabled">
-              <bool>false</bool>
-          </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -292,7 +288,7 @@
  <tabstops>
   <tabstop>runButton</tabstop>
   <tabstop>Tabs</tabstop>
-     <tabstop>helpBox</tabstop>
+  <tabstop>helpBox</tabstop>
   <tabstop>closeButton</tabstop>
   <tabstop>cancelButton</tabstop>
  </tabstops>
