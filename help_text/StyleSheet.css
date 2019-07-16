@@ -30,3 +30,16 @@ h4 {
     .centerCell {
         text-align: center;
     }
+
+p5 {
+    text-align: left;
+    background-color:#E7EACC;
+    
+}
+div {
+    background-color: #FFFEB5;
+    width: 80%;
+    border: 1px solid black;
+    padding: 4px;
+    margin: 4px;
+}
