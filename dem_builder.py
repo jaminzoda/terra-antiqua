@@ -28,7 +28,7 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
 
-from .algs import TopoBathyCompiler, MaskMaker, TopoModifier, PaleoShorelines
+from .algs import TopoBathyCompiler, MaskMaker, TopoModifier, PaleoShorelines, StandardProcessing
 # Import the code for the dialog
 from .dem_builder_dialog import DEMBuilderDialog
 from .mask_maker_dialog import MaskMakerDialog
@@ -202,7 +202,7 @@ class DEMBuilder:
 		self.add_action(
 			std_proc_icon,
 			text=self.tr(u'Standard processing tools'),
-			callback=self.std_processing_dlg_load,
+			callback=self.load_std_processing,
 			parent=self.iface.mainWindow())
 
 		self.pg_toolBar.addSeparator()
@@ -464,12 +464,60 @@ class DEMBuilder:
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
 		self.dlg4.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
-	def std_processing_dlg_load(self):
+	def load_std_processing(self):
 		self.dlg5 = StdProcessingDialog()
 
 		# show the dialog
 		self.dlg5.show()
 
-		self.dlg5.runButton.pressed.connect(self.run_std_processing)
+		# When the run button is clicked, the MaskMaker algorithm is ran.
+		self.dlg5.runButton.clicked.connect(self.start_std_processing)
+		self.dlg5.cancelButton.clicked.connect(self.stop_std_processing)
 
+	def start_std_processing(self):
+		self.dlg5.Tabs.setCurrentIndex(1)  # switch to the log tab.
+		self.dlg5.cancelButton.setEnabled(True)
+		self.dlg5.runButton.setEnabled(False)
+		self.std_p_thread = StandardProcessing(self.dlg5)
+		self.std_p_thread.change_value.connect(self.dlg5.set_progress_value)
+		self.std_p_thread.log.connect(self.std_p_print_log)
+		self.std_p_thread.start()
+		self.std_p_thread.finished.connect(self.std_p_add_result_to_canvas)
 
+	def stop_std_processing(self):
+		self.std_p_thread.kill()
+		self.dlg5.reset_progress_value()
+		self.dlg5.cancelButton.setEnabled(False)
+		self.dlg5.runButton.setEnabled(True)
+		self.std_p_print_log("The processing was not successful, because the user canceled processing.")
+		self.std_p_print_log("Or something went wrong. Please, refer to the log above for more details.")
+		self.dlg5.warningLabel.setText('Error!')
+		self.dlg5.warningLabel.setStyleSheet('color:red')
+
+	def finish_std_processing(self):
+		self.dlg5.cancelButton.setEnabled(False)
+		self.dlg5.runButton.setEnabled(True)
+		self.dlg5.warningLabel.setText('Done!')
+		self.dlg5.warningLabel.setStyleSheet('color:green')
+
+	def std_p_add_result_to_canvas(self, finished, out_file_path):
+		if finished is True:
+			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
+			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+			if rlayer:
+				rt.set_raster_symbology(rlayer)
+				self.std_p_print_log("The processing is finished successfully,")
+				self.std_p_print_log(
+					"and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))
+			else:
+				self.std_p_print_log("The processing was finished successfully,")
+				self.std_p_print_log("however the resulting layer did not load. You may need to load it manually.")
+			self.finish_std_processing()
+		else:
+			self.stop_std_processing()
+
+	def std_p_print_log(self, msg):
+		# get the current time
+		time = datetime.datetime.now()
+		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+		self.dlg5.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
