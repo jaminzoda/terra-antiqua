@@ -241,6 +241,11 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsProject.instance().addMapLayer(rlayer)
             box.setLayer(rlayer)
 
+    def set_progress_value(self, value):
+        self.progressBar.setValue(value)
+
+    def reset_progress_value(self):
+        self.progressBar.setValue(0)
 
 
 

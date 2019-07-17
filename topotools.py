@@ -6,24 +6,33 @@ import os.path
 import numpy as np
 import processing
 from PyQt5.QtGui import QColor
+from PyQt5.QtCore import pyqtSignal
 from osgeo import gdal, osr, ogr
 from osgeo import gdalconst
 from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsRasterBandStats, QgsColorRampShader, QgsRasterShader, \
-	QgsSingleBandPseudoColorRenderer
+	QgsSingleBandPseudoColorRenderer,QgsProcessingFeedback
 
 
 # Import the code for the dialog
 
 
 class RasterTools(QgsRasterLayer):
+	#progress_changed = pyqtSignal(int)
+
 	def __init__(self):
-		super.__init__(self)
+		super().__init__()
+
+
+	# def send_progress_feedback(self, value):
+	# 	print(value)
+	# 	self.progress_changed.emit(value)
+
 
 	def fill_no_data(self, out_file_path, no_data_value = None):
 		"""
 		Fils the missing data by interpolating from edges.
 		:param in_layer: QgsRasterLayer
-		:param no_data_value: NoDataValue of the input layer. These values to be set to np.nan during the interpolation.
+		:param no_data_value: NoDataValue of the input layer. These values to be set to np.nan   during the interpolation.
 		:param vlayer: A vector layer with masks for interpolating only inside masks
 		:return: String - the path of the output file.
 		"""
@@ -73,13 +82,18 @@ class RasterTools(QgsRasterLayer):
 		# result = gdal.FillNodata(targetBand = in_band, maskBand = out_band,
 		#						 maxSearchDist = 100, smoothingIterations = 0)
 
-		# interpolation with the processinig module
+		# interpolation with the processing module
 		input_layer = rlayer.dataProvider().dataSourceUri()
 		mask = QgsRasterLayer(mask_file, 'Validity mask', 'gdal')
 		mask_layer = mask.dataProvider().dataSourceUri()
+		# feedback = QgsProcessingFeedback()
+		# feedback.progressChanged.connect(self.send_progress_feedback)
+		#If the above two lines are uncommented, the feedback=feedback should be added to the processing algorithm below.
+
 		processing.run("gdal:fillnodata",
 		               {'INPUT': input_layer, 'BAND': 1, 'DISTANCE': 100, 'ITERATIONS': 0, 'NO_MASK': False,
 		                'MASK_LAYER': mask_layer, 'OUTPUT': out_file_path})
+
 
 		in_band.FlushCache()
 
@@ -189,9 +203,10 @@ class RasterTools(QgsRasterLayer):
 		self.triggerRepaint()
 
 
+
 class VectorTools(QgsVectorLayer):
 	def __init__(self):
-		super.__init__(self)
+		super.__init__()
 
 	def vector_to_raster(self, geotransform, ncols, nrows):
 		"""
