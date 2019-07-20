@@ -1,1 +1,20 @@
-Help for smoothing
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    </head>
+    <title> Smoothing </title>
+    
+    <body>
+   <p> This tool is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after topography modification and interpolation. However, it may be used in any DEM raster (1 band).
+   <p>
+   <b>Field - <i>Compiled  raster (DEM)</i></b><br/>You need to specify the raster where you want to perform the smoothing.
+   <p>
+   <b>Field - <i>Smoothing factor</i></b>:<br/>
+   You may specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. The greater the factor the smoother will the resulting raster be.
+   <p>
+   <b>Specify the <i>Output file path</i>.</b><br>
+   If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+   <div>Please be aware that smoothing may take 5 to 10 minutes, depending on the system. A higher smoothing factor will increase the processing time.</div>
+   </p>
+   </body>
+    </html>

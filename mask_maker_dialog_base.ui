@@ -48,15 +48,15 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>491</width>
-              <height>472</height>
+              <width>461</width>
+              <height>579</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
              <item row="2" column="0">
               <widget class="QGroupBox" name="groupBox">
                <property name="title">
-                <string>Shallow sea masks</string>
+                <string>Shallow seas</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_8">
                 <item>
@@ -75,13 +75,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectSsMask">
-                      <property name="allowEmptyLayer">
+                      <property name="allowEmptyLayer" stdset="0">
                        <bool>false</bool>
                       </property>
-                      <property name="showCrs">
+                      <property name="showCrs" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders">
+                      <property name="excludedProviders" stdset="0">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -115,13 +115,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectSsMaskLine">
-                      <property name="allowEmptyLayer">
+                      <property name="allowEmptyLayer" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="showCrs">
+                      <property name="showCrs" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders">
+                      <property name="excludedProviders" stdset="0">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -151,7 +151,7 @@
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout">
                   <item>
-                   <widget class="QgsFileWidget" name="outputPath"/>
+                   <widget class="QgsFileWidget" name="outputPath" native="true"/>
                   </item>
                  </layout>
                 </item>
@@ -180,13 +180,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCoastlineMask">
-                      <property name="allowEmptyLayer">
+                      <property name="allowEmptyLayer" stdset="0">
                        <bool>false</bool>
                       </property>
-                      <property name="showCrs">
+                      <property name="showCrs" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders">
+                      <property name="excludedProviders" stdset="0">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -220,13 +220,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCoastlineMaskLine">
-                      <property name="allowEmptyLayer">
+                      <property name="allowEmptyLayer" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="showCrs">
+                      <property name="showCrs" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders">
+                      <property name="excludedProviders" stdset="0">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -250,7 +250,7 @@
              <item row="1" column="0">
               <widget class="QGroupBox" name="groupBox_3">
                <property name="title">
-                <string>Continental Shelves masks</string>
+                <string>Continental shelves</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_9">
                 <item>
@@ -269,13 +269,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCshMask">
-                      <property name="allowEmptyLayer">
+                      <property name="allowEmptyLayer" stdset="0">
                        <bool>false</bool>
                       </property>
-                      <property name="showCrs">
+                      <property name="showCrs" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders">
+                      <property name="excludedProviders" stdset="0">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -309,13 +309,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCshMaskLine">
-                      <property name="allowEmptyLayer">
+                      <property name="allowEmptyLayer" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="showCrs">
+                      <property name="showCrs" stdset="0">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders">
+                      <property name="excludedProviders" stdset="0">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
