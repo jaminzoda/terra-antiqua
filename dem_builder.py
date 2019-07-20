@@ -191,7 +191,7 @@ class DEMBuilder:
 
 		self.add_action(
 			topo_modifier_icon,
-			text=self.tr(u'Topoggraphy modifier'),
+			text=self.tr(u'Topography modifier'),
 			callback=self.load_topo_modifier,
 			parent=self.iface.mainWindow())
 		self.add_action(
