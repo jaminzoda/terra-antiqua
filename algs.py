@@ -1095,6 +1095,7 @@ class StandardProcessing(QThread):
 		processing_type = self.dlg.fillingTypeBox.currentIndex()
 
 		#Getting the ouput path
+        #TODO Must check if the path is a valid path. In case the user inputs the name of the file but not the full path.
 		if not self.dlg.outputPath.filePath():
 			temp_dir = tempfile.gettempdir()
 			if processing_type == 0:
