@@ -50,7 +50,11 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.cancelButton.setEnabled(False)
         mandatory_fields = [self.selectCoastlineMask.layerChanged,
                             self.selectCshMask.layerChanged,
-                            self.selectSsMask.layerChanged]
+                            self.selectSsMask.layerChanged,
+                            self.selectCoastlineMaskLine.layerChanged,
+                            self.selectCshMaskLine.layerChanged,
+                            self.selectSsMaskLine.layerChanged
+                            ]
         for i in mandatory_fields:
             i.connect(self.enable_run_button)
 
@@ -94,13 +98,18 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
     def enable_run_button(self):
         mandatory_fields = [self.selectCoastlineMask.currentLayer(),
                             self.selectCshMask.currentLayer(),
-                            self.selectSsMask.currentLayer()]
-        if all(mandatory_fields):
+                            self.selectSsMask.currentLayer(),
+                            self.selectCoastlineMaskLine.currentLayer(),
+                            self.selectCshMaskLine.currentLayer(),
+                            self.selectSsMaskLine.currentLayer()
+                            ]
+        if any(mandatory_fields):
             self.runButton.setEnabled(True)
             self.warningLabel.setText('')
         else:
-            self.warningLabel.setText('Please, select all the mandatory fields that are marked by *.')
+            self.warningLabel.setText('Please, select at least one layer to process.')
             self.warningLabel.setStyleSheet('color:red')
+            self.runButton.setEnabled(False)
 
 
 
