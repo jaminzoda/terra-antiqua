@@ -10,9 +10,8 @@
    <p>For paleogeographic reconstruction, however, the rotated present day bathymetry of the <b>continental shelves</b> and <b>shallow seas</b> is also needed. In this case two more shapefiles (<i>.shp</i>) can be created, with masks covering these regions. Then, they can be used to cut the bathymetry (in Gplates).
    <p>Since the DEM compiler gets only one mask layer as input, the masks created for the <b>continental shelves</b> and <b>shallow seas</b> should be merged with the <b>coastlines</b> into a new single vector layer. This will show a field in its atribute table (named <i>layer</i>) stating which original layer (shelf, shallow sea or coastline) each polygon comes from.
    
-   <div>The polygons and polylines exported from Gplates often contain invalid geometries which are fixed by this tool.</div>
-
-  <div>The fields marked with a <b>*</b> are mandatory.</div>
+   <div>The polygons and polylines exported from Gplates often contain invalid geometries which are fixed by this tool.<br><br>
+       Although this tool has been deisgned mainly for the purpose specified above, you may use it to polygonize lines or simply to fix invalid geometries by using solely the first section, <i>Coastlines</i>.</div>
    
   
    <p><h4>Coastlines</h4><br/>
@@ -32,7 +31,7 @@
   If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 
   <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
-      II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or file name) each time</div>
+      II) If this tool is used repetitively with no path specified, there will be a conflict with previous results. To avoid this, specify a different path (or file name) each time or delete the previous result if it has the same name.</div>
 </p>
 </body>
 </html>
