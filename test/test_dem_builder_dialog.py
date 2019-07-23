@@ -16,7 +16,7 @@ import unittest
 
 from PyQt5.QtGui import QDialogButtonBox, QDialog
 
-from dem_builder_dialog import DEMBuilderDialog
+from terra_antiqua_dialog import TerraAntiquaDialog
 
 from utilities import get_qgis_app
 QGIS_APP = get_qgis_app()
@@ -27,7 +27,7 @@ class DEMBuilderDialogTest(unittest.TestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.dialog = DEMBuilderDialog(None)
+        self.dialog = TerraAntiquaDialog(None)
 
     def tearDown(self):
         """Runs after each test."""
