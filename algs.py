@@ -31,7 +31,7 @@ class TopoBathyCompiler(QThread):
 		# Get the path of the output file
 		if not self.dlg.outputPath.filePath():
 			temp_dir = tempfile.gettempdir()
-			out_file_path = os.path.join(temp_dir, 'Compiled_DEM_(Topo+Bathy).tif')
+			out_file_path = os.path.join(temp_dir, 'Compiled_DEM_Topo+Bathy.tif')
 		else:
 			out_file_path = self.dlg.outputPath.filePath()
 
@@ -46,7 +46,7 @@ class TopoBathyCompiler(QThread):
 		paleo_dem[:] = np.nan
 		# Copy the bathymetry to the base grid. Values above sea level are set to 0.
 		paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-		paleo_dem[paleo_bathy > 0] = 0
+		paleo_dem[paleo_bathy > 0] = -0.1 #Bring the values, which are above sea level down below sea level.
 
 		progress_count += 5
 		self.change_value.emit(progress_count)
@@ -313,7 +313,7 @@ class TopoBathyCompiler(QThread):
 			raster = None
 
 			self.change_value.emit(100)
-			self.log.emit('The resulting raster is saved at: <a href="file://{}">{}<a/>'.format(os.path.dirname(out_file_path), out_file_path))
+			self.log.emit("The resulting raster is saved at: <a href='file://{}'>{}<a/>".format(os.path.dirname(out_file_path), out_file_path))
 			self.finished.emit(True, out_file_path)
 
 	def kill(self):
@@ -495,6 +495,7 @@ class MaskMaker(QThread):
 		if not self.killed:
 			layers_to_merge = [masks_layer, coast_temp]
 			params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:Final extracted masks'}
+
 			final_masks = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
 
 			# Send progress feedback
@@ -1028,7 +1029,7 @@ class PaleoShorelines(QThread):
 			r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
 			# The bathymetry values that are above sea level are taken down below sea level
 			in_array = topo[(r_masks == 0) * (topo > 0) == 1]
-			topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, -100, -0.05)
+			topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, -100, -0.1)
 
 			progress_count += 30
 			self.change_value.emit(progress_count)
@@ -1036,7 +1037,7 @@ class PaleoShorelines(QThread):
 		if not self.killed:
 			# The topography values that are below sea level are taken up above sea level
 			in_array = topo[(r_masks == 1) * (topo < 0) == 1]
-			topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.05, 100)
+			topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.1, 2)
 
 			progress_count += 30
 			self.change_value.emit(progress_count)
