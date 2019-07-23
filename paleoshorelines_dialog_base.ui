@@ -80,7 +80,7 @@
              <item>
               <widget class="QLabel" name="label">
                <property name="text">
-                <string>Compiled raster (DEM):</string>
+                <string>Raster to be modified (Input):</string>
                </property>
               </widget>
              </item>

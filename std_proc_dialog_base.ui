@@ -70,8 +70,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>493</width>
-            <height>412</height>
+            <width>479</width>
+            <height>497</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -94,7 +94,7 @@
              <item>
               <widget class="QLabel" name="baseRasterLabel">
                <property name="text">
-                <string>Compiled raster (DEM):</string>
+                <string>Raster to be modified:</string>
                </property>
               </widget>
              </item>
@@ -268,7 +268,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath"/>
+              <widget class="QgsFileWidget" name="outputPath" native="true"/>
              </item>
             </layout>
            </item>
