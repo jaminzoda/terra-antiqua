@@ -1036,7 +1036,7 @@ class PaleoShorelines(QThread):
 		if not self.killed:
 			# The topography values that are below sea level are taken up above sea level
 			in_array = topo[(r_masks == 1) * (topo < 0) == 1]
-			topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.05, 100)
+			topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.05, 2)
 
 			progress_count += 30
 			self.change_value.emit(progress_count)
