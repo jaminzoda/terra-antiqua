@@ -48,8 +48,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>461</width>
-              <height>579</height>
+              <width>491</width>
+              <height>472</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -64,7 +64,7 @@
                   <item>
                    <widget class="QLabel" name="label_4">
                     <property name="text">
-                     <string>Polygon layer*</string>
+                     <string>Polygon layer</string>
                     </property>
                    </widget>
                   </item>
@@ -75,13 +75,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectSsMask">
-                      <property name="allowEmptyLayer" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="showCrs" stdset="0">
+                      <property name="allowEmptyLayer">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders" stdset="0">
+                      <property name="showCrs">
+                       <bool>true</bool>
+                      </property>
+                      <property name="excludedProviders">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -115,13 +115,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectSsMaskLine">
-                      <property name="allowEmptyLayer" stdset="0">
+                      <property name="allowEmptyLayer">
                        <bool>true</bool>
                       </property>
-                      <property name="showCrs" stdset="0">
+                      <property name="showCrs">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders" stdset="0">
+                      <property name="excludedProviders">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -151,7 +151,7 @@
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout">
                   <item>
-                   <widget class="QgsFileWidget" name="outputPath" native="true"/>
+                   <widget class="QgsFileWidget" name="outputPath"/>
                   </item>
                  </layout>
                 </item>
@@ -169,7 +169,7 @@
                   <item>
                    <widget class="QLabel" name="label_5">
                     <property name="text">
-                     <string>Polygon layer*</string>
+                     <string>Polygon layer</string>
                     </property>
                    </widget>
                   </item>
@@ -180,13 +180,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCoastlineMask">
-                      <property name="allowEmptyLayer" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="showCrs" stdset="0">
+                      <property name="allowEmptyLayer">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders" stdset="0">
+                      <property name="showCrs">
+                       <bool>true</bool>
+                      </property>
+                      <property name="excludedProviders">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -220,13 +220,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCoastlineMaskLine">
-                      <property name="allowEmptyLayer" stdset="0">
+                      <property name="allowEmptyLayer">
                        <bool>true</bool>
                       </property>
-                      <property name="showCrs" stdset="0">
+                      <property name="showCrs">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders" stdset="0">
+                      <property name="excludedProviders">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -258,7 +258,7 @@
                   <item>
                    <widget class="QLabel" name="label_8">
                     <property name="text">
-                     <string>Polygon layer*</string>
+                     <string>Polygon layer</string>
                     </property>
                    </widget>
                   </item>
@@ -269,13 +269,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCshMask">
-                      <property name="allowEmptyLayer" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="showCrs" stdset="0">
+                      <property name="allowEmptyLayer">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders" stdset="0">
+                      <property name="showCrs">
+                       <bool>true</bool>
+                      </property>
+                      <property name="excludedProviders">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>
@@ -309,13 +309,13 @@
                     </property>
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectCshMaskLine">
-                      <property name="allowEmptyLayer" stdset="0">
+                      <property name="allowEmptyLayer">
                        <bool>true</bool>
                       </property>
-                      <property name="showCrs" stdset="0">
+                      <property name="showCrs">
                        <bool>true</bool>
                       </property>
-                      <property name="excludedProviders" stdset="0">
+                      <property name="excludedProviders">
                        <stringlist>
                         <string>&quot;gdal&quot;</string>
                        </stringlist>

@@ -331,6 +331,7 @@ class MaskMaker(QThread):
 		self.killed = False
 
 	def run(self):
+
 		self.log.emit("The processing  has started")
 		progress_count = 0
 		# Get the path of the output file
@@ -345,24 +346,37 @@ class MaskMaker(QThread):
 		# Combining polygons and polylines
 
 		# Get all the input layers
-		# a) Shallow sea masks
-		ss_mask_layer = self.dlg.selectSsMask.currentLayer()
-		if self.dlg.selectSsMaskLine.currentLayer():
-			ss_mask_line_layer = self.dlg.selectSsMaskLine.currentLayer()
+		# a) Coastline masks
+		if self.dlg.selectCoastlineMask.currentLayer():
+			coast_mask_layer = self.dlg.selectCoastlineMask.currentLayer()
 		else:
-			ss_mask_line_layer = None
-		# b) Continental Shelves masks
-		cs_mask_layer = self.dlg.selectCshMask.currentLayer()
-		if self.dlg.selectCshMaskLine.currentLayer():
-			cs_mask_line_layer = self.dlg.selectCshMaskLine.currentLayer()
-		else:
-			cs_mask_line_layer = None
-		# c) Coastline masks
-		coast_mask_layer = self.dlg.selectCoastlineMask.currentLayer()
+			coast_mask_layer = None
 		if self.dlg.selectCoastlineMaskLine.currentLayer():
 			coast_mask_line_layer = self.dlg.selectCoastlineMaskLine.currentLayer()
 		else:
 			coast_mask_line_layer = None
+
+		# b) Continental Shelves masks
+		if self.dlg.selectCshMask.currentLayer():
+			cs_mask_layer = self.dlg.selectCshMask.currentLayer()
+		else:
+			cs_mask_layer = None
+
+		if self.dlg.selectCshMaskLine.currentLayer():
+			cs_mask_line_layer = self.dlg.selectCshMaskLine.currentLayer()
+		else:
+			cs_mask_line_layer = None
+
+		# c) Shallow sea masks
+
+		if self.dlg.selectSsMask.currentLayer():
+			ss_mask_layer = self.dlg.selectSsMask.currentLayer()
+		else:
+			ss_mask_layer = None
+		if self.dlg.selectSsMaskLine.currentLayer():
+			ss_mask_line_layer = self.dlg.selectSsMaskLine.currentLayer()
+		else:
+			ss_mask_line_layer = None
 
 		# Create a list of input layers
 		layers = [(ss_mask_layer, ss_mask_line_layer, "Shallow sea"),
@@ -375,6 +389,10 @@ class MaskMaker(QThread):
 		progress_count += 5
 		self.change_value.emit(progress_count)
 
+		#Temporary layers assigned
+		ss_temp = None
+		cs_temp = None
+		coast_temp = None
 		for poly, line, name in layers:
 
 			if self.killed:
@@ -410,36 +428,52 @@ class MaskMaker(QThread):
 				poly_features = None
 				fixed_line = processing.run('native:fixgeometries', {'INPUT': temp, 'OUTPUT': 'memory:' + name})[
 					'OUTPUT']
+				self.log.emit("Invalid geometries in {}  have been fixed.".format(line.name()))
+
 				self.log.emit("polylines in {} have been polygonized.".format(line.name()))
 			else:
 				pass
 			# parameters for layer merging
-			fixed_poly = processing.run('native:fixgeometries', {'INPUT': poly, 'OUTPUT': 'memory:' + name})[
+			if poly is not None:
+				fixed_poly = processing.run('native:fixgeometries', {'INPUT': poly, 'OUTPUT': 'memory:' + name})[
 				'OUTPUT']
-			if line is not None:
-				self.log.emit("Invalid geometries in {} and {} have been fixed.".format(poly.name(), line.name()))
-			else:
 				self.log.emit("Invalid geometries in {} have been fixed.".format(poly.name()))
-			if line is not None:
-				layers_to_merge = [fixed_poly, fixed_line]
+
+			if line is not None and poly is not None:
+				#Refactor the field types, if they are different
+				fixed_line_refactored, fields_refactored = vt.refactor_fields(fixed_line, fixed_poly)
+
+				if len(fields_refactored) == 0:
+					layers_to_merge = [fixed_poly, fixed_line]
+				else:
+					self.log.emit("The fields {} in {} are refactored".format(fields_refactored, fixed_line.name()))
+					layers_to_merge = [fixed_poly, fixed_line_refactored]
+
 				params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:' + name}
 				temp_layer = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
 				fixed_poly = None
 				fixed_line = None
 				self.log.emit("Polygonized polylines from {} are merged with polygons from {}.".format(line.name(),poly.name()))
-			else:
+			elif line is None and poly is not None:
 				temp_layer = fixed_poly
 				fixed_poly = None
+			elif poly is None and line is not None:
+				temp_layer = fixed_line
+			else:
+				temp_layer = None
+			if temp_layer is not None:
+				if name == "Shallow sea":
+					ss_temp = temp_layer
+					temp_layer = None
 
-			if name == "Shallow sea":
-				ss_temp = temp_layer
-				temp_layer = None
-			elif name == "Continental Shelves":
-				cs_temp = temp_layer
-				temp_layer = None
-			elif name == "Continents":
-				coast_temp = temp_layer
-				temp_layer = None
+				elif name == "Continental Shelves":
+					cs_temp = temp_layer
+					temp_layer = None
+
+				elif name == "Continents":
+					coast_temp = temp_layer
+					temp_layer = None
+
 
 			# Send progress feedback
 			progress_count += 10
@@ -450,9 +484,12 @@ class MaskMaker(QThread):
 		if not self.killed:
 			# Extracting masks by running difference algorithm
 			# Parameters for difference algorithm
-			params = {'INPUT': ss_temp, 'OVERLAY': cs_temp, 'OUTPUT': 'memory:Shallow sea'}
-			ss_extracted = processing.run('native:difference', params)["OUTPUT"]
-			ss_temp = None  # remove shallow sea masks layer, becasue we don't need it anymore. This will release memory.
+			if ss_temp is not None and cs_temp is not None:
+				params = {'INPUT': ss_temp, 'OVERLAY': cs_temp, 'OUTPUT': 'memory:Shallow sea'}
+				ss_extracted = processing.run('native:difference', params)["OUTPUT"]
+				ss_temp = None  # remove shallow sea masks layer, becasue we don't need it anymore. This will release memory.
+			else:
+				ss_extracted = None
 
 			# Send progress feedback
 			progress_count += 10
@@ -460,9 +497,12 @@ class MaskMaker(QThread):
 			self.log.emit("Shallow sea masks extracted.")
 
 		if not self.killed:
-			params = {'INPUT': cs_temp, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:Continental Shelves'}
-			cs_extracted = processing.run('native:difference', params)["OUTPUT"]
-			cs_temp = None
+			if cs_temp is not None and coast_temp is not None:
+				params = {'INPUT': cs_temp, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:Continental Shelves'}
+				cs_extracted = processing.run('native:difference', params)["OUTPUT"]
+				cs_temp = None
+			else:
+				cs_extracted = None
 
 
 			# Send progress feedback
@@ -472,9 +512,20 @@ class MaskMaker(QThread):
 
 		if not self.killed:
 			# Combining the extracted masks in one shape file.
-			layers_to_merge = [ss_extracted, cs_extracted]
-			params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:ss+cs'}
-			ss_and_cs_extracted = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+			if ss_extracted is not None and cs_extracted is not None:
+				# Refactor the field types, if they are different
+				ss_extracted_refactored, fields_refactored = vt.refactor_fields(ss_extracted, cs_extracted)
+
+				if len(fields_refactored) == 0:
+					layers_to_merge = [ss_extracted, cs_extracted]
+				else:
+					self.log.emit("The fields {} in {} are refactored".format(fields_refactored, ss_extracted.name()))
+					layers_to_merge = [ss_extracted_refactored, cs_extracted]
+
+				params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:ss+cs'}
+				ss_and_cs_extracted = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+			else:
+				ss_and_cs_extracted =None
 
 			# Send progress feedback
 			progress_count += 10
@@ -482,9 +533,12 @@ class MaskMaker(QThread):
 
 		if not self.killed:
 			# Running difference algorithm to remove geometries that overlap with the coastlines
-			# Parameters for difference algorithm.
-			params = {'INPUT': ss_and_cs_extracted, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:ss+cs'}
-			masks_layer = processing.run('native:difference', params)["OUTPUT"]
+			if ss_and_cs_extracted is not None and coast_temp is not None:
+				# Parameters for difference algorithm.
+				params = {'INPUT': ss_and_cs_extracted, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:ss+cs'}
+				masks_layer = processing.run('native:difference', params)["OUTPUT"]
+			else:
+				masks_layer = None
 
 			# Send progress feedback
 			progress_count += 5
@@ -493,10 +547,21 @@ class MaskMaker(QThread):
 			self.log.emit("Continents masks extracted.")
 
 		if not self.killed:
-			layers_to_merge = [masks_layer, coast_temp]
-			params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:Final extracted masks'}
+			if masks_layer is not None and coast_temp is not None:
+				# Refactor the field types, if they are different
+				masks_layer_refactored, fields_refactored = vt.refactor_fields(masks_layer, coast_temp)
 
-			final_masks = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+				if len(fields_refactored) == 0:
+					layers_to_merge = [masks_layer, coast_temp]
+				else:
+					self.log.emit("The fields {} in {} are refactored".format(fields_refactored, masks_layer.name()))
+					layers_to_merge = [masks_layer_refactored, coast_temp]
+
+				params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:Final extracted masks'}
+
+				final_masks = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+			else:
+				final_masks = coast_temp
 
 			# Send progress feedback
 			progress_count += 5
@@ -521,7 +586,7 @@ class MaskMaker(QThread):
 
 		if not self.killed:
 			# Saving the results into a shape file
-			error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, out_file_path, "UTF-8", masks_layer.crs(),
+			error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, out_file_path, "UTF-8", final_masks.crs(),
 															"ESRI Shapefile")
 			if error[0] == QgsVectorFileWriter.NoError:
 				self.log.emit("The extracted general masks have been saved in a shapefile at: ")
@@ -1006,6 +1071,10 @@ class PaleoShorelines(QThread):
 		geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
 		nrows, ncols = np.shape(topo)
 
+		#Get the elevation and depth constrains
+		max_elev = self.dlg.maxElevSpinBox.value()
+		max_depth = self.dlg.maxDepthSpinBox.value()
+
 		progress_count += 10
 		self.change_value.emit(progress_count)
 
@@ -1029,7 +1098,7 @@ class PaleoShorelines(QThread):
 			r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
 			# The bathymetry values that are above sea level are taken down below sea level
 			in_array = topo[(r_masks == 0) * (topo > 0) == 1]
-			topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, -100, -0.1)
+			topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, max_depth, -0.1)
 
 			progress_count += 30
 			self.change_value.emit(progress_count)
@@ -1037,7 +1106,7 @@ class PaleoShorelines(QThread):
 		if not self.killed:
 			# The topography values that are below sea level are taken up above sea level
 			in_array = topo[(r_masks == 1) * (topo < 0) == 1]
-			topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.1, 2)
+			topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.1, max_elev)
 
 			progress_count += 30
 			self.change_value.emit(progress_count)
