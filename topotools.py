@@ -177,9 +177,12 @@ class RasterTools(QgsRasterLayer):
 		ramp_shader = QgsColorRampShader()
 		ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
-		lst = [ramp_shader.ColorRampItem(min_elev, QColor(0, 0, 90), str(round(min_elev))),
-		       ramp_shader.ColorRampItem(0, QColor(100, 255, 255), '0'),
-		       ramp_shader.ColorRampItem(1, QColor(0, 150, 0), '1'),
+		lst = [ramp_shader.ColorRampItem(min_elev, QColor(0, 0, 70), str(round(min_elev))),
+               ramp_shader.ColorRampItem(-5000, QColor(0, 0, 128), '-5000'),
+               ramp_shader.ColorRampItem(-3000, QColor(0, 105, 204), '-3000'),
+               ramp_shader.ColorRampItem(-1000, QColor(102, 179, 255), '-1000'),
+		       ramp_shader.ColorRampItem(-0.01, QColor(100, 255, 255), '-1'),
+		       ramp_shader.ColorRampItem(0, QColor(0, 150, 0), '0'),
 		       ramp_shader.ColorRampItem(200, QColor(0, 255, 0), '200'),
 		       ramp_shader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
 		       ramp_shader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
