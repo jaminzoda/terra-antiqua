@@ -5,14 +5,20 @@
     <title> Paleoshorelines </title>
     <body>
     <p>
-This tool performs a correction to the compiled DEM (topography and bathymetry) according to the provided paleoshoreline shapefile. Based on the masks given, it will be checked if regions that should be emerged appear underwater and if regions that should be submerged are shown above the sea level. The resulting raster will include these corrections by giving the value <i>1</i> to the newly emerged areas and <i>-100</i> to the newly submerged areas.
+This tool performs a correction to the compiled DEM (topography and bathymetry) according to the provided paleoshoreline shapefile. Based on the masks given, it will be checked if regions that should be emerged appear underwater and if regions that should be submerged are shown above the sea level. The resulting raster will include these corrections and the original topography of the modified areas will be kept The values will oscillate between <i>0.1</i> and the elevation you enter for the newly emerged areas and between <i>-0.1</i> and the depth you enter for the newly submerged areas.
 <p>
-<b>Field - <i>Compiled raster (DEM)</b></i>:<br/> Select the raster compiling the topography and the bathymetry (rotated to the time of reconstruction)
+<b>Field - <i>Raster to be modified (Input)</b></i>:<br/> Select the raster (DEM) compiling the topography and the bathymetry (rotated to the time of reconstruction)
 <p>
 <b>Field - <i>Rotated Paleoshorelines</b></i>:<br/> Select the vector layer with the paleoshorelines (rotated to the time of reconstruction).
 <p>
+<b>Field - <i>Maximum elevation of the emerged area</b></i>:<br/> Enter the maximum elevation for the newly emerged area in m.
+<p>
+<b>Field - <i>Maximum depth of the submerged area</b></i>:<br/> Enter the maximum depth for the newly emerged area in m. This should be a negative value, since it's relatd to bathymetry.
+<p>
 <b>Specify the <i>Output file path</i>.</b><br>
 If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
+    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or file name) each time</div>
 </p>
 </body>
 </html>
