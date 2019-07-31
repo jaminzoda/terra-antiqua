@@ -70,8 +70,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>494</width>
-            <height>341</height>
+            <width>510</width>
+            <height>372</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -80,7 +80,7 @@
              <item>
               <widget class="QLabel" name="label">
                <property name="text">
-                <string>Compiled raster (DEM):</string>
+                <string>Raster to be modified (Input):</string>
                </property>
               </widget>
              </item>
@@ -126,11 +126,44 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <property name="spacing">
-              <number>6</number>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Maximum elevation of the emerged area (in m):</string>
              </property>
-            </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="maxElevSpinBox">
+             <property name="minimum">
+              <double>-1.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>2000.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>2.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Maximum depth of the submerged area (in m):</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="maxDepthSpinBox">
+             <property name="minimum">
+              <double>-1000.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>-5.000000000000000</double>
+             </property>
+            </widget>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -142,7 +175,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath" native="true"/>
+              <widget class="QgsFileWidget" name="outputPath"/>
              </item>
             </layout>
            </item>

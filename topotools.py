@@ -177,14 +177,19 @@ class RasterTools(QgsRasterLayer):
 		ramp_shader = QgsColorRampShader()
 		ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
-		lst = [ramp_shader.ColorRampItem(min_elev, QColor(0, 0, 90), str(round(min_elev))),
-		       ramp_shader.ColorRampItem(0, QColor(100, 255, 255), '0'),
-		       ramp_shader.ColorRampItem(1, QColor(0, 150, 0), '1'),
-		       ramp_shader.ColorRampItem(200, QColor(0, 255, 0), '200'),
-		       ramp_shader.ColorRampItem(1000, QColor(190, 255, 0), '1000'),
-		       ramp_shader.ColorRampItem(2000, QColor(255, 255, 0), '2000'),
-		       ramp_shader.ColorRampItem(4000, QColor(180, 100, 0), '4000'),
-		       ramp_shader.ColorRampItem(5500, QColor(200, 200, 200), '6000'),
+		lst = [ramp_shader.ColorRampItem(min_elev, QColor(0, 0, 51), str(round(min_elev))),
+               ramp_shader.ColorRampItem(-5000, QColor(0, 51, 102), '-5000'),
+               ramp_shader.ColorRampItem(-3000, QColor(24, 138, 204), '-3000'),
+               ramp_shader.ColorRampItem(-2000, QColor(25, 145, 214), '-2000'),
+               ramp_shader.ColorRampItem(-1000, QColor(25, 151, 219), '-1000'),
+               ramp_shader.ColorRampItem(-200, QColor(121, 187, 224), '-200'),
+		       ramp_shader.ColorRampItem(-0.01, QColor(176, 226, 255), '0'),
+		       ramp_shader.ColorRampItem(0.01, QColor(0, 97, 71), '1'),
+		       ramp_shader.ColorRampItem(200, QColor(16, 123, 48), '200'),
+		       ramp_shader.ColorRampItem(1000, QColor(232, 214, 125), '1000'),
+		       ramp_shader.ColorRampItem(2000, QColor(163, 68, 0), '2000'),
+		       ramp_shader.ColorRampItem(3000, QColor(130, 30, 30), '3000'),
+		       ramp_shader.ColorRampItem(5000, QColor(189, 189, 189), '5000'),
 		       ramp_shader.ColorRampItem(max_elev, QColor(255, 255, 255), str(round(max_elev)))]
 
 		ramp_shader.setColorRampItemList(lst)
@@ -249,6 +254,55 @@ class VectorTools(QgsVectorLayer):
 		mask_raster = None
 
 		return raster_array
+	def refactor_fields(self, layer2):
+		layer1 = self
+		fields1 = layer1.fields()
+		fields2 = layer2.fields()
+
+
+		field_mapping = []
+		names_matching = []
+		fields_refactored = []
+		for field1 in fields1:
+			for field2 in fields2:
+				if field1.name() == field2.name():
+					if field1.type() == field2.type():
+						refact_params = {'name': field1.name(),
+						                 'type': field1.type(),
+						                 'length': field1.length(),
+						                 'precision': field1.precision(),
+						                 'expression': field1.name()
+						                 }
+						field_mapping.append(refact_params)
+					else:
+						refact_params = {'name': field1.name(),
+						                 'type': field2.type(),
+						                 'length': field2.length(),
+						                 'precision': field2.precision(),
+						                 'expression': field1.name()
+						                 }
+						field_mapping.append(refact_params)
+						fields_refactored.append(field1.name())
+					names_matching.append(field1.name())
+
+		for field1 in fields1:
+			name_match = False
+			for name in names_matching:
+				if field1.name() == name:
+					name_match = True
+			if not name_match:
+				refact_params = {'name': field1.name(),
+				                 'type': field1.type(),
+				                 'length': field1.length(),
+				                 'precision': field1.precision(),
+				                 'expression': field1.name()
+				                 }
+				field_mapping.append(refact_params)
+
+		params = {'INPUT': layer1, 'FIELDS_MAPPING': field_mapping, 'OUTPUT': 'memory:Refactored_layer'}
+		refactored_layer = processing.run("qgis:refactorfields", params)['OUTPUT']
+
+		return refactored_layer, fields_refactored
 
 
 class ArrayTools(np.ndarray):
