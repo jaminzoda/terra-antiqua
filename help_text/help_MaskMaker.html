@@ -1,0 +1,37 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    </head>
+    <title> Mask maker </title>
+    
+<body>
+   <p>This tool prepares the general masks such as coastlines, continental shelves and shallow sea regions for the DEM compiler. These are used when you export topograpy and bathymetry from Gplates in different raster files (such as done by Baatsen et al. 2016).
+   <p>Generally, reconstruction models have a shapefile which contains polygons and polylines surrounding the tectonic blocks. These are called <b>coastlines</b> and are linked to the rotation model.
+   <p>For paleogeographic reconstruction, however, the rotated present day bathymetry of the <b>continental shelves</b> and <b>shallow seas</b> is also needed. In this case two more shapefiles (<i>.shp</i>) can be created, with masks covering these regions. Then, they can be used to cut the bathymetry (in Gplates).
+   <p>Since the DEM compiler gets only one mask layer as input, the masks created for the <b>continental shelves</b> and <b>shallow seas</b> should be merged with the <b>coastlines</b> into a new single vector layer. This will show a field in its atribute table (named <i>layer</i>) stating which original layer (shelf, shallow sea or coastline) each polygon comes from.
+   
+   <div>The polygons and polylines exported from Gplates often contain invalid geometries which are fixed by this tool.<br><br>
+       Although this tool has been deisgned mainly for the purpose specified above, you may use it to polygonize lines or simply to fix invalid geometries by using solely the first section, <i>Coastlines</i>.</div>
+   
+  
+   <p><h4>Coastlines</h4><br/>
+   <b>Field - <i>Polygon layer</i></b><br/> Select the vector file with the polygons for the coastlines<br/>
+   <b>Field - <i>Polyline layer</i></b><br/>Select the vector file with the lines representing the coastlines
+   <div><b>Note:</b> The input data can contain polygons and polylines because in some models (eg. Baatsen et al.) the masks aren't always closed polygons and they may consist of open lines to allow shape modification in GPlates. The <i>Mask maker</i> will polygonize these lines and add them to the polygon layer.</div>
+   
+   <p><h4>Continental shelves</h4><br/>
+ <b>Field - <i>Polygon layer</i></b><br/> Select the vector file with the polygons representing the continental shelves<br/>
+  <b>Field - <i>Polyline layer</i></b> (see <b>Note</b> above)<br/> Select the vector file with the lines representing the continental shelves<br/>
+  
+  <p><h4>Shallow seas</h4><br/>
+  <b>Field - <i>Polygon layer</i></b><br/> Select the vector file with the polygons representing the shallow seas<br/>
+  <b>Field - <i>Polyline layer</i></b> (see <b>Note</b> above)<br/> Select the vector file with the lines representing the shallow seas<br/>
+  <p><h4>Output</h4><br>
+  <b>Specify the <i>Output file path</i>.</b><br>
+  If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+
+  <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
+      II) If this tool is used repetitively with no path specified, there will be a conflict with previous results. To avoid this, specify a different path (or file name) each time or delete the previous result if it has the same name.</div>
+</p>
+</body>
+</html>

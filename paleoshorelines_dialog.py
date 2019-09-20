@@ -1,21 +1,19 @@
 #This script creates a dialog form for our second tool in the plugin
+
 import os
 
-from PyQt5 import uic
 from PyQt5 import QtWidgets
+from PyQt5 import uic
 from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
-import os
-import datetime
-
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'paleocoastlines_dialog_base.ui'))
+    os.path.dirname(__file__), 'paleoshorelines_dialog_base.ui'))
 
-class PaleocoastlinesDialog(QtWidgets.QDialog, FORM_CLASS):
+class PaleoshorelinesDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
-        super(PaleocoastlinesDialog, self).__init__(parent)
+        super(PaleoshorelinesDialog, self).__init__(parent)
         # Set up the user interface from Designer through FORM_CLASS2.
         # After self.setupUi() you can access any designer object by doing
         # self.<objectname>, and you can use autoconnect slots - see
@@ -24,7 +22,8 @@ class PaleocoastlinesDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
 
         #Set the mode of QgsFileWidget to directory mode
-        self.outputPath.setStorageMode(self.outputPath.GetDirectory)
+        self.outputPath.setStorageMode(self.outputPath.SaveFile)
+        self.outputPath.setFilter('*.tif;;*.tiff')
         #Base topography layer
         self.baseTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.baseTopoBox.setLayer(None)
@@ -46,15 +45,12 @@ class PaleocoastlinesDialog(QtWidgets.QDialog, FORM_CLASS):
         self.runButton.setEnabled(False)
         self.masksBox.layerChanged.connect(self.enableRunButton)
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
-
-
-
-    def enableFormulaText(self):
-        pass
-
-
-
-
+        
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_Paleoshorelines.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
 
 
     def enableRunButton(self):
@@ -62,7 +58,7 @@ class PaleocoastlinesDialog(QtWidgets.QDialog, FORM_CLASS):
             self.runButton.setEnabled(True)
             self.warningLabel.setText('')
         else:
-            self.warningLabel.setText('Plaese, select all the mandatory fields.')
+            self.warningLabel.setText('Please, select all the mandatory fields.')
             self.warningLabel.setStyleSheet('color:red')
 
 
@@ -193,27 +189,8 @@ class PaleocoastlinesDialog(QtWidgets.QDialog, FORM_CLASS):
             self.maxValueSpin.setEnabled(True)
             self.minMaxValuesFromAttrCheckBox.setChecked(False)
 
+    def set_progress_value(self, value):
+        self.progressBar.setValue(value)
 
-
-
-    def log(self,msgs):
-        #get the current time
-        time=datetime.datetime.now()
-        time=str(time.hour)+':'+str(time.minute)+':'+str(time.second)
-        msg=' '
-        for m in msgs:
-            msg=msg+' '+m
-
-        # inserting log messages into the qplantextedit widget
-        self.logText.textCursor().insertText(time+' - '+msg+' \n')
-
-       #log_handler.setFormatter(logging.Formatter('\n %(asctime)s - %(levelname)s - %(message)s'))
-
-
-
-
-
-
-
-
-
+    def reset_progress_value(self):
+        self.progressBar.setValue(0)

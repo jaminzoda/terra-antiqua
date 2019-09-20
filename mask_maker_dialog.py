@@ -36,7 +36,8 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectSsMask.setLayer(None)
         self.selectSsMaskLine.setFilters(QgsMapLayerProxyModel.LineLayer)
         self.selectSsMaskLine.setLayer(None)
-        self.outputFile.setStorageMode(self.outputFile.GetDirectory)
+        self.outputPath.setStorageMode(self.outputPath.SaveFile)
+        self.outputPath.setFilter('*.shp')
         self.selectCoastButton.clicked.connect(self.addLayerToCoastPolygon)
         self.selectCoastLineButton.clicked.connect(self.addLayerToCoastPolyline)
         self.selectCsButton.clicked.connect(self.addLayerToCshPolygon)
@@ -44,6 +45,24 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selectSsButton.clicked.connect(self.addLayerToSsPolygon)
         self.selectSsLineButton.clicked.connect(self.addLayerToSsPolyline)
 
+        #Check the mandatory fields
+        self.runButton.setEnabled(False)
+        self.cancelButton.setEnabled(False)
+        mandatory_fields = [self.selectCoastlineMask.layerChanged,
+                            self.selectCshMask.layerChanged,
+                            self.selectSsMask.layerChanged,
+                            self.selectCoastlineMaskLine.layerChanged,
+                            self.selectCshMaskLine.layerChanged,
+                            self.selectSsMaskLine.layerChanged
+                            ]
+        for i in mandatory_fields:
+            i.connect(self.enable_run_button)
+
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_MaskMaker.html")
+        help_file = open(path_to_file, 'r', encoding='utf-8')
+        help_text = help_file.read()
+        self.helpBox.setHtml(help_text)
 
     def addLayerToCoastPolygon(self):
         self.openVectorFromDisk(self.selectCoastlineMask)
@@ -69,6 +88,30 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
             vlayer = QgsVectorLayer(fname, name, 'ogr')
             QgsProject.instance().addMapLayer(vlayer)
             box.setLayer(vlayer)
+
+    def set_progress_value(self, value):
+        self.progressBar.setValue(value)
+
+    def reset_progress_value(self):
+        self.progressBar.setValue(0)
+
+    def enable_run_button(self):
+        mandatory_fields = [self.selectCoastlineMask.currentLayer(),
+                            self.selectCshMask.currentLayer(),
+                            self.selectSsMask.currentLayer(),
+                            self.selectCoastlineMaskLine.currentLayer(),
+                            self.selectCshMaskLine.currentLayer(),
+                            self.selectSsMaskLine.currentLayer()
+                            ]
+        if any(mandatory_fields):
+            self.runButton.setEnabled(True)
+            self.warningLabel.setText('')
+        else:
+            self.warningLabel.setText('Please, select at least one layer to process.')
+            self.warningLabel.setStyleSheet('color:red')
+            self.runButton.setEnabled(False)
+
+
 
 
 
