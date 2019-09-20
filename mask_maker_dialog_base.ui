@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
-    <height>429</height>
+    <width>880</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -24,7 +24,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_11">
    <item>
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QTabWidget" name="Tabs">
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -48,193 +48,15 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>500</width>
-              <height>552</height>
+              <width>491</width>
+              <height>472</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
-             <item row="0" column="0">
-              <widget class="QGroupBox" name="groupBox_2">
-               <property name="title">
-                <string>Coastlines</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_10">
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_2">
-                  <item>
-                   <widget class="QLabel" name="label_5">
-                    <property name="text">
-                     <string>Polygon layer</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_8">
-                    <property name="sizeConstraint">
-                     <enum>QLayout::SetNoConstraint</enum>
-                    </property>
-                    <item>
-                     <widget class="QgsMapLayerComboBox" name="selectCoastlineMask">
-                      <property name="allowEmptyLayer">
-                       <bool>false</bool>
-                      </property>
-                      <property name="showCrs">
-                       <bool>true</bool>
-                      </property>
-                      <property name="excludedProviders">
-                       <stringlist>
-                        <string>&quot;gdal&quot;</string>
-                       </stringlist>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="selectCoastButton">
-                      <property name="text">
-                       <string>...</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_3">
-                  <item>
-                   <widget class="QLabel" name="label_11">
-                    <property name="text">
-                     <string>Polyline  layer</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_9">
-                    <property name="sizeConstraint">
-                     <enum>QLayout::SetNoConstraint</enum>
-                    </property>
-                    <item>
-                     <widget class="QgsMapLayerComboBox" name="selectCoastlineMaskLine">
-                      <property name="allowEmptyLayer">
-                       <bool>true</bool>
-                      </property>
-                      <property name="showCrs">
-                       <bool>true</bool>
-                      </property>
-                      <property name="excludedProviders">
-                       <stringlist>
-                        <string>&quot;gdal&quot;</string>
-                       </stringlist>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="selectCoastLineButton">
-                      <property name="text">
-                       <string>...</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QGroupBox" name="groupBox_3">
-               <property name="title">
-                <string>Continental Shelves masks</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_9">
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_4">
-                  <item>
-                   <widget class="QLabel" name="label_8">
-                    <property name="text">
-                     <string>Polygon layer</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_5">
-                    <property name="sizeConstraint">
-                     <enum>QLayout::SetNoConstraint</enum>
-                    </property>
-                    <item>
-                     <widget class="QgsMapLayerComboBox" name="selectCshMask">
-                      <property name="allowEmptyLayer">
-                       <bool>false</bool>
-                      </property>
-                      <property name="showCrs">
-                       <bool>true</bool>
-                      </property>
-                      <property name="excludedProviders">
-                       <stringlist>
-                        <string>&quot;gdal&quot;</string>
-                       </stringlist>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="selectCsButton">
-                      <property name="text">
-                       <string>...</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_5">
-                  <item>
-                   <widget class="QLabel" name="label_10">
-                    <property name="text">
-                     <string>Polyline  layer</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_7">
-                    <property name="sizeConstraint">
-                     <enum>QLayout::SetNoConstraint</enum>
-                    </property>
-                    <item>
-                     <widget class="QgsMapLayerComboBox" name="selectCshMaskLine">
-                      <property name="allowEmptyLayer">
-                       <bool>true</bool>
-                      </property>
-                      <property name="showCrs">
-                       <bool>true</bool>
-                      </property>
-                      <property name="excludedProviders">
-                       <stringlist>
-                        <string>&quot;gdal&quot;</string>
-                       </stringlist>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="selectCsLineButton">
-                      <property name="text">
-                       <string>...</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </widget>
-             </item>
              <item row="2" column="0">
               <widget class="QGroupBox" name="groupBox">
                <property name="title">
-                <string>Shallow sea masks</string>
+                <string>Shallow seas</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_8">
                 <item>
@@ -254,7 +76,7 @@
                     <item>
                      <widget class="QgsMapLayerComboBox" name="selectSsMask">
                       <property name="allowEmptyLayer">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="showCrs">
                        <bool>true</bool>
@@ -323,25 +145,216 @@
              <item row="3" column="0">
               <widget class="QGroupBox" name="groupBox_4">
                <property name="title">
-                <string>Output directory</string>
+                <string>Output file path:</string>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout">
                   <item>
-                   <widget class="QgsFileWidget" name="outputFile"/>
+                   <widget class="QgsFileWidget" name="outputPath"/>
                   </item>
                  </layout>
                 </item>
                </layout>
               </widget>
              </item>
+             <item row="0" column="0">
+              <widget class="QGroupBox" name="groupBox_2">
+               <property name="title">
+                <string>Coastlines</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_10">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_2">
+                  <item>
+                   <widget class="QLabel" name="label_5">
+                    <property name="text">
+                     <string>Polygon layer</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetNoConstraint</enum>
+                    </property>
+                    <item>
+                     <widget class="QgsMapLayerComboBox" name="selectCoastlineMask">
+                      <property name="allowEmptyLayer">
+                       <bool>true</bool>
+                      </property>
+                      <property name="showCrs">
+                       <bool>true</bool>
+                      </property>
+                      <property name="excludedProviders">
+                       <stringlist>
+                        <string>&quot;gdal&quot;</string>
+                       </stringlist>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QToolButton" name="selectCoastButton">
+                      <property name="text">
+                       <string>...</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_3">
+                  <item>
+                   <widget class="QLabel" name="label_11">
+                    <property name="text">
+                     <string>Polyline  layer</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetNoConstraint</enum>
+                    </property>
+                    <item>
+                     <widget class="QgsMapLayerComboBox" name="selectCoastlineMaskLine">
+                      <property name="allowEmptyLayer">
+                       <bool>true</bool>
+                      </property>
+                      <property name="showCrs">
+                       <bool>true</bool>
+                      </property>
+                      <property name="excludedProviders">
+                       <stringlist>
+                        <string>&quot;gdal&quot;</string>
+                       </stringlist>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QToolButton" name="selectCoastLineButton">
+                      <property name="text">
+                       <string>...</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QGroupBox" name="groupBox_3">
+               <property name="title">
+                <string>Continental shelves</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_9">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <widget class="QLabel" name="label_8">
+                    <property name="text">
+                     <string>Polygon layer</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_5">
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetNoConstraint</enum>
+                    </property>
+                    <item>
+                     <widget class="QgsMapLayerComboBox" name="selectCshMask">
+                      <property name="allowEmptyLayer">
+                       <bool>true</bool>
+                      </property>
+                      <property name="showCrs">
+                       <bool>true</bool>
+                      </property>
+                      <property name="excludedProviders">
+                       <stringlist>
+                        <string>&quot;gdal&quot;</string>
+                       </stringlist>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QToolButton" name="selectCsButton">
+                      <property name="text">
+                       <string>...</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_5">
+                  <item>
+                   <widget class="QLabel" name="label_10">
+                    <property name="text">
+                     <string>Polyline  layer</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_7">
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetNoConstraint</enum>
+                    </property>
+                    <item>
+                     <widget class="QgsMapLayerComboBox" name="selectCshMaskLine">
+                      <property name="allowEmptyLayer">
+                       <bool>true</bool>
+                      </property>
+                      <property name="showCrs">
+                       <bool>true</bool>
+                      </property>
+                      <property name="excludedProviders">
+                       <stringlist>
+                        <string>&quot;gdal&quot;</string>
+                       </stringlist>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QToolButton" name="selectCsLineButton">
+                      <property name="text">
+                       <string>...</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
             </layout>
            </widget>
           </widget>
          </item>
          <item>
-          <widget class="QTextBrowser" name="textBrowser">
+          <widget class="QTextBrowser" name="helpBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -350,7 +363,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>201</width>
+             <width>320</width>
              <height>16777215</height>
             </size>
            </property>
@@ -369,12 +382,18 @@
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit">
+        <widget class="QTextBrowser" name="logText">
+         <property name="autoFormatting">
+          <set>QTextEdit::AutoAll</set>
+         </property>
          <property name="readOnly">
           <bool>true</bool>
          </property>
-         <property name="placeholderText">
-          <string>Logs shall be displayed here.</string>
+         <property name="textInteractionFlags">
+          <set>Qt::TextBrowserInteraction</set>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -383,14 +402,68 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="button_box">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_10">
+     <item>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_12">
+     <item>
+      <widget class="QLabel" name="warningLabel">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="runButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Run</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -409,34 +482,18 @@
  <resources/>
  <connections>
   <connection>
-   <sender>button_box</sender>
-   <signal>accepted()</signal>
+   <sender>closeButton</sender>
+   <signal>clicked()</signal>
    <receiver>MaskMakerDialogBase</receiver>
-   <slot>accept()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
+     <x>703</x>
+     <y>393</y>
     </hint>
     <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_box</sender>
-   <signal>rejected()</signal>
-   <receiver>MaskMakerDialogBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
+     <x>382</x>
+     <y>214</y>
     </hint>
    </hints>
   </connection>

@@ -31,7 +31,7 @@ class DEMBuilderDialogTest(unittest.TestCase):
 
     def test_icon_png(self):
         """Test we can click OK."""
-        path = ':/plugins/DEMBuilder/icon.png'
+        path = ':/plugins/TerraAntiqua/icon.png'
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 

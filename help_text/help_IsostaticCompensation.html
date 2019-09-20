@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    </head>
+    <title> Isostatic compensation </title>
+    
+    <body>
+<p>
+This tool compensates for the absence of ice mass in the poles. The values of the DEM will be modified in the areas where there is a noticeable difference betwen ice and bedrock topogrpahy.
+<p> <h4>Topography rasters</h4><br/>
+<b>Field - <i>Raster to be modified (Input)</i></b><br/>
+Select here the raster corresponding to the bedrock topography (topography and bathymetry DEM compiled and rotated to the time of reconstruction).<br/>
+<b>Field - <i>Ice topography raster</i></b><br/>
+Select here the raster corresponding to the ice topography (rotated to the time of reconstruction).
+<p><h4> Vector layer and parameters</h4><br/>
+<b>Field - <i>Masks</i></b><br/>
+You need to enter a vector layer containing the masks (polygons) for the polar regions where you want to perform the isostactic compensation.<br/>
+<div>If you select the option <b><i>get the masks from coastlines</i></b>, common names for polar plates will be searched among the general masks and those polygons will be used for the isostatic compensation. In this case you have to select the vector file containing the general masks (coastlines) in the previous field. Make sure you have a field called NAME and that it is populated with the name of tectonic blocks.</div>
+<p>Please choose the <b><i>amount of ice to be removed</i></b> from the polar regions. The higher the percentage, the higher the resulting topography will be.
+<p>
+<b>Specify the <i>Output file path</i>.</b><br>
+If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
+    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or file name) each time</div>
+</p>
+
+</body>
+    </html>

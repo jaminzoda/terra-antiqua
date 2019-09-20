@@ -1,5 +1,5 @@
 #/***************************************************************************
-# DEMBuilder
+# TerraAntiqua
 #
 # The plugin creates a paleoDEM by combyning present day topography and paleobathimetry, and modiying the final topography by introducing masks.
 #							 -------------------

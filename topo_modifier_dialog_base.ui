@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
-    <height>429</height>
+    <width>880</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -59,27 +59,14 @@
       <attribute name="title">
        <string>Parameters</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="1">
-        <widget class="QTextBrowser" name="InfoBox">
-         <property name="maximumSize">
-          <size>
-           <width>200</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="placeholderText">
-          <string>Here we shall see the help text for the tool. </string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" alignment="Qt::AlignTop">
+      <layout class="QHBoxLayout" name="horizontalLayout_14">
+       <item>
         <widget class="QScrollArea" name="scrollArea">
          <property name="enabled">
           <bool>true</bool>
          </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -100,18 +87,18 @@
           <enum>Qt::ScrollBarAsNeeded</enum>
          </property>
          <property name="sizeAdjustPolicy">
-          <enum>QAbstractScrollArea::AdjustToContents</enum>
+          <enum>QAbstractScrollArea::AdjustIgnored</enum>
          </property>
          <property name="widgetResizable">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <widget class="QWidget" name="scrollAreaWidgetContents">
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-718</y>
-            <width>497</width>
-            <height>1115</height>
+            <y>-336</y>
+            <width>518</width>
+            <height>923</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -169,38 +156,17 @@
                 </item>
                </layout>
               </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QgsCollapsibleGroupBox" name="maskSelectionGroup">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>Mask selection</string>
-             </property>
-             <property name="collapsed">
-              <bool>false</bool>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
                <widget class="QCheckBox" name="useAllMasksBox">
                 <property name="text">
-                 <string>Use all masks in the layer to modify the topography beneath them.</string>
+                 <string>Use all masks in the layer.</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="label_3">
                 <property name="text">
-                 <string>Specify the coolumn, which contains names of the masks and enter the name of the mask.</string>
+                 <string>Select the column and specify the name of the mask.</string>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
@@ -263,17 +229,17 @@
                 <property name="title">
                  <string>Formula for topography modification</string>
                 </property>
-                <property name="collapsed">
+                <property name="collapsed" stdset="0">
                  <bool>false</bool>
                 </property>
-                <property name="saveCollapsedState">
+                <property name="saveCollapsedState" stdset="0">
                  <bool>true</bool>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
                  <item>
                   <widget class="QLabel" name="label_4">
                    <property name="text">
-                    <string>Specify the column, which contains formula for modification or type it in the textbox:</string>
+                    <string>Specify the column, which contains the formula or type it in the textbox:</string>
                    </property>
                    <property name="wordWrap">
                     <bool>true</bool>
@@ -284,7 +250,7 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,1">
                    <item>
                     <widget class="QgsFieldComboBox" name="formulaField">
-                     <property name="allowEmptyFieldName">
+                     <property name="allowEmptyFieldName" stdset="0">
                       <bool>true</bool>
                      </property>
                     </widget>
@@ -471,59 +437,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_4">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>Interpolation and smoothing</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <item>
-               <widget class="QCheckBox" name="interpolationBox">
-                <property name="text">
-                 <string>Interpolate values for the empty cells.</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="smoothingBox">
-                <property name="text">
-                 <string>Smooth resulting raster.</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <property name="spacing">
-                 <number>6</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="label_7">
-                  <property name="text">
-                   <string>Smoothing factor(in grid cells):</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QSpinBox" name="smFactorSpinBox">
-                  <property name="minimum">
-                   <number>1</number>
-                  </property>
-                  <property name="maximum">
-                   <number>5</number>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <widget class="QGroupBox" name="groupBox_2">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -538,18 +451,44 @@
               <item>
                <widget class="QLabel" name="outputLaber">
                 <property name="text">
-                 <string>Output directory:</string>
+                 <string>Output file path:</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QgsFileWidget" name="outputPath"/>
+               <widget class="QgsFileWidget" name="outputPath" native="true"/>
               </item>
              </layout>
             </widget>
            </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>5</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
          </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextBrowser" name="helpBox">
+         <property name="maximumSize">
+          <size>
+           <width>320</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="placeholderText">
+          <string>Here we shall see the help text for the tool. </string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -560,18 +499,15 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_11">
        <item row="0" column="0">
-        <widget class="QPlainTextEdit" name="logText">
-         <property name="autoFillBackground">
-          <bool>false</bool>
+        <widget class="QTextBrowser" name="logText">
+         <property name="autoFormatting">
+          <set>QTextEdit::AutoAll</set>
          </property>
-         <property name="readOnly">
+         <property name="textInteractionFlags">
+          <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+         </property>
+         <property name="openExternalLinks">
           <bool>true</bool>
-         </property>
-         <property name="backgroundVisible">
-          <bool>false</bool>
-         </property>
-         <property name="placeholderText">
-          <string>Here we shall see the log messages.</string>
          </property>
         </widget>
        </item>
@@ -590,6 +526,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="cancelButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -651,6 +590,16 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
+  </customwidget>
+  <customwidget>
    <class>QgsCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>qgscollapsiblegroupbox.h</header>
@@ -661,29 +610,16 @@
    <extends>QComboBox</extends>
    <header>qgsfieldcombobox.h</header>
   </customwidget>
-  <customwidget>
-   <class>QgsFileWidget</class>
-   <extends>QWidget</extends>
-   <header>qgsfilewidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsMapLayerComboBox</class>
-   <extends>QComboBox</extends>
-   <header>qgsmaplayercombobox.h</header>
-  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>runButton</tabstop>
   <tabstop>baseTopoBox</tabstop>
   <tabstop>Tabs</tabstop>
-  <tabstop>InfoBox</tabstop>
   <tabstop>scrollArea</tabstop>
   <tabstop>closeButton</tabstop>
   <tabstop>selectTopoBaseButton</tabstop>
   <tabstop>masksBox</tabstop>
   <tabstop>selectMasksButton</tabstop>
-  <tabstop>maskSelectionGroup</tabstop>
-  <tabstop>useAllMasksBox</tabstop>
   <tabstop>maskNameField</tabstop>
   <tabstop>maskNameText</tabstop>
   <tabstop>minMaxCheckBox</tabstop>
@@ -704,30 +640,10 @@
   <tabstop>minSpin</tabstop>
   <tabstop>maxField</tabstop>
   <tabstop>maxSpin</tabstop>
-  <tabstop>interpolationBox</tabstop>
-  <tabstop>smoothingBox</tabstop>
-  <tabstop>smFactorSpinBox</tabstop>
-  <tabstop>logText</tabstop>
   <tabstop>cancelButton</tabstop>
  </tabstops>
  <resources/>
  <connections>
-  <connection>
-   <sender>cancelButton</sender>
-   <signal>clicked()</signal>
-   <receiver>TopoModifierDialogBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>649</x>
-     <y>374</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>348</x>
-     <y>214</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>closeButton</sender>
    <signal>clicked()</signal>
