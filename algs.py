@@ -1094,55 +1094,133 @@ class PaleoShorelines(QThread):
 
 		progress_count += 10
 		self.change_value.emit(progress_count)
-		if not self.killed:
-			r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
-			# The bathymetry values that are above sea level are taken down below sea level
-			in_array = topo[(r_masks == 0) * (topo > 0) == 1]
-			topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, max_depth, -0.1)
 
-			progress_count += 30
+		if self.dlg.interpolateCheckBox.isChecked():
+			if not self.killed:
+				self.log.emit('The interpolation mode is selected.')
+				self.log.emit('In this mode the difference area between paleoshorelines and present day shorelines')
+				self.log.emit(
+					'will be set to NAN values, after which the values of these cells will be interpolated from adjacent cells.')
+
+			if not self.killed:
+				# Converting polygons to polylines in order to set the shoreline values to 0
+				path_to_polylines = os.path.join(os.path.dirname(mask_layer.source()), "polylines_from_polygons.shp")
+				pshoreline = vt.polygons_to_polylines(mask_layer, path_to_polylines)
+				pshoreline_rmask = vt.vector_to_raster(pshoreline, geotransform, ncols, nrows)
+				# Setting shorelines to 0 m
+				topo[pshoreline_rmask == 1] = 0
+
+			progress_count += 10
 			self.change_value.emit(progress_count)
 
-		if not self.killed:
-			# The topography values that are below sea level are taken up above sea level
-			in_array = topo[(r_masks == 1) * (topo < 0) == 1]
-			topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.1, max_elev)
+			if not self.killed:
+				# Getting the raster masks of the land and sea area
+				r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
 
-			progress_count += 30
+			if not self.killed:
+				# Setting the inland values that are below sea level, an in-sea values that are above sea level to NAN (empty cell)
+				topo[(r_masks == 1) * (topo < 0) == 1] = np.nan
+				topo[(r_masks == 0) * (topo > 0) == 1] = np.nan
+
+			progress_count += 10
 			self.change_value.emit(progress_count)
 
-		if not self.killed:
-			# Check if raster was modified. If the x matrix was assigned.
-			if 'topo' in locals():
+			if not self.killed:
+				# Check if raster was modified. If the x matrix was assigned.
+				if 'topo' in locals():
 
-				driver = gdal.GetDriverByName('GTiff')
-				if os.path.exists(out_file_path):
-					driver.Delete(out_file_path)
+					driver = gdal.GetDriverByName('GTiff')
+					if os.path.exists(out_file_path):
+						driver.Delete(out_file_path)
 
-				raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
-				raster.SetGeoTransform(geotransform)
-				crs = osr.SpatialReference()
-				crs.ImportFromEPSG(4326)
-				raster.SetProjection(crs.ExportToWkt())
-				raster.GetRasterBand(1).WriteArray(topo)
-				raster = None
+					raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+					raster.SetGeoTransform(geotransform)
+					crs = osr.SpatialReference()
+					crs.ImportFromEPSG(4326)
+					raster.SetProjection(crs.ExportToWkt())
+					raster.GetRasterBand(1).WriteArray(topo)
+					raster = None
 
-				progress_count += 10
+					progress_count += 10
+					self.change_value.emit(progress_count)
+
+					raster_layer = QgsRasterLayer(out_file_path, "PaleoShorelines_without_theGaps_filled", "gdal")
+
+					raster_layer_interpolated = os.path.join(os.path.dirname(out_file_path),
+															 "PaleoShorelines_with-gaps_filled.tiff")
+					ret = rt.fill_no_data(raster_layer, raster_layer_interpolated)
+
+					progress_count += 30
+					self.change_value.emit(progress_count)
+
+					self.log.emit(
+						"The raster was modified successfully and saved at: <a href='file://{}'>{}</a>.".format(
+							os.path.dirname(raster_layer_interpolated), raster_layer_interpolated))
+
+					self.finished.emit(True, raster_layer_interpolated)
+
+					self.change_value.emit(100)
+
+				else:
+					self.log.emit("The plugin did not succeed because one or more parameters were set incorrectly.")
+					self.log.emit("Please, check the log above.")
+					self.finished.emit(False, "")
+			else:
+				self.finished.emit(False, "")
+
+
+
+		elif self.dlg.rescaleCheckBox.isChecked():
+			if not self.killed:
+				r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
+				# The bathymetry values that are above sea level are taken down below sea level
+				in_array = topo[(r_masks == 0) * (topo > 0) == 1]
+				topo[(r_masks == 0) * (topo > 0) == 1] = at.mod_rescale(in_array, max_depth, -0.1)
+
+				progress_count += 30
 				self.change_value.emit(progress_count)
 
-				self.log.emit("The raster was modified successfully and saved at: <a href='file://{}'>{}</a>.".format(
-					os.path.dirname(out_file_path), out_file_path))
+			if not self.killed:
+				# The topography values that are below sea level are taken up above sea level
+				in_array = topo[(r_masks == 1) * (topo < 0) == 1]
+				topo[(r_masks == 1) * (topo < 0) == 1] = at.mod_rescale(in_array, 0.1, max_elev)
 
-				self.finished.emit(True, out_file_path)
+				progress_count += 30
+				self.change_value.emit(progress_count)
 
-				self.change_value.emit(100)
+			if not self.killed:
+				# Check if raster was modified. If the x matrix was assigned.
+				if 'topo' in locals():
 
+					driver = gdal.GetDriverByName('GTiff')
+					if os.path.exists(out_file_path):
+						driver.Delete(out_file_path)
+
+					raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+					raster.SetGeoTransform(geotransform)
+					crs = osr.SpatialReference()
+					crs.ImportFromEPSG(4326)
+					raster.SetProjection(crs.ExportToWkt())
+					raster.GetRasterBand(1).WriteArray(topo)
+					raster = None
+
+					progress_count += 10
+					self.change_value.emit(progress_count)
+
+					self.log.emit(
+						"The raster was modified successfully and saved at: <a href='file://{}'>{}</a>.".format(
+							os.path.dirname(out_file_path), out_file_path))
+
+					self.finished.emit(True, out_file_path)
+
+					self.change_value.emit(100)
+
+				else:
+					self.log.emit("The plugin did not succeed because one or more parameters were set incorrectly.")
+					self.log.emit("Please, check the log above.")
+					self.finished.emit(False, "")
 			else:
-				self.log.emit("The plugin did not succeed because one or more parameters were set incorrectly.")
-				self.log.emit("Please, check the log above.")
 				self.finished.emit(False, "")
-		else:
-			self.finished.emit(False, "")
 
 	def kill(self):
 		self.killed = True
