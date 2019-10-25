@@ -6,11 +6,10 @@ import os.path
 import numpy as np
 import processing
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import pyqtSignal
 from osgeo import gdal, osr, ogr
 from osgeo import gdalconst
 from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsRasterBandStats, QgsColorRampShader, QgsRasterShader, \
-	QgsSingleBandPseudoColorRenderer,QgsProcessingFeedback
+    QgsSingleBandPseudoColorRenderer
 
 
 # Import the code for the dialog
@@ -254,6 +253,24 @@ class VectorTools(QgsVectorLayer):
 		mask_raster = None
 
 		return raster_array
+
+
+def polygons_to_polylines(self, out_layer_path: str):
+    """
+    Converts polygons to polylines.
+
+    :param out_layer_path: the path to store the layer with polylines.
+    :return: QgsVectorLayer.
+    """
+    polygons_layer = self
+    fixed_polygons = processing.run('native:fixgeometries',
+                                    {'INPUT': polygons_layer, 'OUTPUT': 'memory:' + "fixed_pshoreline_polygons"})[
+        'OUTPUT']
+    processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': out_layer_path})
+    polylines_layer = QgsVectorLayer(out_layer_path, "Polylines_from_polygons", "ogr")
+
+    return polylines_layer
+
 	def refactor_fields(self, layer2):
 		layer1 = self
 		fields1 = layer1.fields()
