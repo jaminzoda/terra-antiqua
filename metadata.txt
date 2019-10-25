@@ -7,7 +7,7 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=Paleogeography
+name=TerraAntiqua
 qgisMinimumVersion=3.0
 description=The plugin creates a paleoDEM by combyning present day topography and paleobathimetry, and modiying the final topography by introducing masks.
 version=0.1
