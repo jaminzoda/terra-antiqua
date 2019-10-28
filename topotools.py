@@ -9,7 +9,7 @@ from PyQt5.QtGui import QColor
 from osgeo import gdal, osr, ogr
 from osgeo import gdalconst
 from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsRasterBandStats, QgsColorRampShader, QgsRasterShader, \
-    QgsSingleBandPseudoColorRenderer
+	QgsSingleBandPseudoColorRenderer
 
 
 # Import the code for the dialog
@@ -254,22 +254,21 @@ class VectorTools(QgsVectorLayer):
 
 		return raster_array
 
+	def polygons_to_polylines(self, out_layer_path: str):
+		"""
+		Converts polygons to polylines.
 
-def polygons_to_polylines(self, out_layer_path: str):
-    """
-    Converts polygons to polylines.
+		:param out_layer_path: the path to store the layer with polylines.
+		:return: QgsVectorLayer.
+		"""
+		polygons_layer = self
+		fixed_polygons = processing.run('native:fixgeometries',
+										{'INPUT': polygons_layer, 'OUTPUT': 'memory:' + "fixed_pshoreline_polygons"})[
+			'OUTPUT']
+		processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': out_layer_path})
+		polylines_layer = QgsVectorLayer(out_layer_path, "Polylines_from_polygons", "ogr")
 
-    :param out_layer_path: the path to store the layer with polylines.
-    :return: QgsVectorLayer.
-    """
-    polygons_layer = self
-    fixed_polygons = processing.run('native:fixgeometries',
-                                    {'INPUT': polygons_layer, 'OUTPUT': 'memory:' + "fixed_pshoreline_polygons"})[
-        'OUTPUT']
-    processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': out_layer_path})
-    polylines_layer = QgsVectorLayer(out_layer_path, "Polylines_from_polygons", "ogr")
-
-    return polylines_layer
+		return polylines_layer
 
 	def refactor_fields(self, layer2):
 		layer1 = self
@@ -285,19 +284,19 @@ def polygons_to_polylines(self, out_layer_path: str):
 				if field1.name() == field2.name():
 					if field1.type() == field2.type():
 						refact_params = {'name': field1.name(),
-						                 'type': field1.type(),
-						                 'length': field1.length(),
-						                 'precision': field1.precision(),
-						                 'expression': field1.name()
-						                 }
+										 'type': field1.type(),
+										 'length': field1.length(),
+										 'precision': field1.precision(),
+										 'expression': field1.name()
+										 }
 						field_mapping.append(refact_params)
 					else:
 						refact_params = {'name': field1.name(),
-						                 'type': field2.type(),
-						                 'length': field2.length(),
-						                 'precision': field2.precision(),
-						                 'expression': field1.name()
-						                 }
+										 'type': field2.type(),
+										 'length': field2.length(),
+										 'precision': field2.precision(),
+										 'expression': field1.name()
+										 }
 						field_mapping.append(refact_params)
 						fields_refactored.append(field1.name())
 					names_matching.append(field1.name())
@@ -309,11 +308,11 @@ def polygons_to_polylines(self, out_layer_path: str):
 					name_match = True
 			if not name_match:
 				refact_params = {'name': field1.name(),
-				                 'type': field1.type(),
-				                 'length': field1.length(),
-				                 'precision': field1.precision(),
-				                 'expression': field1.name()
-				                 }
+								 'type': field1.type(),
+								 'length': field1.length(),
+								 'precision': field1.precision(),
+								 'expression': field1.name()
+								 }
 				field_mapping.append(refact_params)
 
 		params = {'INPUT': layer1, 'FIELDS_MAPPING': field_mapping, 'OUTPUT': 'memory:Refactored_layer'}
