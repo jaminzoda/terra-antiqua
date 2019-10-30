@@ -5,7 +5,7 @@ import tempfile
 import numpy as np
 import processing
 from PyQt5.QtCore import QThread, pyqtSignal
-from osgeo import gdal, osr
+from osgeo import gdal, osr, gdalconst
 from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsRasterLayer, QgsExpression, QgsWkbTypes, QgsGeometry, \
     NULL, QgsFeatureRequest
 
@@ -1091,6 +1091,8 @@ class PaleoShorelines(QThread):
         progress_count += 10
         self.change_value.emit(progress_count)
 
+        # Check which type of modification is chosen
+
         if self.dlg.interpolateCheckBox.isChecked():
             if not self.killed:
                 self.log.emit('The interpolation mode is selected.')
@@ -1114,7 +1116,13 @@ class PaleoShorelines(QThread):
                 r_masks = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
 
             if not self.killed:
-                # Setting the inland values that are below sea level, an in-sea values that are above sea level to NAN (empty cell)
+                # Setting the inland values that are below sea level, and in-sea values that are above sea level to
+                # NAN (empty cell)
+                # Creating an empty matrix to copy values from topo before setting them to NaN
+                topo_values_copied = np.empty(topo.shape)
+                topo_values_copied[:] = np.nan
+                topo_values_copied[(r_masks == 1) * (topo < 0) == 1] = topo[(r_masks == 1) * (topo < 0) == 1]
+                topo_values_copied[(r_masks == 0) * (topo > 0) == 1] = topo[(r_masks == 0) * (topo > 0) == 1]
                 topo[(r_masks == 1) * (topo < 0) == 1] = np.nan
                 topo[(r_masks == 0) * (topo > 0) == 1] = np.nan
 
@@ -1137,7 +1145,7 @@ class PaleoShorelines(QThread):
                     raster.GetRasterBand(1).WriteArray(topo)
                     raster = None
 
-                    progress_count += 10
+                    progress_count += 5
                     self.change_value.emit(progress_count)
 
                     raster_layer = QgsRasterLayer(out_file_path, "PaleoShorelines_without_theGaps_filled", "gdal")
@@ -1146,7 +1154,59 @@ class PaleoShorelines(QThread):
                                                              "PaleoShorelines_with-gaps_filled.tiff")
                     ret = rt.fill_no_data(raster_layer, raster_layer_interpolated)
 
-                    progress_count += 30
+                    progress_count += 10
+                    self.change_value.emit(progress_count)
+
+                    # Read the resulting raster to check if the interpolation was done correctly.
+                    # If some areas are interpolated between to zero values of shorelines (i.e. large areas were
+                    # assigned zero values), the old values will used and rescaled below/above sea level
+                    raster_layer_ds = gdal.Open(raster_layer_interpolated, gdalconst.GA_Update)
+                    topo_modified = raster_layer_ds.GetRasterBand(1).ReadAsArray()
+                    array_to_rescale_bsl = topo_values_copied[np.isfinite(topo_values_copied) * (topo_modified == 0)
+                                                              * (r_masks == 0) == 1]
+                    array_to_rescale_asl = topo_values_copied[np.isfinite(topo_values_copied) * (topo_modified == 0)
+                                                              * (r_masks == 1) == 1]
+                    topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 0) == 1] = \
+                        at.mod_rescale(array_to_rescale_bsl, -5, -0.1)
+                    topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 1) == 1] = \
+                        at.mod_rescale(array_to_rescale_asl, 0.1, 5)
+
+                    progress_count += 5
+                    self.change_value.emit(progress_count)
+
+                    # Removing final artifacts from the sea and land. Some pixels that are close to the shoreline
+                    # touch pixels on the other side of the shoreline and get wrong value during the interpolation
+
+                    # Pixel values of the sea that are asl
+                    data_to_fill_bsl = topo_values_copied[(r_masks == 0) * (topo_modified > 0) *
+                                                          (np.isfinite(topo_values_copied)) == 1]
+                    topo_modified[(r_masks == 0) * (topo_modified > 0) * np.isfinite(topo_values_copied) == 1] \
+                        = at.mod_rescale(data_to_fill_bsl, -5, -0.1)
+
+                    progress_count += 5
+                    self.change_value.emit(progress_count)
+
+                    # Pixel values of land that are bsl
+                    data_to_fill_asl = topo_values_copied[(r_masks == 1) * (topo_modified < 0) *
+                                                          np.isfinite(topo_values_copied) == 1]
+                    topo_modified[(r_masks == 1) * (topo_modified < 0) * np.isfinite(topo_values_copied) == 1] \
+                        = at.mod_rescale(data_to_fill_asl, 0.1, 5)
+
+                    progress_count += 5
+                    self.change_value.emit(progress_count)
+
+                    # Still removing artifacts
+                    topo_modified[(r_masks == 0) * (topo_modified > 0)] = np.nan
+                    topo_modified[(r_masks == 1) * (topo_modified < 0)] = np.nan
+
+                    progress_count += 5
+                    self.change_value.emit(progress_count)
+
+                    # Updating the raster with the modified values
+                    raster_layer_ds.GetRasterBand(1).WriteArray(topo_modified)
+                    raster_layer_ds = None
+
+                    progress_count += 5
                     self.change_value.emit(progress_count)
 
                     self.log.emit(
