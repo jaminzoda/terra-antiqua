@@ -89,9 +89,15 @@ class RasterTools(QgsRasterLayer):
 		# feedback.progressChanged.connect(self.send_progress_feedback)
 		#If the above two lines are uncommented, the feedback=feedback should be added to the processing algorithm below.
 
-		processing.run("gdal:fillnodata",
-		               {'INPUT': input_layer, 'BAND': 1, 'DISTANCE': 100, 'ITERATIONS': 0, 'NO_MASK': False,
-		                'MASK_LAYER': mask_layer, 'OUTPUT': out_file_path})
+		fill_params = {'INPUT': input_layer,
+					   'BAND': 1,
+					   'DISTANCE': 100,
+					   'ITERATIONS': 0,
+					   'NO_MASK': False,
+					   'MASK_LAYER': mask_layer,
+					   'OUTPUT': out_file_path}
+
+		processing.run("gdal:fillnodata", fill_params)
 
 
 		in_band.FlushCache()
