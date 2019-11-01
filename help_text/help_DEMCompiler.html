@@ -1,55 +1,46 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title>Digital Elevation Model Compiler</title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="1671.4">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
-    p.p2 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 12.0px}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
-    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 12.0px}
-    span.s1 {font-kerning: none}
-  </style>
+<link rel="stylesheet" type="text/css" href="StyleSheet.css">
 </head>
+<title> Digital Elevation Model Compiler </title>
+
 <body>
-<p class="p1"><span class="s1">The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. This may be done differently depending on which files are available.<span class="Apple-converted-space"> </span></span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1">The fields marked with a <b>*</b> are mandatory.</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>I- Masks</b></span></h4>
-<p class="p5"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1"><b>Field - </b><i>Continental Boundaries</i></span></p>
-<p class="p3"><span class="s1">To perform the compilation you need, within a layer, the set of vector polygons of the tectonic blocks rotated back to the time of reconstruction.</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p2"><span class="s1"></span><br></p>
-<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>II- Topography raster</b></span></h4>
-<p class="p5"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1"><b>Field - </b><i>Bedrock topography</i><b><span class="Apple-converted-space"> </span></b></span></p>
-<p class="p3"><span class="s1">Enter the raster containing the topography.</span></p>
-<p class="p3"><span class="s1">You need the bedrock topography here. If you have data for the ice topography, you may perform an isostatic compensation using the "standard processing tools".</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p2"><span class="s1"></span><br></p>
-<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>III- Bathymetry rasters</b></span></h4>
-<p class="p5"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1"><b>Field -</b><i> Reconstructed paleobathymetry</i><b><span class="Apple-converted-space"> </span></b></span></p>
-<p class="p3"><span class="s1">Select your bathymetry file, already reconstructed to the desired time (eg. Mueller et al. 2008).</span></p>
-<p class="p3"><span class="s1"><b>Field (optional) - </b><i>Ocean age</i><b><span class="Apple-converted-space"> </span></b></span></p>
-<p class="p3"><span class="s1">If you have a present day ocean age raster, select it from the list. It must be rotated to its position at the time of reconstruction. You will have to specify the age of the reconstruction (Ma) in the corresponding field below. This will be used to calculate the paleobathymetry.</span></p>
-<p class="p3"><span class="s1"><b>Field (optional) - </b><i>Shallow sea bathymetry</i><b><span class="Apple-converted-space"> </span></b></span></p>
-<p class="p3"><span class="s1">If you have a present day shallow bathymetry raster, enter it here (rotated to its position at the time of reconstruction). You will have to specify in the<span class="Apple-converted-space">  </span>corresponding field below a maximum depth (in m) for the continental shelf.</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p2"><span class="s1"></span><br></p>
-<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Output</b></span></h4>
-<p class="p5"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1"><b>Specify the </b><i>Output file path</i><b>.</b></span></p>
-<p class="p3"><span class="s1">If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.</span></p>
-<p class="p3"><span class="s1"><b>Warnings:</b><span class="Apple-converted-space"> </span></span></p>
-<p class="p3"><span class="s1">I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i></span></p>
-<p class="p5"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1">II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or file name) each time</span></p>
-<p class="p2"><span class="s1"></span><br></p>
+<p>
+	The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. This may be done differently depending on which files are available.
+
+<p>
+<div>The fields marked with a <b>*</b> are mandatory.</div>
+
+<p>
+    <h4>I- Masks</h4><br/>
+<b>Field - <i>Continental Boundaries</i></b><br/> To perform the compilation you need, within a layer, the set of vector polygons of the tectonic blocks rotated back to the time of reconstruction.
+</p>
+
+<p>
+	 <h4> II- Topography raster</h4><br/>
+     
+     <b> Field - <i> Bedrock topography</i> </b><br/> Enter the raster containing the topography.<br/>
+     <div>You need the bedrock topography here. If you have data for the ice topography, you may perform an isostatic compensation using the "standard processing tools".</div>
+</p>
+<p>
+	<h4> III- Bathymetry rasters</h4><br/>
+
+    <b>Field -<i> Reconstructed paleobathymetry</i> </b> <br/> Select your bathymetry file, already reconstructed to the desired time (eg. Mueller et al. 2008).<br/>
+    
+    <b> Field (optional) - <i>Ocean age</i> </b><br/> If you have a present day ocean age raster, select it from the list.  It must be rotated to its position at the time of reconstruction.
+   You will have to specify the age of the reconstruction (Ma) in the corresponding field. This will be used to calculate the paleobathymetry.<br/>
+    
+    <b> Field (optional) - <i>Shallow sea bathymetry</i> </b> <br/> If you have a present day shallow bathymetry raster, enter it here (rotated to its position at the time of reconstruction).
+    You will have to specify a maximum depth (in m) for the continental shelf.
+</p>
+
+<p>
+	<h4> Output</h4><br/>
+    
+    <b>Specify the <i>Output file path</i>.</b><br>
+    If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+    <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
+        II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or file name) each time</div>
+</p>
 </body>
 </html>
