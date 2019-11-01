@@ -7,7 +7,7 @@
     <body>
         <p>
         
-<i>Interpolation</i> is intended to fill the gaps between rotated tectonic blocks with interpolation within a raster. Although it may be used to interpolate values in any raster, this tool is optimised to treat topography and it has been designed to genarate elevation data in areas where it's missing after using previous tools (eg. DEM compiler, topography modification...).
+<i>Interpolation</i> is intended to fill the gaps between rotated tectonic blocks with interpolation within a raster. It generates elevation data in pixels with no data by averaging pixel values around it with inverse distance weighting. See the manual to know when to use it in your specific case.
 
 <p>
 <b>Field - <i>Raster to be modified (Input)</i></b>:<br/> Choose the raster (topography and bathymetry DEM) where you want to perform the interpolation.
