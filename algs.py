@@ -4,10 +4,10 @@ import tempfile
 
 import numpy as np
 import processing
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QVariant
 from osgeo import gdal, osr, gdalconst
 from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsRasterLayer, QgsExpression, QgsWkbTypes, QgsGeometry, \
-    NULL, QgsFeatureRequest
+    NULL, QgsFeatureRequest, QgsField
 
 from .topotools import ArrayTools as at
 from .topotools import RasterTools as rt
@@ -1603,3 +1603,246 @@ class StandardProcessing(QThread):
 
     def set_change_value(self, value):
         self.change_value.emit(value)
+
+
+class FeatureCreator(QThread):
+    change_value = pyqtSignal(int)
+    finished = pyqtSignal(bool, object)
+    log = pyqtSignal(object)
+
+    def __init__(self, dlg):
+        super().__init__()
+        self.dlg = dlg
+        self.killed = False
+
+    def run(self):
+        # Get the output path
+        if not self.dlg.outputPath.filePath():
+            temp_dir = tempfile.gettempdir()
+            out_file_path = os.path.join(temp_dir, 'PaleoDEM_withCreatedFeatures.tif')
+        else:
+            out_file_path = self.dlg.outputPath.filePath()
+
+        progress_count = 0
+
+        self.log.emit('Starting')
+
+        self.dlg.Tabs.setCurrentIndex(1)
+
+        self.log.emit('Getting the raster layer')
+        topo_layer = self.dlg.baseTopoBox.currentLayer()
+        topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
+        topo_projection = topo_ds.GetProjection()
+        topo = topo_ds.GetRasterBand(1).ReadAsArray()
+        geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
+        nrows, ncols = np.shape(topo)
+
+        # Get the elevation and depth constrains
+        min_elev = self.dlg.minElevSpinBox.value()
+        max_elev = self.dlg.maxElevSpinBox.value()
+
+        progress_count += 10
+        self.change_value.emit(progress_count)
+
+        if topo is not None:
+            self.log.emit(('Size of the Topography raster: {}'.format(topo.shape)))
+        else:
+            self.log.emit('There is a problem with reading the Topography raster')
+
+        # Get the vector masks
+        self.log.emit('Getting the vector layer')
+        mask_layer = self.dlg.masksBox.currentLayer()
+
+        if mask_layer.isValid:
+            self.log.emit('The mask layer is loaded properly')
+        else:
+            self.log.emit('There is a problem with the mask layer - not loaded properly')
+
+        if not self.killed:
+            # Extract vertices of the polygon
+            extracted_vertices = \
+                processing.run("native:extractvertices", {'INPUT': mask_layer, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+
+            # Create voronoy polygons from extracted points
+            voronoy_polygons = processing.run("qgis:voronoipolygons",
+                                              {'INPUT': extracted_vertices, 'BUFFER': 0, 'OUTPUT': 'TEMPORARY_OUTPUT'})[
+                "OUTPUT"]
+
+            # Extract vertives of the Voronoy polygons
+            extracted_vor_vertices = \
+                processing.run("native:extractvertices", {'INPUT': voronoy_polygons, 'OUTPUT': 'TEMPORARY_OUTPUT'})[
+                    "OUTPUT"]
+
+            progress_count += 10
+            self.change_value.emit(progress_count)
+
+        if not self.killed:
+            # Extract the points that lie within the polygon
+            sea_center_points = processing.run("native:extractbylocation",
+                                               {'INPUT': extracted_vor_vertices, 'PREDICATE': [6],
+                                                'INTERSECT': mask_layer,
+                                                'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+
+            # Find the distance from Center-points to edge-points
+            sea_points_dist = processing.run("qgis:distancetonearesthubpoints",
+                                             {'INPUT': sea_center_points, 'HUBS': extracted_vertices,
+                                              'FIELD': 'vertex_index',
+                                              'UNIT': 3, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+            progress_count += 10
+            self.change_value.emit(progress_count)
+        if not self.killed:
+            # Create a new layer to store updated points with depth values
+            sea_points_depth = QgsVectorLayer("Point?crs=epsg:4326", "Depth_values", "memory")
+
+            fields = sea_points_dist.fields().toList()
+            depth_field = QgsField("Depth", QVariant.Double, "double")
+            fields.append(depth_field)
+
+            # Get the depth layer data provider to store the features with depth values
+            sea_points_depth_ds = sea_points_depth.dataProvider()
+            sea_points_depth_ds.addAttributes(fields)
+            sea_points_depth.updateFields()
+        if not self.killed:
+            feats = sea_points_dist.getFeatures()
+            total = 20.0 / sea_points_dist.featureCount() if sea_points_dist.featureCount() else 0
+            all_dists = []
+            for current, feat in enumerate(feats):
+                if self.killed:
+                    break
+                dist = feat.attribute("HubDist")
+                all_dists.append(dist)
+                progress_count += int(current * total)
+                self.change_value.emit(progress_count)
+
+            max_dist = max(all_dists)
+            min_dist = min(all_dists)
+
+            feats = sea_points_dist.getFeatures()
+            feats_out = []
+            total = 20.0 / sea_points_dist.featureCount() if sea_points_dist.featureCount() else 0
+        if not self.killed:
+            for current, feat in enumerate(feats):
+                if self.killed:
+                    break
+                attr = feat.attributes()
+                dist = feat.attribute("HubDist")
+                depth = (max_elev - min_elev) * (dist - min_dist) / (max_dist - min_dist) + min_elev
+                depth = depth * (-1)
+                attr.append(depth)
+                feat.setAttributes(attr)
+                feats_out.append(feat)
+                progress_count += int(current * total)
+                self.change_value.emit(progress_count)
+
+        if not self.killed:
+            sea_points_depth_ds.addFeatures(feats_out)
+            sea_points_depth.updateFields()
+            sea_points_depth_ds = None
+            out_file = os.path.join(temp_dir, "Point_layer_with_depths.shp")
+            error = QgsVectorFileWriter.writeAsVectorFormat(sea_points_depth, out_file, "UTF-8", sea_points_depth.crs(),
+                                                            "ESRI Shapefile")
+            if error[0] == QgsVectorFileWriter.NoError:
+                pass
+            else:
+                self.log.emit(
+                    "ERROR: There was a problem writing the temporary shapefile that stores calculated depths for geographic features to be created.")
+                self.killed()
+
+        # Rasterize layers
+        # Rasterize sea points layer
+        if not self.killed:
+            points_raster = processing.run("gdal:rasterize",
+                                           {'INPUT': out_file, 'FIELD': 'Depth', 'BURN': 0, 'UNITS': 0, 'WIDTH': ncols,
+                                            'HEIGHT': nrows, 'EXTENT': topo_layer, 'NODATA': np.nan, 'OPTIONS': '',
+                                            'DATA_TYPE': 5,
+                                            'INIT': None, 'INVERT': False, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+
+            progress_count += 5
+            self.change_value.emit(progress_count)
+
+            points_raster_ds = gdal.Open(points_raster)
+            points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
+
+            # Remove the existing values before assigning
+            # Before we remove values inside the boundaries of the features to be created, we map initial empty cells.
+            initial_values = np.empty(topo.shape)  # creare an array filled with ones
+            initial_values[:] = topo[:]  # set the finite (not nan) values to zero
+            pol_array = vt.vector_to_raster(mask_layer, geotransform, ncols, nrows)
+            topo[pol_array == 1] = np.nan
+            # assign values to the topography raster
+            topo[np.isfinite(points_array)] = points_array[np.isfinite(points_array)]
+
+        if not self.killed:
+            # Rasterize sea boundaries
+            vlayer_line = processing.run("native:polygonstolines", {'INPUT': mask_layer, 'OUTPUT': 'TEMPORARY_OUTPUT'})[
+                "OUTPUT"]
+            out_file = os.path.join(temp_dir, "sea_polygon_to_line.shp")
+            error = QgsVectorFileWriter.writeAsVectorFormat(vlayer_line, out_file, "UTF-8", vlayer_line.crs(),
+                                                            "ESRI Shapefile")
+            if error[0] == QgsVectorFileWriter.NoError:
+                pass
+            else:
+                self.log.emit(
+                    "ERROR: There was some problem saving a temporary layer with the boundaries of the geographic features.")
+                self.log.emit("ERROR: The algorithm will exit now.")
+                self.killed()
+
+            progress_count += 5
+            self.change_value.emit(progress_count)
+
+            vlayer_line = QgsVectorLayer(out_file, "Polygon-lines", "ogr")
+            sea_boundary_array = vt.vector_to_raster(vlayer_line, geotransform, ncols, nrows)
+
+            progress_count += 5
+            self.change_value.emit(progress_count)
+
+        if not self.killed:
+            # assign 0m values to the sea line
+            topo[(sea_boundary_array == 1) * (topo > 0) == 1] = 0
+            topo[(sea_boundary_array == 1) * np.isnan(topo) * np.isfinite(initial_values) * (
+                    initial_values > 0) == 1] = 0
+
+            out_file = os.path.join(temp_dir, "Raster_for_interpolation.tiff")
+            # Create a temporary raster to store modified data for interpolation
+            raster_for_interpolation = gdal.GetDriverByName('GTIFF').Create(out_file, ncols, nrows, 1, gdal.GDT_Float32)
+            raster_for_interpolation.SetGeoTransform(geotransform)
+            raster_for_interpolation.SetProjection(topo_projection)
+            band = raster_for_interpolation.GetRasterBand(1)
+            band.SetNoDataValue(np.nan)
+            band.WriteArray(topo)
+            raster_for_interpolation = None
+            topo = None
+
+            rlayer = QgsRasterLayer(out_file, "Raster for interpolation", "gdal")
+            rt.fill_no_data(rlayer, out_file_path)
+
+            # Load the raster again to remove artefacts
+            final_raster = gdal.Open(out_file_path, gdal.GA_Update)
+            topo = final_raster.GetRasterBand(1).ReadAsArray()
+
+            # Rescale the artefacts bsl.
+            in_array = topo[(pol_array == 1) * (topo > 0)]
+            topo[(pol_array == 1) * (topo > 0)] = at.mod_rescale(in_array, -15, -1)
+
+            # Fill the artefacts with interpolation - did not work well
+            # topo[(pol_array == 1) * (topo > 0)] = np.nan
+            # topo[(sea_boundary_array == 1) * (topo > 0)] = 0
+            final_raster.GetRasterBand(1).WriteArray(topo)
+            final_raster = None
+
+            # # Get the layer again to fill emptied cells - this strokes should be enabled (uncommented) for filling the gaps \
+            # # instead of interpolation.
+            # rlayer = QgsRasterLayer(out_file_path, "Raster for interpolation", "gdal")
+            # rt.fill_no_data(rlayer, out_file_path)
+            #
+
+            progress_count = 100
+            self.change_value.emit(progress_count)
+
+            self.finished.emit(True, out_file_path)
+        else:
+            self.finished.emit(False, "")
+
+
+def kill(self):
+    self.killed = True
