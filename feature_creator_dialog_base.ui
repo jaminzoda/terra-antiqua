@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-    <class>PaleocoastlinesDialogBase</class>
-    <widget class="QDialog" name="PaleocoastlinesDialogBase">
+    <class>FeatureCreatorDialogBase</class>
+    <widget class="QDialog" name="FeatureCreatorDialogBase">
         <property name="geometry">
             <rect>
                 <x>0</x>
@@ -23,7 +23,7 @@
             </size>
         </property>
         <property name="windowTitle">
-            <string>Paleogeography - Paleoshorelines and smoothing</string>
+            <string>Paleogeography - Geographic feature creation</string>
         </property>
         <property name="autoFillBackground">
             <bool>true</bool>
@@ -69,9 +69,9 @@
                                         <property name="geometry">
                                             <rect>
                                                 <x>0</x>
-                                                <y>-74</y>
-                                                <width>498</width>
-                                                <height>437</height>
+                                                <y>0</y>
+                                                <width>512</width>
+                                                <height>363</height>
                                             </rect>
                                         </property>
                                         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -169,34 +169,6 @@
                                                 </widget>
                                             </item>
                                             <item>
-                                                <widget class="QCheckBox" name="checkBox">
-                                                    <property name="text">
-                                                        <string>Unique minimum and maximum values for each feature.
-                                                        </string>
-                                                    </property>
-                                                </widget>
-                                            </item>
-                                            <item>
-                                                <widget class="QLabel" name="label_5">
-                                                    <property name="text">
-                                                        <string>Field with MINIMUM values for each feature:</string>
-                                                    </property>
-                                                </widget>
-                                            </item>
-                                            <item>
-                                                <widget class="QgsFieldComboBox" name="mFieldComboBox"/>
-                                            </item>
-                                            <item>
-                                                <widget class="QLabel" name="label_6">
-                                                    <property name="text">
-                                                        <string>Field with MAXIMUM values for each feature:</string>
-                                                    </property>
-                                                </widget>
-                                            </item>
-                                            <item>
-                                                <widget class="QgsFieldComboBox" name="mFieldComboBox_2"/>
-                                            </item>
-                                            <item>
                                                 <layout class="QVBoxLayout" name="verticalLayout_3">
                                                     <item>
                                                         <widget class="QLabel" name="outputLabel">
@@ -217,8 +189,8 @@
                                                     </property>
                                                     <property name="sizeHint" stdset="0">
                                                         <size>
-                                                            <width>20</width>
-                                                            <height>40</height>
+                                                            <width>80</width>
+                                                            <height>80</height>
                                                         </size>
                                                     </property>
                                                 </spacer>
@@ -253,9 +225,7 @@
                                         <set>QTextEdit::AutoAll</set>
                                     </property>
                                     <property name="textInteractionFlags">
-                                        <set>
-                                            Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse
-                                        </set>
+                                        <set>Qt::NoTextInteraction</set>
                                     </property>
                                     <property name="openExternalLinks">
                                         <bool>true</bool>
@@ -341,11 +311,6 @@
     </widget>
     <customwidgets>
         <customwidget>
-            <class>QgsFieldComboBox</class>
-            <extends>QComboBox</extends>
-            <header>qgsfieldcombobox.h</header>
-        </customwidget>
-        <customwidget>
             <class>QgsFileWidget</class>
             <extends>QWidget</extends>
             <header>qgsfilewidget.h</header>
@@ -368,16 +333,16 @@
         <connection>
             <sender>closeButton</sender>
             <signal>clicked()</signal>
-            <receiver>PaleocoastlinesDialogBase</receiver>
-            <slot>hide()</slot>
+            <receiver>FeatureCreatorDialogBase</receiver>
+            <slot>close()</slot>
             <hints>
                 <hint type="sourcelabel">
-                    <x>648</x>
-                    <y>406</y>
+                    <x>828</x>
+                    <y>476</y>
                 </hint>
                 <hint type="destinationlabel">
-                    <x>348</x>
-                    <y>214</y>
+                    <x>439</x>
+                    <y>249</y>
                 </hint>
             </hints>
         </connection>
