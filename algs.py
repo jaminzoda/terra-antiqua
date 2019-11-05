@@ -1431,14 +1431,12 @@ class StandardProcessing(QThread):
                 raster_to_smooth_layer = self.dlg.baseTopoBox.currentLayer()
                 smoothing_factor = self.dlg.smFactorSpinBox.value()
                 output_file = self.dlg.outputPath.filePath()
-                progress_count += 20
-                self.change_value.emit(progress_count)
             if not self.killed:
                 self.log.emit("Smoothing the raster.")
-                smoothed_raster_layer = rt.raster_smoothing(raster_to_smooth_layer, smoothing_factor, out_file_path)
+                smoothed_raster_layer = rt.raster_smoothing(raster_to_smooth_layer, smoothing_factor, out_file_path,
+                                                            self.change_value)
                 self.log.emit("The raster is smoothed successfully and saved at: "
                               "<a href='file://{}'>{}</a>".format(os.path.dirname(out_file_path), out_file_path))
-                self.change_value.emit(100)
                 self.finished.emit(True, out_file_path)
             else:
                 self.finished.emit(False, "")

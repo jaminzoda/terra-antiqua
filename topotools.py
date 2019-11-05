@@ -112,7 +112,7 @@ class RasterTools(QgsRasterLayer):
 
 		return out_file_path
 
-	def raster_smoothing(self, factor, out_file = None):
+	def raster_smoothing(self, factor, out_file=None, feedback=None):
 		"""
 		Smoothes values of pixels in a raster  by averaging  values around them
 		:param self, in_layer: input raster layer (QgsRasterLayer) for smoothing
@@ -127,7 +127,7 @@ class RasterTools(QgsRasterLayer):
 		cols = in_array.shape[1]
 
 		out_array = np.zeros(in_array.shape)
-
+		total = 100 / rows if rows else 0
 		for i in range(rows - 1):
 			for j in range(cols - 1):
 				# Define smoothing mask; periodic boundary along date line
@@ -136,6 +136,8 @@ class RasterTools(QgsRasterLayer):
 				y_vector = np.arange(np.maximum(0, i - factor), (np.minimum((rows - 1), i + factor) + 1), 1)
 				y_vector = y_vector.reshape(len(y_vector), 1)
 				out_array[i, j] = np.mean(in_array[y_vector, x_vector])
+			if feedback is not None:
+				feedback.emit(i * total)
 
 		# Write the smoothed raster
 		# If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated

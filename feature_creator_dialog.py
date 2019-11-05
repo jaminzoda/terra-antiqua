@@ -7,8 +7,7 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'feature_creator_dialog_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'feature_creator_dialog_base.ui'))
 
 
 class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
