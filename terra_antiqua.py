@@ -28,12 +28,13 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
 
-from .algs import TopoBathyCompiler, MaskMaker, TopoModifier, PaleoShorelines, StandardProcessing
-# Import the code for the dialog
-from .terra_antiqua_dialog import TerraAntiquaDialog
+from .algs import TopoBathyCompiler, MaskMaker, TopoModifier, PaleoShorelines, StandardProcessing, FeatureCreator
+from .feature_creator_dialog import FeatureCreatorDialog
 from .mask_maker_dialog import MaskMakerDialog
 from .paleoshorelines_dialog import PaleoshorelinesDialog
 from .std_proc_dialog import StdProcessingDialog
+# Import the code for the dialog
+from .terra_antiqua_dialog import TerraAntiquaDialog
 from .topo_modifier_dialog import TopoModifierDialog
 from .topotools import RasterTools as rt
 
@@ -182,6 +183,7 @@ class TerraAntiqua:
 		topo_modifier_icon = os.path.join(self.plugin_dir, 'topomod.png')
 		p_coastline_icon = os.path.join(self.plugin_dir, 'paleocoastlines.png')
 		std_proc_icon = os.path.join(self.plugin_dir, 'fill_smooth.png')
+		feat_create_icon = os.path.join(self.plugin_dir, 'feat_create.png')
 
 		self.add_action(
 			dem_builder_icon,
@@ -206,6 +208,12 @@ class TerraAntiqua:
 			parent=self.iface.mainWindow())
 
 		self.pg_toolBar.addSeparator()
+
+		self.add_action(
+			feat_create_icon,
+			text=self.tr(u'Geographic feature creator'),
+			callback=self.load_feature_creator,
+			parent=self.iface.mainWindow())
 
 		self.add_action(
 			mask_prep_icon,
@@ -521,3 +529,61 @@ class TerraAntiqua:
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
 		self.dlg5.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+
+	def load_feature_creator(self):
+		self.dlg6 = FeatureCreatorDialog()
+
+		# show the dialog
+		self.dlg6.show()
+
+		# When the run button is clicked, the MaskMaker algorithm is ran.
+		self.dlg6.runButton.clicked.connect(self.start_feature_creator)
+		self.dlg6.cancelButton.clicked.connect(self.stop_feature_creator)
+
+	def start_feature_creator(self):
+		self.dlg6.Tabs.setCurrentIndex(1)  # switch to the log tab.
+		self.dlg6.cancelButton.setEnabled(True)
+		self.dlg6.runButton.setEnabled(False)
+		self.fc_thread = FeatureCreator(self.dlg6)
+		self.fc_thread.change_value.connect(self.dlg6.set_progress_value)
+		self.fc_thread.log.connect(self.fc_print_log)
+		self.fc_thread.start()
+		self.fc_thread.finished.connect(self.fc_add_result_to_canvas)
+
+	def stop_feature_creator(self):
+		self.fc_thread.kill()
+		self.dlg6.reset_progress_value()
+		self.dlg6.cancelButton.setEnabled(False)
+		self.dlg6.runButton.setEnabled(True)
+		self.fc_print_log("The topography was NOT modified, because the user canceled processing.")
+		self.fc_print_log("Or something went wrong. Please, refer to the log above for more details.")
+		self.dlg6.warningLabel.setText('Error!')
+		self.dlg6.warningLabel.setStyleSheet('color:red')
+
+	def finish_feature_creator(self):
+		self.dlg6.cancelButton.setEnabled(False)
+		self.dlg6.runButton.setEnabled(True)
+		self.dlg6.warningLabel.setText('Done!')
+		self.dlg6.warningLabel.setStyleSheet('color:green')
+
+	def fc_add_result_to_canvas(self, finished, out_file_path):
+		if finished is True:
+			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
+			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
+			if rlayer:
+				rt.set_raster_symbology(rlayer)
+				self.fc_print_log("The geographic features are created successfully,")
+				self.fc_print_log(
+					"and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))
+			else:
+				self.fc_print_log("The algorithm has set  paleoshorelines successfully,")
+				self.fc_print_log("however the resulting layer did not load. You may need to load it manually.")
+			self.finish_feature_creator()
+		else:
+			self.stop_feature_creator()
+
+	def fc_print_log(self, msg):
+		# get the current time
+		time = datetime.datetime.now()
+		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+		self.dlg6.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
