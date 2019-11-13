@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>880</width>
-    <height>500</height>
+    <width>935</width>
+    <height>762</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -70,8 +70,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>479</width>
-            <height>497</height>
+            <width>549</width>
+            <height>603</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -80,7 +80,7 @@
              <item>
               <widget class="QLabel" name="label_3">
                <property name="text">
-                <string>How do you want to process your DEM?</string>
+                <string>How would you like to process the DEM?</string>
                </property>
               </widget>
              </item>
@@ -119,7 +119,7 @@
              <item>
               <widget class="QLabel" name="iceTopoLabel">
                <property name="text">
-                <string>Ice topography raster layer:</string>
+                <string>Ice topography raster:</string>
                </property>
               </widget>
              </item>

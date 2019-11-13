@@ -42,8 +42,8 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-235</y>
-            <width>463</width>
+            <y>0</y>
+            <width>478</width>
             <height>562</height>
            </rect>
           </property>
@@ -59,7 +59,7 @@
                 <item>
                  <widget class="QLabel" name="label_8">
                   <property name="text">
-                   <string>General masks*</string>
+                   <string>Continental blocks*</string>
                   </property>
                  </widget>
                 </item>
