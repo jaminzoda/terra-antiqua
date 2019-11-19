@@ -7,8 +7,7 @@ from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), '../uis/mask_maker_dialog_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), '../uis/mask_maker_dialog_base.ui'))
 
 class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
