@@ -22,6 +22,7 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
+from terra_modules.terra_antiqua_dialog import TerraAntiquaDialog
 
 
 # noinspection PyPep8Naming
@@ -32,3 +33,4 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     from .terra_modules.terra_antiqua import TerraAntiqua
+    return TerraAntiqua(iface)
