@@ -144,7 +144,7 @@
              <item>
               <widget class="QLabel" name="copyFromRasterLabel">
                <property name="text">
-                <string>Select the  raster to copy values from:</string>
+                <string>Raster to copy the values from:</string>
                </property>
               </widget>
              </item>
@@ -192,7 +192,7 @@
            <item>
             <widget class="QCheckBox" name="masksFromCoastCheckBox">
              <property name="text">
-              <string>Get the masks from coastlines.</string>
+              <string>Get polar regions automatically</string>
              </property>
             </widget>
            </item>
