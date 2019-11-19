@@ -24,11 +24,23 @@ import datetime
 import os
 import os.path
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt5.QtCore import (
+							QSettings,
+							QTranslator,
+							qVersion,
+							QCoreApplication
+						)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
 
-from .algs import TopoBathyCompiler, MaskMaker, TopoModifier, PaleoShorelines, StandardProcessing, FeatureCreator
+from .algs import (
+					TopoBathyCompiler,
+					MaskMaker,
+					TopoModifier,
+					PaleoShorelines,
+					StandardProcessing,
+					FeatureCreator
+				)
 from .feature_creator_dialog import FeatureCreatorDialog
 from .mask_maker_dialog import MaskMakerDialog
 from .paleoshorelines_dialog import PaleoshorelinesDialog
@@ -106,12 +118,12 @@ class TerraAntiqua:
 			icon_path,
 			text,
 			callback,
-			enabled_flag=True,
-			add_to_menu=True,
-			add_to_toolbar=True,
-			status_tip=None,
-			whats_this=None,
-			parent=None):
+			enabled_flag = True,
+			add_to_menu = True,
+			add_to_toolbar = True,
+			status_tip = None,
+			whats_this = None,
+			parent = None):
 		"""Add a toolbar icon to the toolbar.
 
 		:param icon_path: Path to the icon for this action. Can be a resource
@@ -178,48 +190,49 @@ class TerraAntiqua:
 	def initGui(self):
 		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-		dem_builder_icon = os.path.join(self.plugin_dir, 'icon.png')
-		mask_prep_icon = os.path.join(self.plugin_dir, 'mask.png')
-		topo_modifier_icon = os.path.join(self.plugin_dir, 'topomod.png')
-		p_coastline_icon = os.path.join(self.plugin_dir, 'paleocoastlines.png')
-		std_proc_icon = os.path.join(self.plugin_dir, 'fill_smooth.png')
-		feat_create_icon = os.path.join(self.plugin_dir, 'feat_create.png')
+		icons_path = os.path.join(self.plugin_dir, "../resources")
+		dem_builder_icon = os.path.join(icons_path, 'icon.png')
+		mask_prep_icon = os.path.join(icons_path, 'mask.png')
+		topo_modifier_icon = os.path.join(icons_path, 'topomod.png')
+		p_coastline_icon = os.path.join(icons_path, 'paleocoastlines.png')
+		std_proc_icon = os.path.join(icons_path, 'fill_smooth.png')
+		feat_create_icon = os.path.join(icons_path, 'feat_create.png')
 
 		self.add_action(
 			dem_builder_icon,
-			text=self.tr(u'Topography and bathymetry compiler'),
-			callback=self.load_topo_bathy_compiler,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Topography and bathymetry compiler'),
+			callback = self.load_topo_bathy_compiler,
+			parent = self.iface.mainWindow())
 
 		self.add_action(
 			topo_modifier_icon,
-			text=self.tr(u'Topography modifier'),
-			callback=self.load_topo_modifier,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Topography modifier'),
+			callback = self.load_topo_modifier,
+			parent = self.iface.mainWindow())
 		self.add_action(
 			p_coastline_icon,
-			text=self.tr(u'Paleoshorelines reconstructor'),
-			callback=self.load_paleoshorelines,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Paleoshorelines reconstructor'),
+			callback = self.load_paleoshorelines,
+			parent = self.iface.mainWindow())
 		self.add_action(
 			std_proc_icon,
-			text=self.tr(u'Standard processing tools'),
-			callback=self.load_std_processing,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Standard processing tools'),
+			callback = self.load_std_processing,
+			parent = self.iface.mainWindow())
 
 		self.pg_toolBar.addSeparator()
 
 		self.add_action(
 			feat_create_icon,
-			text=self.tr(u'Geographic feature creator'),
-			callback=self.load_feature_creator,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Geographic feature creator'),
+			callback = self.load_feature_creator,
+			parent = self.iface.mainWindow())
 
 		self.add_action(
 			mask_prep_icon,
-			text=self.tr(u'Mask preparator'),
-			callback=self.load_mask_maker,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Mask preparator'),
+			callback = self.load_mask_maker,
+			parent = self.iface.mainWindow())
 
 		# will be set False in run()
 		self.first_start = True
@@ -282,7 +295,8 @@ class TerraAntiqua:
 				self.tbc_print_log("The compiler has compiled topography and bathymetry sucessfully,")
 				self.tbc_print_log("and added the resulting paleoDEM to the map canvas.")
 			else:
-				self.tbc_print_log("The topography and bathymetry compiling algorithm has extracted masks successfully,")
+				self.tbc_print_log(
+					"The topography and bathymetry compiling algorithm has extracted masks successfully,")
 				self.tbc_print_log("however the resulting layer did not load. You may need to load it manually.")
 			self.finish_topo_bathy_compiler()
 		else:
@@ -293,8 +307,6 @@ class TerraAntiqua:
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
 		self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-
-
 
 	def load_mask_maker(self):
 
@@ -347,13 +359,12 @@ class TerraAntiqua:
 			self.finish_mask_maker()
 		else:
 			self.stop_mask_maker()
+
 	def mm_print_log(self, msg):
 		# get the current time
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
 		self.dlg2.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-
-
 
 	def load_topo_modifier(self):
 
@@ -362,13 +373,13 @@ class TerraAntiqua:
 
 		# show the dialog
 		self.dlg3.show()
-		self.dlg3.Tabs.setCurrentIndex(0) #make sure the parameters tab is displayed on load.
+		self.dlg3.Tabs.setCurrentIndex(0)  # make sure the parameters tab is displayed on load.
 		# When the run button is pressed, topography modification algorithm is ran.
 		self.dlg3.runButton.clicked.connect(self.start_topo_modifier)
 		self.dlg3.cancelButton.clicked.connect(self.stop_topo_modifier)
 
 	def start_topo_modifier(self):
-		self.dlg3.Tabs.setCurrentIndex(1) #switch to the log tab.
+		self.dlg3.Tabs.setCurrentIndex(1)  # switch to the log tab.
 		self.dlg3.cancelButton.setEnabled(True)
 		self.dlg3.runButton.setEnabled(False)
 		self.tm_thread = TopoModifier(self.dlg3)
@@ -400,7 +411,8 @@ class TerraAntiqua:
 			if rlayer:
 				rt.set_raster_symbology(rlayer)
 				self.tm_print_log("The algorithm has modified the topography of selected regions successfully,")
-				self.tm_print_log("and added the resulting layer to the map canvas with the following name: {}.".format(file_name))
+				self.tm_print_log(
+					"and added the resulting layer to the map canvas with the following name: {}.".format(file_name))
 			else:
 				self.tm_print_log("The algorithm has modified the topography of selected regions successfully,")
 				self.tm_print_log("however the resulting layer did not load. You may need to load it manually.")

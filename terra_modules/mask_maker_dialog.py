@@ -8,7 +8,7 @@ from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRast
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'mask_maker_dialog_base.ui'))
+    os.path.dirname(__file__), '../uis/mask_maker_dialog_base.ui'))
 
 class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
@@ -59,7 +59,7 @@ class MaskMakerDialog(QtWidgets.QDialog, FORM_CLASS):
             i.connect(self.enable_run_button)
 
         #set the help text in the  help box (QTextBrowser)
-        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_MaskMaker.html")
+        path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_MaskMaker.html")
         help_file = open(path_to_file, 'r', encoding='utf-8')
         help_text = help_file.read()
         self.helpBox.setHtml(help_text)

@@ -35,7 +35,7 @@ from qgis.utils import showPluginHelp
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'terra_antiqua_dialog_base.ui'))
+    os.path.dirname(__file__), '../uis/terra_antiqua_dialog_base.ui'))
 
 
 
@@ -108,7 +108,7 @@ class TerraAntiquaDialog(QtWidgets.QDialog, FORM_CLASS):
 
 
         #set the help text in the  help box (QTextBrowser)
-        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_DEMCompiler.html")
+        path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_DEMCompiler.html")
         help_file = open(path_to_file, 'r', encoding='utf-8')
         help_text = help_file.read()
         self.helpBox.setHtml(help_text)

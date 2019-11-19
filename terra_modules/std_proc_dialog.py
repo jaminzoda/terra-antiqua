@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'std_proc_dialog_base.ui'))
+    os.path.dirname(__file__), '../uis/std_proc_dialog_base.ui'))
 
 class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
@@ -83,7 +83,7 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
         
         #set the help text in the  help box (QTextBrowser)
 
-        path_to_file = os.path.join(os.path.dirname(__file__), "help_text/help_Interpolation.html")
+        path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_Interpolation.html")
 
         help_file = open(path_to_file, 'r', encoding='utf-8')
         help_text = help_file.read()
