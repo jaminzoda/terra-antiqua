@@ -7,7 +7,7 @@ from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRast
 import os
 import datetime
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), '../uis/topo_modifier_dialog_base.ui'))
+    os.path.dirname(__file__), '../ui/topo_modifier_dialog_base.ui'))
 class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""

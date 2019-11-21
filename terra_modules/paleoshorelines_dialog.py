@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), '../uis/paleoshorelines_dialog_base.ui'))
+    os.path.dirname(__file__), '../ui/paleoshorelines_dialog_base.ui'))
 
 class PaleoshorelinesDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):

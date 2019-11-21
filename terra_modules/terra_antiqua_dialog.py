@@ -35,7 +35,7 @@ from qgis.utils import showPluginHelp
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), '../uis/terra_antiqua_dialog_base.ui'))
+    os.path.dirname(__file__), '../ui/terra_antiqua_dialog_base.ui'))
 
 
 
