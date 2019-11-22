@@ -29,6 +29,7 @@ from .topotools import (
 
 
 
+
 class FeatureCreator(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
@@ -107,6 +108,44 @@ class FeatureCreator(QThread):
 				self.log.emit('There is a problem with mask layer - not loaded properly')
 				self.kill()
 		
+		 # Check if input polygon features have unique ids
+		 # If not create
+		if not self.killed:
+			self.log.emit("Assigning unique id numbers to each geographic feature to be created ...")
+			id_found  = False
+			fields = mask_layer.fields().toList()
+			for field in fields:
+				if field.name().lower == "id":
+					id_found = True
+					id_field = field
+				else:
+					pass
+				
+			
+			
+			if  not id_found:
+				id_field = QgsField("id", QVariant.Int, "integer")
+				mask_layer.startEditing()
+				mask_layer.addAttribute(id_field)
+				mask_layer.commitChanges()
+			
+				
+			features = mask_layer.getFeatures()
+			mask_layer.startEditing()
+			for current, feature in enumerate(features):
+				feature[id_field.name()]=current
+				mask_layer.updateFeature(feature)
+				
+			ret_code = mask_layer.commitChanges()
+			
+			if ret_code:
+				self.log.emit("Id numbers assigned successfully.")
+			else:
+				self.log.emit("Id number assignment failed.")
+				self.log.emit("For the tool to work properly, each feature should have a unique number.")
+				self.log.emit("Please, assign unique numbers manually and try again.")
+				self.kill()
+				
 		if not self.killed:
 			# Densifying the vertices in the feature outlines
 			# # Parameters for densification
@@ -157,7 +196,7 @@ class FeatureCreator(QThread):
 			dc_params = {
 				'INPUT': random_points_layer,
 				'HUBS': extracted_vertices_layer,
-				'FIELD': 'fid',
+				'FIELD': id_field.name(),
 				'UNIT': 3,
 				'OUTPUT': 'TEMPORARY_OUTPUT'
 			}
