@@ -385,16 +385,18 @@ class FeatureCreator(QThread):
 			
 			# Re-scale the artifacts bsl.
 			in_array = bathy[(pol_array == 1) * (bathy > 0)]
-			bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
+			if in_array.size>0:
+				bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
+				final_raster.GetRasterBand(1).WriteArray(bathy)
 			
-			self.progress_count += 5
-			self.progress.emit(self.progress_count)
+			bathy = None
+			final_raster = None
+				
 	
 			# Fill the artefacts with interpolation - did not work well
 			# bathy[(pol_array == 1) * (bathy > 0)] = np.nan
 			# bathy[(sea_boundary_array == 1) * (bathy > 0)] = 0
-			final_raster.GetRasterBand(1).WriteArray(bathy)
-			final_raster = None
+			
 			
 			self.progress_count = 100
 			self.progress.emit(self.progress_count)
@@ -441,6 +443,46 @@ class FeatureCreator(QThread):
 				self.log.emit('There is a problem with mask layer - not loaded properly')
 				self.kill()
 		
+		
+		 # Check if input polygon features have unique ids
+		 # If not create
+		if not self.killed:
+			self.log.emit("Assigning unique id numbers to each geographic feature to be created ...")
+			id_found  = False
+			fields = mask_layer.fields().toList()
+			for field in fields:
+				if field.name().lower == "id":
+					id_found = True
+					id_field = field
+				else:
+					pass
+				
+			
+			
+			if  not id_found:
+				id_field = QgsField("id", QVariant.Int, "integer")
+				mask_layer.startEditing()
+				mask_layer.addAttribute(id_field)
+				mask_layer.commitChanges()
+			
+				
+			features = mask_layer.getFeatures()
+			mask_layer.startEditing()
+			for current, feature in enumerate(features):
+				feature[id_field.name()]=current
+				mask_layer.updateFeature(feature)
+				
+			ret_code = mask_layer.commitChanges()
+			
+			if ret_code:
+				self.log.emit("Id numbers assigned successfully.")
+			else:
+				self.log.emit("Id number assignment failed.")
+				self.log.emit("For the tool to work properly, each feature should have a unique number.")
+				self.log.emit("Please, assign unique numbers manually and try again.")
+				self.kill()
+				
+				
 		if not self.killed:
 			# Densifying the vertices in the feature outlines
 			# # Parameters for densification
@@ -491,7 +533,7 @@ class FeatureCreator(QThread):
 			dc_params = {
 				'INPUT': random_points_layer,
 				'HUBS': extracted_vertices_layer,
-				'FIELD': 'fid',
+				'FIELD': id_field.name(),
 				'UNIT': 3,
 				'OUTPUT': 'TEMPORARY_OUTPUT'
 			}
@@ -541,7 +583,7 @@ class FeatureCreator(QThread):
 	
 				if dist > slope_width:  
 					elev = (max_mount_elev - min_mount_elev) * (dist - min_dist) / (max_dist - min_dist) + min_mount_elev
-					if elev > in_elev:
+					if elev < in_elev:
 						elev = in_elev
 					attr.append(elev)
 					feat.setAttributes(attr)
@@ -606,30 +648,7 @@ class FeatureCreator(QThread):
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 			
-		if not self.killed:
-			self.log.emit("Setting the coastline to zero ...")
-			# Rasterize sea boundaries
-			ptol_params = {
-				'INPUT': mask_layer_densified,
-				'OUTPUT': 'TEMPORARY_OUTPUT'
-			}
-			mlayer_line = processing.run("native:polygonstolines", ptol_params)["OUTPUT"]
-	
-			sea_boundary_array = vector_to_raster(
-				mlayer_line,
-				geotransform,
-				width,
-				height
-			)
-	
-			# assign 0m values to the sea line
-			topo[(sea_boundary_array == 1) * (topo > 0) == 1] = 0
-			topo[(sea_boundary_array == 1) * np.isnan(topo) * np.isfinite(initial_values) * (
-					initial_values > 0) == 1] = 0
-			
-			self.progress_count += 5
-			self.progress.emit(self.progress_count)
-			
+					
 		if not self.killed:
 			self.log.emit("Interpolating depth values for gaps...")
 
@@ -647,7 +666,7 @@ class FeatureCreator(QThread):
 			band.SetNoDataValue(np.nan)
 			band.WriteArray(topo)
 			raster_for_interpolation = None
-			bathy = None
+			topo = None
 		
 		
 			out_file_path = os.path.join(self.temp_dir, "Interpolated_raster.tiff")
@@ -671,17 +690,19 @@ class FeatureCreator(QThread):
 			
 			
 			# Re-scale the artifacts bsl.
-			in_array = topo[(pol_array == 1) * (topo < 0)]
-			topo[(pol_array == 1) * (topo < 0)] = mod_rescale(in_array, 15, 1)
 			
-			self.progress_count += 5
-			self.progress.emit(self.progress_count)
-	
+			in_array = topo[(pol_array == 1) * (topo < 0)]
+			if in_array.size>0:
+				topo[(pol_array == 1) * (topo < 0)] = mod_rescale(in_array, 15, 1)
+				final_raster.GetRasterBand(1).WriteArray(topo)
+			topo=None
+			final_raster = None
+			
+			
 			# Fill the artifacts with interpolation - did not work well
 			# topo[(pol_array == 1) * (topo > 0)] = np.nan
 			# topo[(sea_boundary_array == 1) * (topo > 0)] = 0
-			final_raster.GetRasterBand(1).WriteArray(topo)
-			final_raster = None
+			
 			
 			self.progress_count = 100
 			self.progress.emit(self.progress_count)
@@ -699,9 +720,9 @@ class FeatureCreator(QThread):
 		topo_layer = self.dlg.baseTopoBox.currentLayer()
 		topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
 		topo_projection = topo_ds.GetProjection()
-		topo = topo_ds.GetRasterBand(1).ReadAsArray()
+		bathy = topo_ds.GetRasterBand(1).ReadAsArray()
 		geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
-		nrows, ncols = np.shape(topo)
+		nrows, ncols = np.shape(bathy)
 
 		# Get the elevation and depth constrains
 		min_depth = self.dlg.minElevSpinBox.value()
@@ -710,8 +731,8 @@ class FeatureCreator(QThread):
 		progress_count += 10
 		self.progress.emit(progress_count)
 
-		if topo is not None:
-			self.log.emit(('Size of the Topography raster: {}'.format(topo.shape)))
+		if bathy is not None:
+			self.log.emit(('Size of the Topography raster: {}'.format(bathy.shape)))
 		else:
 			self.log.emit('There is a problem with reading the Topography raster')
 
@@ -831,12 +852,12 @@ class FeatureCreator(QThread):
 
 			# Remove the existing values before assigning
 			# Before we remove values inside the boundaries of the features to be created, we map initial empty cells.
-			initial_values = np.empty(topo.shape)  # creare an array filled with ones
-			initial_values[:] = topo[:]  # set the finite (not nan) values to zero
+			initial_values = np.empty(bathy.shape)  # creare an array filled with ones
+			initial_values[:] = bathy[:]  # set the finite (not nan) values to zero
 			pol_array = vector_to_raster(mask_layer, geotransform, ncols, nrows)
-			topo[pol_array == 1] = np.nan
+			bathy[pol_array == 1] = np.nan
 			# assign values to the topography raster
-			topo[np.isfinite(points_array)] = points_array[np.isfinite(points_array)]
+			bathy[np.isfinite(points_array)] = points_array[np.isfinite(points_array)]
 
 		if not self.killed:
 			# Rasterize sea boundaries
@@ -864,8 +885,8 @@ class FeatureCreator(QThread):
 
 		if not self.killed:
 			# assign 0m values to the sea line
-			topo[(sea_boundary_array == 1) * (topo > 0) == 1] = 0
-			topo[(sea_boundary_array == 1) * np.isnan(topo) * np.isfinite(initial_values) * (
+			bathy[(sea_boundary_array == 1) * (bathy > 0) == 1] = 0
+			bathy[(sea_boundary_array == 1) * np.isnan(bathy) * np.isfinite(initial_values) * (
 					initial_values > 0) == 1] = 0
 
 			out_file = os.path.join(temp_dir, "Raster_for_interpolation.tiff")
@@ -875,26 +896,30 @@ class FeatureCreator(QThread):
 			raster_for_interpolation.SetProjection(topo_projection)
 			band = raster_for_interpolation.GetRasterBand(1)
 			band.SetNoDataValue(np.nan)
-			band.WriteArray(topo)
+			band.WriteArray(bathy)
 			raster_for_interpolation = None
-			topo = None
+			bathy = None
 
 			rlayer = QgsRasterLayer(out_file, "Raster for interpolation", "gdal")
 			fill_no_data(rlayer, out_file_path)
 
 			# Load the raster again to remove artefacts
 			final_raster = gdal.Open(out_file_path, gdal.GA_Update)
-			topo = final_raster.GetRasterBand(1).ReadAsArray()
+			bathy = final_raster.GetRasterBand(1).ReadAsArray()
 
+			
 			# Rescale the artefacts bsl.
-			in_array = topo[(pol_array == 1) * (topo > 0)]
-			topo[(pol_array == 1) * (topo > 0)] = mod_rescale(in_array, -15, -1)
+			in_array = bathy[(pol_array == 1) * (bathy > 0)]
+			if in_array.size>0:
+				bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
+				final_raster.GetRasterBand(1).WriteArray(bathy)
+			bathy=None
+			final_raster = None
 
 			# Fill the artefacts with interpolation - did not work well
-			# topo[(pol_array == 1) * (topo > 0)] = np.nan
-			# topo[(sea_boundary_array == 1) * (topo > 0)] = 0
-			final_raster.GetRasterBand(1).WriteArray(topo)
-			final_raster = None
+			# bathy[(pol_array == 1) * (bathy > 0)] = np.nan
+			# bathy[(sea_boundary_array == 1) * (bathy > 0)] = 0
+			
 
 			# # Get the layer again to fill emptied cells - this strokes should be enabled (uncommented) for filling the gaps \
 			# # instead of interpolation.

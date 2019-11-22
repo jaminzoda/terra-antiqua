@@ -22,7 +22,7 @@ class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
 		self.setupUi(self)
 		
 		# Define the list of geographic features can be created
-		geo_features_list = ["Sea", "Sea-voronoi", "Mountain range", "Plain", "Active margin", "Passive margin", "MOR"]
+		geo_features_list = ["Sea", "Sea-voronoi", "Mountain range"]
 		self.featureTypeBox.addItems(geo_features_list)
 		
 		#Connect feature type combobox with function that change the dialog according to feature type.

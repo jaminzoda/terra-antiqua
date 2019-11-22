@@ -23,8 +23,10 @@ import numpy as np
 from .topotools import (
 	 vector_to_raster,
 	 mod_formula,
-	 mod_min_max
+	 mod_min_max,
+	 mod_rescale
 	 )
+
 
 
 class TopoModifier(QThread):
@@ -349,7 +351,7 @@ class TopoModifier(QThread):
 						x = topo
 						in_array = x[r_masks == 1]
 						self.log.emit(in_array)
-						x[r_masks == 1] = mod_min_max(in_array, fmin, fmax)
+						x[r_masks == 1] = mod_rescale(in_array, fmin, fmax)
 
 						# Send progress feedback
 						progress_count += 75 / feats_count
@@ -403,7 +405,7 @@ class TopoModifier(QThread):
 						# Modify the topography
 						x = topo
 						in_array = x[r_masks == 1]
-						x[r_masks == 1] = mod_min_max(in_array, fmin, fmax)
+						x[r_masks == 1] = mod_rescale(in_array, fmin, fmax)
 
 						# Send progress feedback
 						progress_count += 30
