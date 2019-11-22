@@ -20,27 +20,35 @@
  *                                                                         *
  ***************************************************************************/
 """
-import datetime
-import os
-import os.path
-
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt5.QtCore import (
+							QSettings,
+							QTranslator,
+							qVersion,
+							QCoreApplication
+						)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
+import datetime
 
-from .algs import TopoBathyCompiler, MaskMaker, TopoModifier, PaleoShorelines, StandardProcessing, FeatureCreator
+import os.path
+
+from .dem_compile import TopoBathyCompiler
+from .feat_create import FeatureCreator
 from .feature_creator_dialog import FeatureCreatorDialog
 from .mask_maker_dialog import MaskMakerDialog
+from .mask_prep import MaskMaker
+from .p_shoreline import PaleoShorelines
 from .paleoshorelines_dialog import PaleoshorelinesDialog
+from .std_proc import StandardProcessing
 from .std_proc_dialog import StdProcessingDialog
-# Import the code for the dialog
 from .terra_antiqua_dialog import TerraAntiquaDialog
+from .topo_mod import TopoModifier
 from .topo_modifier_dialog import TopoModifierDialog
-from .topotools import RasterTools as rt
+from .topotools import set_raster_symbology
 
 
+# Import the code for the dialog
 # Initialize Qt resources from file resources.py
-
 class TerraAntiqua:
 	"""QGIS Plugin Implementation."""
 
@@ -106,12 +114,12 @@ class TerraAntiqua:
 			icon_path,
 			text,
 			callback,
-			enabled_flag=True,
-			add_to_menu=True,
-			add_to_toolbar=True,
-			status_tip=None,
-			whats_this=None,
-			parent=None):
+			enabled_flag = True,
+			add_to_menu = True,
+			add_to_toolbar = True,
+			status_tip = None,
+			whats_this = None,
+			parent = None):
 		"""Add a toolbar icon to the toolbar.
 
 		:param icon_path: Path to the icon for this action. Can be a resource
@@ -178,48 +186,49 @@ class TerraAntiqua:
 	def initGui(self):
 		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-		dem_builder_icon = os.path.join(self.plugin_dir, 'icon.png')
-		mask_prep_icon = os.path.join(self.plugin_dir, 'mask.png')
-		topo_modifier_icon = os.path.join(self.plugin_dir, 'topomod.png')
-		p_coastline_icon = os.path.join(self.plugin_dir, 'paleocoastlines.png')
-		std_proc_icon = os.path.join(self.plugin_dir, 'fill_smooth.png')
-		feat_create_icon = os.path.join(self.plugin_dir, 'feat_create.png')
+		icons_path = os.path.join(self.plugin_dir, "../resources")
+		dem_builder_icon = os.path.join(icons_path, 'icon.png')
+		mask_prep_icon = os.path.join(icons_path, 'mask.png')
+		topo_modifier_icon = os.path.join(icons_path, 'topomod.png')
+		p_coastline_icon = os.path.join(icons_path, 'paleocoastlines.png')
+		std_proc_icon = os.path.join(icons_path, 'fill_smooth.png')
+		feat_create_icon = os.path.join(icons_path, 'feat_create.png')
 
 		self.add_action(
 			dem_builder_icon,
-			text=self.tr(u'Topography and bathymetry compiler'),
-			callback=self.load_topo_bathy_compiler,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Topography and bathymetry compiler'),
+			callback = self.load_topo_bathy_compiler,
+			parent = self.iface.mainWindow())
 
 		self.add_action(
 			topo_modifier_icon,
-			text=self.tr(u'Topography modifier'),
-			callback=self.load_topo_modifier,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Topography modifier'),
+			callback = self.load_topo_modifier,
+			parent = self.iface.mainWindow())
 		self.add_action(
 			p_coastline_icon,
-			text=self.tr(u'Paleoshorelines reconstructor'),
-			callback=self.load_paleoshorelines,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Paleoshorelines reconstructor'),
+			callback = self.load_paleoshorelines,
+			parent = self.iface.mainWindow())
 		self.add_action(
 			std_proc_icon,
-			text=self.tr(u'Standard processing tools'),
-			callback=self.load_std_processing,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Standard processing tools'),
+			callback = self.load_std_processing,
+			parent = self.iface.mainWindow())
 
 		self.pg_toolBar.addSeparator()
 
 		self.add_action(
 			feat_create_icon,
-			text=self.tr(u'Geographic feature creator'),
-			callback=self.load_feature_creator,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Geographic feature creator'),
+			callback = self.load_feature_creator,
+			parent = self.iface.mainWindow())
 
 		self.add_action(
 			mask_prep_icon,
-			text=self.tr(u'Mask preparator'),
-			callback=self.load_mask_maker,
-			parent=self.iface.mainWindow())
+			text = self.tr(u'Mask preparator'),
+			callback = self.load_mask_maker,
+			parent = self.iface.mainWindow())
 
 		# will be set False in run()
 		self.first_start = True
@@ -251,7 +260,7 @@ class TerraAntiqua:
 		self.dlg.cancelButton.setEnabled(True)
 		self.dlg.runButton.setEnabled(False)
 		self.tbc_thread = TopoBathyCompiler(self.dlg)
-		self.tbc_thread.change_value.connect(self.dlg.set_progress_value)
+		self.tbc_thread.progress.connect(self.dlg.set_progress_value)
 		self.tbc_thread.log.connect(self.tbc_print_log)
 		self.tbc_thread.start()
 		self.tbc_thread.finished.connect(self.tbc_add_result_to_canvas)
@@ -278,11 +287,12 @@ class TerraAntiqua:
 			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
 			if rlayer:
 				# Rendering a symbology style for the resulting raster layer.
-				rt.set_raster_symbology(rlayer)
+				set_raster_symbology(rlayer)
 				self.tbc_print_log("The compiler has compiled topography and bathymetry sucessfully,")
 				self.tbc_print_log("and added the resulting paleoDEM to the map canvas.")
 			else:
-				self.tbc_print_log("The topography and bathymetry compiling algorithm has extracted masks successfully,")
+				self.tbc_print_log(
+					"The topography and bathymetry compiling algorithm has extracted masks successfully,")
 				self.tbc_print_log("however the resulting layer did not load. You may need to load it manually.")
 			self.finish_topo_bathy_compiler()
 		else:
@@ -293,8 +303,6 @@ class TerraAntiqua:
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
 		self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-
-
 
 	def load_mask_maker(self):
 
@@ -313,7 +321,7 @@ class TerraAntiqua:
 		self.dlg2.cancelButton.setEnabled(True)
 		self.dlg2.runButton.setEnabled(False)
 		self.mm_thread = MaskMaker(self.dlg2)
-		self.mm_thread.change_value.connect(self.dlg2.set_progress_value)
+		self.mm_thread.progress.connect(self.dlg2.set_progress_value)
 		self.mm_thread.log.connect(self.mm_print_log)
 		self.mm_thread.start()
 		self.mm_thread.finished.connect(self.mm_add_result_to_canvas)
@@ -347,13 +355,12 @@ class TerraAntiqua:
 			self.finish_mask_maker()
 		else:
 			self.stop_mask_maker()
+
 	def mm_print_log(self, msg):
 		# get the current time
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
 		self.dlg2.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-
-
 
 	def load_topo_modifier(self):
 
@@ -362,17 +369,17 @@ class TerraAntiqua:
 
 		# show the dialog
 		self.dlg3.show()
-		self.dlg3.Tabs.setCurrentIndex(0) #make sure the parameters tab is displayed on load.
+		self.dlg3.Tabs.setCurrentIndex(0)  # make sure the parameters tab is displayed on load.
 		# When the run button is pressed, topography modification algorithm is ran.
 		self.dlg3.runButton.clicked.connect(self.start_topo_modifier)
 		self.dlg3.cancelButton.clicked.connect(self.stop_topo_modifier)
 
 	def start_topo_modifier(self):
-		self.dlg3.Tabs.setCurrentIndex(1) #switch to the log tab.
+		self.dlg3.Tabs.setCurrentIndex(1)  # switch to the log tab.
 		self.dlg3.cancelButton.setEnabled(True)
 		self.dlg3.runButton.setEnabled(False)
 		self.tm_thread = TopoModifier(self.dlg3)
-		self.tm_thread.change_value.connect(self.dlg3.set_progress_value)
+		self.tm_thread.progress.connect(self.dlg3.set_progress_value)
 		self.tm_thread.log.connect(self.tm_print_log)
 		self.tm_thread.start()
 		self.tm_thread.finished.connect(self.tm_add_result_to_canvas)
@@ -398,9 +405,10 @@ class TerraAntiqua:
 			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
 			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
 			if rlayer:
-				rt.set_raster_symbology(rlayer)
+				set_raster_symbology(rlayer)
 				self.tm_print_log("The algorithm has modified the topography of selected regions successfully,")
-				self.tm_print_log("and added the resulting layer to the map canvas with the following name: {}.".format(file_name))
+				self.tm_print_log(
+					"and added the resulting layer to the map canvas with the following name: {}.".format(file_name))
 			else:
 				self.tm_print_log("The algorithm has modified the topography of selected regions successfully,")
 				self.tm_print_log("however the resulting layer did not load. You may need to load it manually.")
@@ -429,7 +437,7 @@ class TerraAntiqua:
 		self.dlg4.cancelButton.setEnabled(True)
 		self.dlg4.runButton.setEnabled(False)
 		self.ps_thread = PaleoShorelines(self.dlg4)
-		self.ps_thread.change_value.connect(self.dlg4.set_progress_value)
+		self.ps_thread.progress.connect(self.dlg4.set_progress_value)
 		self.ps_thread.log.connect(self.ps_print_log)
 		self.ps_thread.start()
 		self.ps_thread.finished.connect(self.ps_add_result_to_canvas)
@@ -455,7 +463,7 @@ class TerraAntiqua:
 			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
 			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
 			if rlayer:
-				rt.set_raster_symbology(rlayer)
+				set_raster_symbology(rlayer)
 				self.ps_print_log("The paleoshorelines are set successfully,")
 				self.ps_print_log(
 					"and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))
@@ -487,7 +495,7 @@ class TerraAntiqua:
 		self.dlg5.cancelButton.setEnabled(True)
 		self.dlg5.runButton.setEnabled(False)
 		self.std_p_thread = StandardProcessing(self.dlg5)
-		self.std_p_thread.change_value.connect(self.dlg5.set_progress_value)
+		self.std_p_thread.progress.connect(self.dlg5.set_progress_value)
 		self.std_p_thread.log.connect(self.std_p_print_log)
 		self.std_p_thread.start()
 		self.std_p_thread.finished.connect(self.std_p_add_result_to_canvas)
@@ -513,7 +521,7 @@ class TerraAntiqua:
 			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
 			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
 			if rlayer:
-				rt.set_raster_symbology(rlayer)
+				set_raster_symbology(rlayer)
 				self.std_p_print_log("The processing is finished successfully,")
 				self.std_p_print_log(
 					"and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))
@@ -545,7 +553,7 @@ class TerraAntiqua:
 		self.dlg6.cancelButton.setEnabled(True)
 		self.dlg6.runButton.setEnabled(False)
 		self.fc_thread = FeatureCreator(self.dlg6)
-		self.fc_thread.change_value.connect(self.dlg6.set_progress_value)
+		self.fc_thread.progress.connect(self.dlg6.set_progress_value)
 		self.fc_thread.log.connect(self.fc_print_log)
 		self.fc_thread.start()
 		self.fc_thread.finished.connect(self.fc_add_result_to_canvas)
@@ -571,7 +579,7 @@ class TerraAntiqua:
 			file_name = os.path.splitext(os.path.basename(out_file_path))[0]
 			rlayer = self.iface.addRasterLayer(out_file_path, file_name, "gdal")
 			if rlayer:
-				rt.set_raster_symbology(rlayer)
+				set_raster_symbology(rlayer)
 				self.fc_print_log("The geographic features are created successfully,")
 				self.fc_print_log(
 					"and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))

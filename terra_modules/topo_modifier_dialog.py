@@ -7,7 +7,7 @@ from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRast
 import os
 import datetime
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'topo_modifier_dialog_base.ui'))
+    os.path.dirname(__file__), '../ui/topo_modifier_dialog_base.ui'))
 class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
@@ -51,7 +51,7 @@ class TopoModifierDialog(QtWidgets.QDialog, FORM_CLASS):
         self.min_maxValueCheckBox.setChecked(True)
         
         #set the help text in the  help box (QTextBrowser)
-        path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_TopographyModifier.html")
+        path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_TopographyModifier.html")
         help_file = open(path_to_file, 'r', encoding='utf-8')
         help_text = help_file.read()
         self.helpBox.setHtml(help_text)

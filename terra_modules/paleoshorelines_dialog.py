@@ -1,4 +1,4 @@
-# This script creates a dialog form for our second tool in the plugin
+#This script creates a dialog form for our second tool in the plugin
 
 import os
 
@@ -7,13 +7,13 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'feature_creator_dialog_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), '../ui/paleoshorelines_dialog_base.ui'))
 
-
-class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
+class PaleoshorelinesDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
-        super(FeatureCreatorDialog, self).__init__(parent)
+        super(PaleoshorelinesDialog, self).__init__(parent)
         # Set up the user interface from Designer through FORM_CLASS2.
         # After self.setupUi() you can access any designer object by doing
         # self.<objectname>, and you can use autoconnect slots - see
@@ -21,16 +21,17 @@ class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        # Set the mode of QgsFileWidget to directory mode
+        #Set the mode of QgsFileWidget to directory mode
         self.outputPath.setStorageMode(self.outputPath.SaveFile)
         self.outputPath.setFilter('*.tif;;*.tiff')
-        # Base topography layer
+        #Base topography layer
         self.baseTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.baseTopoBox.setLayer(None)
         # Connect the tool buttons to the file dialog that opens raster layers from disk
         self.selectTopoBaseButton.clicked.connect(self.addLayerToBaseTopo)
 
-        # Input masks layer
+
+        #Input masks layer
         self.masksBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.masksBox.setLayer(None)
         # Connect the tool buttons to the file dialog that opens vector layers from disk
@@ -39,24 +40,53 @@ class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
         self.logText.clear()
         self.logText.setReadOnly(True)
 
-        # Set the run button enabled only when the user selected input layers.
+        # Select modification mode
+        self.selectModificationModeInterpolate(1)
+        self.interpolateCheckBox.stateChanged.connect(self.selectModificationModeInterpolate)
+        self.rescaleCheckBox.stateChanged.connect(self.selectModificationModeRescale)
+
+       #Set the run button enabled only when the user selected input layers.
         self.runButton.setEnabled(False)
         self.masksBox.layerChanged.connect(self.enableRunButton)
         self.baseTopoBox.layerChanged.connect(self.enableRunButton)
-
-        # set the help text in the  help box (QTextBrowser)
-        path_to_file = os.path.join(os.path.dirname(__file__), "help_text/help_FeatureCreator.html")
+        
+        #set the help text in the  help box (QTextBrowser)
+        path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_Paleoshorelines.html")
         help_file = open(path_to_file, 'r', encoding='utf-8')
         help_text = help_file.read()
         self.helpBox.setHtml(help_text)
 
     def enableRunButton(self):
-        if self.baseTopoBox.currentLayer() != None and self.masksBox.currentLayer() != None:
+        if  self.baseTopoBox.currentLayer()!=None and self.masksBox.currentLayer()!=None:
             self.runButton.setEnabled(True)
             self.warningLabel.setText('')
         else:
             self.warningLabel.setText('Please, select all the mandatory fields.')
             self.warningLabel.setStyleSheet('color:red')
+
+    def selectModificationModeInterpolate(self, state):
+        if state > 0:
+            self.rescaleCheckBox.setChecked(False)
+            self.maxElevSpinBox.setEnabled(False)
+            self.maxDepthSpinBox.setEnabled(False)
+            self.interpolateCheckBox.setChecked(True)
+        else:
+            self.rescaleCheckBox.setChecked(True)
+            self.maxElevSpinBox.setEnabled(True)
+            self.maxDepthSpinBox.setEnabled(True)
+            self.interpolateCheckBox.setChecked(False)
+
+    def selectModificationModeRescale(self, state):
+        if state > 0:
+            self.rescaleCheckBox.setChecked(True)
+            self.maxElevSpinBox.setEnabled(True)
+            self.maxDepthSpinBox.setEnabled(True)
+            self.interpolateCheckBox.setChecked(False)
+        else:
+            self.rescaleCheckBox.setChecked(False)
+            self.maxElevSpinBox.setEnabled(False)
+            self.maxDepthSpinBox.setEnabled(False)
+            self.interpolateCheckBox.setChecked(True)
 
     def addLayerToBaseTopo(self):
         self.openRasterFromDisk(self.baseTopoBox)
