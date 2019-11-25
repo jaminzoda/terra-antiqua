@@ -88,9 +88,13 @@ class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
 			self.minElevSpinBox.setValue(3000)
 			self.minElevLabel.setText("Minimum ridge elevation (in m):")
 			
-			self.shelfDepthSpinBox.hide()
+			self.shelfDepthSpinBox.show()
+			self.shelfDepthSpinBox.setMaximum(100)
+			self.shelfDepthSpinBox.setMinimum(0)
+			self.shelfDepthSpinBox.setValue(30)
+			self.shelfDepthLabel.show()
+			self.shelfDepthLabel.setText("Ruggedness of the mountains (in %):")
 			self.shelfWidthSpinBox.hide()
-			self.shelfDepthLabel.hide()
 			self.shelfWidthLabel.hide()
 			
 			self.slopeWidthSpinBox.setValue(5)

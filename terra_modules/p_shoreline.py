@@ -57,15 +57,20 @@ class PaleoShorelines(QThread):
 			self.log.emit(('Size of the Topography raster: {}'.format(topo.shape)))
 		else:
 			self.log.emit('There is a problem with reading the Topography raster')
+			self.kill()
 
 		# Get the vector masks
 		self.log.emit('Getting the vector layer')
 		mask_layer = self.dlg.masksBox.currentLayer()
 
-		if mask_layer.isValid:
+		if mask_layer.isValid() and mask_layer.featureCount()>0:
 			self.log.emit('The mask layer is loaded properly')
+		elif mask_layer.isValid() and mask_layer.featureCount()==0:
+			self.log.emit("Error: The mask layer has no features. Please add polygon features to it and try again.")
+			self.kill()
 		else:
 			self.log.emit('There is a problem with the mask layer - not loaded properly')
+			self.kill()
 
 		progress_count += 10
 		self.progress.emit(progress_count)
@@ -159,8 +164,9 @@ class PaleoShorelines(QThread):
 					# Pixel values of the sea that are asl
 					data_to_fill_bsl = topo_values_copied[(r_masks == 0) * (topo_modified > 0) *
 														  (np.isfinite(topo_values_copied)) == 1]
-					topo_modified[(r_masks == 0) * (topo_modified > 0) * np.isfinite(topo_values_copied) == 1] \
-						= mod_rescale(data_to_fill_bsl, -5, -0.1)
+					if data_to_fill_bsl.size>0:
+						topo_modified[(r_masks == 0) * (topo_modified > 0) * np.isfinite(topo_values_copied) == 1] \
+							= mod_rescale(data_to_fill_bsl, -5, -0.1)
 
 					progress_count += 5
 					self.progress.emit(progress_count)

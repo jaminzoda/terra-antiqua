@@ -169,7 +169,7 @@ class TopoModifier(QThread):
 				else:
 					formula = self.dlg.formulaText.text()
 					formula_pos = None
-					self.log.emit(('formula for topography modification is: ', formula))
+					self.log.emit('Formula for topography modification is: {}'.format(formula))
 
 				# Send progress feedback
 				progress_count += 3
