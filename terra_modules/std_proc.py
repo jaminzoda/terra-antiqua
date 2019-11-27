@@ -21,8 +21,10 @@ import numpy as np
 from.topotools import (
 	vector_to_raster, 
 	fill_no_data, 
-	raster_smoothing
+	raster_smoothing,
+	fill_no_data_in_polygon
 	)
+
 
 
 class StandardProcessing(QThread):
@@ -53,6 +55,10 @@ class StandardProcessing(QThread):
 				out_file_path = os.path.join(temp_dir, 'PaleoDEM_smoothed.tif')
 			elif processing_type == 3:
 				out_file_path = os.path.join(temp_dir, 'PaleoDEM_isostat_compensated.tif')
+				
+			elif processing_type == 4:
+				out_file_path = os.path.join(temp_dir, 'PaleoDEM_interpolated.tif')
+			
 		else:
 			out_file_path = self.dlg.outputPath.filePath()
 
@@ -337,6 +343,54 @@ class StandardProcessing(QThread):
 				self.finished.emit(True, out_file_path)
 			else:
 				self.finished.emit(False, "")
+		elif processing_type == 4:
+			if not self.killed:
+				self.log.emit("Getting the raster layer for the interpolation.")
+				base_raster_layer = self.dlg.baseTopoBox.currentLayer()
+				progress_count += 5
+				self.progress.emit(progress_count)
+				self.log.emit("Starting the interpolation.")
+				self.log.emit("Interpolation method is Inverse Distance Weighting.")
+				masks_layer = self.dlg.masksBox.currentLayer()
+				interpolated_raster = fill_no_data_in_polygon(base_raster_layer, masks_layer, out_file_path)
+				self.log.emit("Interpolation finished.")
+
+				progress_count += 40
+				self.progress.emit(progress_count)
+			if not self.killed:
+
+				if self.dlg.smoothingBox.isChecked():
+					self.log.emit("Starting smoothing.")
+					# Get the layer for smoothing
+					interpolated_raster_layer = QgsRasterLayer(interpolated_raster, 'Interpolated DEM', 'gdal')
+
+					# Get smoothing factor
+					sm_factor = self.dlg.smFactorSpinBox.value()
+
+					progress_count += 10
+					self.progress.emit(progress_count)
+
+					# Smooth the raster
+					raster_smoothing(interpolated_raster_layer, sm_factor)
+					self.log.emit("Smoothing has finished.")
+
+					# progress_count += 40
+
+					self.log.emit("The gaps in the raster were filled and it was smoothed successfully.")
+					self.log.emit("The resulting layer is saved at: "
+								  "<a href='file://{}'>{}</a>".format(os.path.dirname(out_file_path), out_file_path))
+					self.progress.emit(100)
+					self.finished.emit(True, out_file_path)
+
+				else:
+					self.log.emit("The gaps in the raster were filled successfully.")
+					self.log.emit("The resulting layer is saved at: "
+								  "<a href='file://{}'>{}</a>".format(os.path.dirname(out_file_path), out_file_path))
+					self.progress.emit(100)
+					self.finished.emit(True, out_file_path)
+			else:
+				self.finished.emit(False, "")
+			
 
 	def kill(self):
 		self.killed = True

@@ -29,8 +29,9 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
 import datetime
-
 import os.path
+
+
 
 from .dem_compile import TopoBathyCompiler
 from .feat_create import FeatureCreator
@@ -44,7 +45,7 @@ from .std_proc_dialog import StdProcessingDialog
 from .terra_antiqua_dialog import TerraAntiquaDialog
 from .topo_mod import TopoModifier
 from .topo_modifier_dialog import TopoModifierDialog
-from .topotools import set_raster_symbology
+from .topotools import set_raster_symbology, print_log
 
 
 # Import the code for the dialog
@@ -299,10 +300,11 @@ class TerraAntiqua:
 			self.stop_topo_bathy_compiler()
 
 	def tbc_print_log(self, msg):
-		# get the current time
-		time = datetime.datetime.now()
-		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+		print_log(self.dlg, msg)
+# 		# get the current time
+# 		time = datetime.datetime.now()
+# 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+# 		self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 	def load_mask_maker(self):
 
@@ -357,10 +359,11 @@ class TerraAntiqua:
 			self.stop_mask_maker()
 
 	def mm_print_log(self, msg):
-		# get the current time
-		time = datetime.datetime.now()
-		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg2.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+		print_log(self.dlg2, msg)
+# 		# get the current time
+# 		time = datetime.datetime.now()
+# 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+# 		self.dlg2.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 	def load_topo_modifier(self):
 
@@ -417,10 +420,12 @@ class TerraAntiqua:
 			self.stop_topo_modifier()
 
 	def tm_print_log(self, msg):
+		print_log(self.dlg3, msg)
+		
 		# get the current time
-		time = datetime.datetime.now()
-		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg3.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+# 		time = datetime.datetime.now()
+# 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+# 		self.dlg3.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 	def load_paleoshorelines(self):
 		self.dlg4 = PaleoshorelinesDialog()
@@ -475,10 +480,11 @@ class TerraAntiqua:
 			self.stop_paleoshorelines()
 
 	def ps_print_log(self, msg):
-		# get the current time
-		time = datetime.datetime.now()
-		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg4.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+		print_log(self.dlg4, msg)
+# 		# get the current time
+# 		time = datetime.datetime.now()
+# 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+# 		self.dlg4.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 	def load_std_processing(self):
 		self.dlg5 = StdProcessingDialog()
@@ -533,10 +539,11 @@ class TerraAntiqua:
 			self.stop_std_processing()
 
 	def std_p_print_log(self, msg):
-		# get the current time
-		time = datetime.datetime.now()
-		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg5.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+		print_log(self.dlg5, msg)
+# 		# get the current time
+# 		time = datetime.datetime.now()
+# 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+# 		self.dlg5.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 
 	def load_feature_creator(self):
 		self.dlg6 = FeatureCreatorDialog()
@@ -592,6 +599,7 @@ class TerraAntiqua:
 
 	def fc_print_log(self, msg):
 		# get the current time
-		time = datetime.datetime.now()
-		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		self.dlg6.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+		print_log(self.dlg6, msg)
+# 		time = datetime.datetime.now()
+# 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+# 		self.dlg6.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))

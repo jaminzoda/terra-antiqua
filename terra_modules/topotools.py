@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import tempfile
-import os
-
-import numpy as np
-from plugins import processing
 from PyQt5.QtGui import QColor
+import datetime
+import os
 from osgeo import gdal, osr, ogr
 from osgeo import gdalconst
 from qgis.core import (
-	QgsRasterLayer, 
-	QgsVectorLayer, 
-	QgsRasterBandStats, 
-	QgsColorRampShader, 
-	QgsRasterShader, 
+	QgsRasterLayer,
+	QgsVectorLayer,
+	QgsRasterBandStats,
+	QgsColorRampShader,
+	QgsRasterShader,
 	QgsSingleBandPseudoColorRenderer
 	)
+import tempfile
 
+import numpy as np
+from plugins import processing
 
 
 def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
@@ -59,6 +59,8 @@ def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
 	width = in_layer.width()
 	height = in_layer.height()
 
+	raster_ds = None
+
 
 	out_array = np.ones(in_array.shape)
 
@@ -93,9 +95,6 @@ def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
 
 	processing.run("gdal:fillnodata", fill_params)
 
-	in_band.FlushCache()
-
-	raster_ds = None
 
 	# (4) delete the validity mask file
 	driver = gdal.GetDriverByName('GTiff')
@@ -103,7 +102,103 @@ def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
 		driver.Delete(mask_path)
 
 	return out_file_path
+def fill_no_data_in_polygon(in_layer, poly_layer, out_file_path=None, no_data_value=None):
+	"""
+	Fills the missing data by interpolating from edges.
+	:param in_layer: Input raster layer in which the empty cells are filled with interpolation (IDW). Type: QgsRasterLayer.
+	:param poly_layer: A vector layer with polygon masks that are used to interpolate values inside them. Type: QgsVectorLayer.
+	:param out_file_path: A path for the output raster layer, filled. Type: str.
+	:param no_data_value: NoDataValue of the input layer. These values to be set to np.nan   during the interpolation. Type: Number (Double, Int, Float...) or numpy.nan.
+	:return: String - the path of the output file.
+	
+	"""
+	temp_dir = tempfile.gettempdir()
+	if out_file_path is None:
+		out_file_path = os.path.join(temp_dir, "Interpolated_raster.tiff")
+	
+	# (1) Get the input raster dataset
+	if not type(in_layer) == QgsRasterLayer:
+		raise TypeError("The input layer must be QgsRasterLayer")
+	
+	try:
+		raster_ds = gdal.Open(in_layer.dataProvider().dataSourceUri(), gdal.GA_Update)
+	except FileNotFoundError:
+		print("Could not open the provided raster layer.")
+	else:
+		in_band = raster_ds.GetRasterBand(1)
+		in_array = in_band.ReadAsArray()
 
+	if no_data_value != None:
+		in_array[in_array == no_data_value] = np.nan
+	else:
+		no_data_value = in_band.GetNoDataValue()
+		if no_data_value != np.nan:
+			in_array[in_array == no_data_value] = np.nan
+			
+	# Get geotransform and raster size for rasterization
+	geotransform = raster_ds.GetGeoTransform()
+	width = in_layer.width()
+	height = in_layer.height()
+	
+	# (2) Define the parameters for creating a mask raster of valid values.
+	
+	mask_path = os.path.join(temp_dir, "Valid_data_mask_for_interpolation.tiff")
+	
+	out_array = np.ones(in_array.shape)
+
+	out_array[np.isnan(in_array)] = np.nan
+	out_array[np.isfinite(in_array)] = 1
+
+	# Create Target - TIFF
+	out_raster = gdal.GetDriverByName('GTiff').Create(mask_path, width, height, 1, gdal.GDT_Byte)
+	out_raster.SetGeoTransform(geotransform)
+	crs = in_layer.crs().toWkt()
+	out_raster.SetProjection(crs)
+	out_band = out_raster.GetRasterBand(1)
+	out_band.SetNoDataValue(np.nan)
+	out_band.WriteArray(out_array)
+	out_band.FlushCache()
+	out_raster = None
+	
+	# Set the no_data values outside the polygon to -99999
+	## Rasterize the input vector layer with polygon masks
+	poly_array = vector_to_raster(poly_layer, geotransform, width, height)
+	mapped_array = np.zeros((height, width))
+	mapped_array[np.isnan(in_array)*(poly_array == 0)==1] = 1
+	raster_ds = None
+	in_array = None
+
+	# interpolation with the processing module
+	input_layer = in_layer.dataProvider().dataSourceUri()
+		
+	fill_params = {'INPUT': input_layer,
+				   'BAND': 1,
+				   'DISTANCE': 100,
+				   'ITERATIONS': 0,
+				   'NO_MASK': False,
+				   'MASK_LAYER': mask_path,
+				   'OUTPUT': out_file_path}
+
+	processing.run("gdal:fillnodata", fill_params)
+	
+	## Output raster
+	raster_ds = gdal.Open(out_file_path, gdal.GA_Update)
+	raster_array = raster_ds.GetRasterBand(1).ReadAsArray()
+	raster_array[mapped_array==1] = np.nan
+	raster_ds.GetRasterBand(1).WriteArray(raster_array)
+	raster_ds.GetRasterBand(1).FlushCache()
+	raster_ds = None
+	raster_array = None
+	mapped_array = None
+	poly_array = None
+	
+
+	# (4) delete the validity mask file
+	driver = gdal.GetDriverByName('GTiff')
+	if os.path.exists(mask_path):
+		driver.Delete(mask_path)
+
+	return out_file_path
 
 def raster_smoothing(in_layer, factor, out_file=None, feedback=None):
 	"""
@@ -408,9 +503,11 @@ def mod_rescale(in_array, min: int, max: int):
 	"""
 	
 	# Define the initial minimum and maximum values of the array
-
-	imax = in_array[np.isfinite(in_array)].max()
-	imin = in_array[np.isfinite(in_array)].min()
+	if in_array.size>0 and np.isfinite(in_array).size>0:
+		imax = in_array[np.isfinite(in_array)].max()
+		imin = in_array[np.isfinite(in_array)].min()
+	else:
+		raise ValueError("The input Array is empty.")
 	out_array = in_array
 	out_array[:] = (max - min) * (out_array[:] - imin) / (imax - imin) + min
 
@@ -482,4 +579,15 @@ def is_path_valid(path: str)-> tuple: # for now is used for output paths. Modify
 		else:
 			return(False, "Error: The provided path for the output is not correct. Example: {}".format(r'C:\\Users\user_name\Documents\file.tiff'))
 	
-	
+
+
+
+def print_log(dialog, msg: str):
+		# get the current time
+		time = datetime.datetime.now()
+		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
+		if msg.split(' ')[0].lower() == 'error:'.lower() or msg.split(':')[0].lower() == 'error':
+			msg = '<span style="color: red;">{} </span>'.format(msg)
+		elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
+			msg = '<span style="color: blue;">{} </span>'.format(msg)
+		dialog.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
