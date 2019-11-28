@@ -586,7 +586,7 @@ def print_log(dialog, msg: str):
 		# get the current time
 		time = datetime.datetime.now()
 		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		if msg.split(' ')[0].lower() == 'error:'.lower() or msg.split(':')[0].lower() == 'error':
+		if msg.split(' ')[0].lower() == 'error:' or msg.split(':')[0].lower() == 'error':
 			msg = '<span style="color: red;">{} </span>'.format(msg)
 		elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
 			msg = '<span style="color: blue;">{} </span>'.format(msg)
