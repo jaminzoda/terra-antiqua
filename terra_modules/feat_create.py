@@ -28,6 +28,7 @@ from .topotools import (
 	mod_rescale
 )
 from terra_antiqua.terra_modules.topotools import fill_no_data_in_polygon
+import math
 
 
 
@@ -455,7 +456,7 @@ class FeatureCreator(QThread):
 			ruggedness = self.dlg.shelfDepthSpinBox.value()
 			slope_width = self.dlg.slopeWidthSpinBox.value()
 			pixel_size_avrg = (topo_layer.rasterUnitsPerPixelX()+topo_layer.rasterUnitsPerPixelY())/2
-			point_density = 3*0.1/pixel_size_avrg # density of points for random points inside polygon algorithm -Found empirically
+			point_density = 10*0.1/pixel_size_avrg # density of points for random points inside polygon algorithm -Found empirically
 	
 			self.progress_count += 1
 			self.progress.emit(self.progress_count)
@@ -547,18 +548,19 @@ class FeatureCreator(QThread):
 				}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
 			except QgsProcessingException:
+				self.log.emit("got an exception")
 				rp_params = {
 					'INPUT': mask_layer_densified,
 					'STRATEGY': 1, # type of densification - points density
-					'EXPRESSION': point_density, # points density value
+					'EXPRESSION': point_density, #point_density, # points density value
 					'MIN_DISTANCE': None,
 					'OUTPUT': 'TEMPORARY_OUTPUT'
 					}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			except Exception as e:
-				self.log.emit("Random points creation failed with the following Error:")
-				self.log.emit(str(e))
-			
+# 			except QgsProcessingException as e:
+# 				self.log.emit("Random points creation failed with the following Error:")
+# 				self.log.emit(str(e))
+# 			
 			
 			
 			self.progress_count += 10
@@ -657,6 +659,11 @@ class FeatureCreator(QThread):
 					#change the elevation randomly by 10 percent
 					max_bound = elev*ruggedness/100
 					min_bound = max_bound*-1
+					
+					#using sin function to make mountain pattern to repeat
+# 					sin_func = math.sin(max_bound)
+# 					elev=abs(elev*sin_func)
+
 					elev = elev+np.random.randint(min_bound,max_bound)
 					attr.append(elev)
 					feat.setAttributes(attr)

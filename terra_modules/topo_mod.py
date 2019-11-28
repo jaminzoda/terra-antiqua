@@ -63,7 +63,7 @@ class TopoModifier(QThread):
 		nrows, ncols = np.shape(topo)
 
 		if topo is not None:
-			self.log.emit(('Size of the Topography raster: ', str(topo.shape)))
+			self.log.emit('Size of the Topography raster: {}'.format(topo.shape))
 		else:
 			self.log.emit('There is a problem with reading the Topography raster')
 
@@ -98,7 +98,7 @@ class TopoModifier(QThread):
 				field = self.dlg.maskNameField.currentField()
 				value = self.dlg.maskNameText.text()
 
-				self.log.emit(('Fetching the ', value, ' masks from the field: ', field))
+				self.log.emit('Fetching the {0} masks from the field {1}'.format(value, field))
 
 				# TODO add ability to specify several names for the masks
 				expr = QgsExpression(QgsExpression().createFieldEqualityExpression(field, value))
@@ -134,9 +134,9 @@ class TopoModifier(QThread):
 				try:
 					os.mkdir(path)
 				except OSError:
-					self.log.emit("Creation of the directory %s failed" % path)
+					self.log.emit("Creation of the directory {} failed".format(path))
 				else:
-					self.log.emit("Successfully created the directory %s " % path)
+					self.log.emit("Successfully created the directory {}".format(path))
 			else:
 				self.log.emit("The folder raster_masks is already created.")
 
@@ -230,7 +230,7 @@ class TopoModifier(QThread):
 
 					# Check if the formula field contains the formula
 					if feat_formula == NULL or ('x' in feat_formula) is False:
-						self.log.emit("Mask " + str(mask_number) + " does not contain any formula.")
+						self.log.emit("Mask {} does not contain any formula.".format(mask_number))
 						self.log.emit("You might want to check if the field for formula is "
 									  "specified correctly in the plugin dialog.")
 						continue
@@ -267,7 +267,7 @@ class TopoModifier(QThread):
 					if error[0] == QgsVectorFileWriter.NoError:
 						self.log.emit("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
 					else:
-						self.log.emit("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file),
+						self.log.emit("Failed to create the {0} shapefile because {1}.".format(os.path.basename(out_file),
 																							 error[1]))
 
 					# Rasterize extracted masks
@@ -313,8 +313,7 @@ class TopoModifier(QThread):
 						fmax = feat.attributes()[fmax_pos]
 						# Check if the min and max fields contain any value
 						if fmin == NULL or fmax == NULL:
-							self.log.emit("Mask " + str(mask_number) +
-										  " does not contain final maximum or/and minimum values specified in the attributes table.")
+							self.log.emit("Mask {} does not contain final maximum or/and minimum values specified in the attributes table.". format(mask_number))
 							self.log.emit("You might want to check if the fields for minimum and "
 										  "maximum values are specified correctly in the plugin dialog.")
 							continue
@@ -339,7 +338,7 @@ class TopoModifier(QThread):
 								"The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
 						else:
 							self.log.emit(
-								"Failed to create the {} shapefile because {}.".format(os.path.basename(out_file),
+								"Failed to create the {0} shapefile because {1}.".format(os.path.basename(out_file),
 																					   error[1]))
 
 						# Rasterize extracted masks
@@ -350,7 +349,6 @@ class TopoModifier(QThread):
 						# Modify the topography
 						x = topo
 						in_array = x[r_masks == 1]
-						self.log.emit(in_array)
 						x[r_masks == 1] = mod_rescale(in_array, fmin, fmax)
 
 						# Send progress feedback
@@ -384,7 +382,7 @@ class TopoModifier(QThread):
 								"The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
 						else:
 							self.log.emit(
-								"Failed to create the {} shapefile because {}.".format(os.path.basename(out_file),
+								"Failed to create the {0} shapefile because {1}.".format(os.path.basename(out_file),
 																					   error[1]))
 
 						# Send progress feedback
