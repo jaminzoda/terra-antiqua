@@ -14,7 +14,8 @@ from qgis.core import (
 	QgsProject,
 	QgsVectorLayer,
 	QgsVectorFileWriter,
-	QgsProcessingException
+	QgsProcessingException,
+	QgsExpression
 )
 import tempfile
 
@@ -24,11 +25,12 @@ from plugins import processing
 from .topotools import (
 	is_path_valid,
 	fill_no_data,
+	fill_no_data_in_polygon,
 	vector_to_raster,
 	mod_rescale
 )
-from terra_antiqua.terra_modules.topotools import fill_no_data_in_polygon
-import math
+
+
 
 
 
@@ -188,15 +190,19 @@ class FeatureCreator(QThread):
 				rp_params = {
 					'INPUT': mask_layer_densified,
 					'STRATEGY': 1, # type of densification - points density
-					'EXPRESSION': point_density, # points density value
+					'EXPRESSION': str(point_density), # points density value
 					'MIN_DISTANCE': None,
 					'OUTPUT': 'TEMPORARY_OUTPUT'
 					}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			except Exception as e:
-				self.log.emit("Random points creation failed with the following Error:")
-				self.log.emit(str(e))
-					
+			else:
+				pass
+			finally:
+				if not random_points_layer.isValid() or random_points_layer.featureCount()==0:
+					self.log.emit("Error: No random points were created due to an unknown error.")
+					self.kill()
+				else:
+					pass
 			
 			
 			self.progress_count += 10
@@ -457,7 +463,8 @@ class FeatureCreator(QThread):
 			slope_width = self.dlg.slopeWidthSpinBox.value()
 			pixel_size_avrg = (topo_layer.rasterUnitsPerPixelX()+topo_layer.rasterUnitsPerPixelY())/2
 			point_density = 10*0.1/pixel_size_avrg # density of points for random points inside polygon algorithm -Found empirically
-	
+			
+			
 			self.progress_count += 1
 			self.progress.emit(self.progress_count)
 	
@@ -547,19 +554,24 @@ class FeatureCreator(QThread):
 					'OUTPUT': 'TEMPORARY_OUTPUT'
 				}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			except QgsProcessingException:
-				self.log.emit("got an exception")
+			except Exception as e:
 				rp_params = {
 					'INPUT': mask_layer_densified,
 					'STRATEGY': 1, # type of densification - points density
-					'EXPRESSION': point_density, #point_density, # points density value
+					'EXPRESSION': str(point_density), # points density value
 					'MIN_DISTANCE': None,
 					'OUTPUT': 'TEMPORARY_OUTPUT'
 					}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-# 			except QgsProcessingException as e:
-# 				self.log.emit("Random points creation failed with the following Error:")
-# 				self.log.emit(str(e))
+			else:
+				pass
+			finally:
+				if not random_points_layer.isValid() or  random_points_layer.featureCount() == 0:
+					self.log.emit("Error: No random points were created due to an unknown error.")
+					self.kill()
+				else:
+					pass
+
 # 			
 			
 			
