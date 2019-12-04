@@ -61,11 +61,11 @@ class PaleoShorelines(QThread):
 
 		# Get the vector masks
 		self.log.emit('Getting the vector layer')
-		mask_layer = self.dlg.masksBox.currentLayer()
+		vlayer = self.dlg.masksBox.currentLayer()
 
-		if mask_layer.isValid() and mask_layer.featureCount()>0:
+		if vlayer.isValid() and vlayer.featureCount()>0:
 			self.log.emit('The mask layer is loaded properly')
-		elif mask_layer.isValid() and mask_layer.featureCount()==0:
+		elif vlayer.isValid() and vlayer.featureCount()==0:
 			self.log.emit("Error: The mask layer has no features. Please add polygon features to it and try again.")
 			self.kill()
 		else:
@@ -86,8 +86,8 @@ class PaleoShorelines(QThread):
 
 			if not self.killed:
 				# Converting polygons to polylines in order to set the shoreline values to 0
-				path_to_polylines = os.path.join(os.path.dirname(mask_layer.source()), "polylines_from_polygons.shp")
-				pshoreline = polygons_to_polylines(mask_layer, path_to_polylines)
+				path_to_polylines = os.path.join(os.path.dirname(vlayer.source()), "polylines_from_polygons.shp")
+				pshoreline = polygons_to_polylines(vlayer, path_to_polylines)
 				pshoreline_rmask = vector_to_raster(pshoreline, geotransform, ncols, nrows)
 				# Setting shorelines to 0 m
 				topo[pshoreline_rmask == 1] = 0
@@ -97,7 +97,7 @@ class PaleoShorelines(QThread):
 
 			if not self.killed:
 				# Getting the raster masks of the land and sea area
-				r_masks = vector_to_raster(mask_layer, geotransform, ncols, nrows)
+				r_masks = vector_to_raster(vlayer, geotransform, ncols, nrows)
 
 			if not self.killed:
 				# Setting the inland values that are below sea level, and in-sea values that are above sea level to
@@ -213,7 +213,7 @@ class PaleoShorelines(QThread):
 
 		elif self.dlg.rescaleCheckBox.isChecked():
 			if not self.killed:
-				r_masks = vector_to_raster(mask_layer, geotransform, ncols, nrows)
+				r_masks = vector_to_raster(vlayer, geotransform, ncols, nrows)
 				# The bathymetry values that are above sea level are taken down below sea level
 				in_array = topo[(r_masks == 0) * (topo > 0) == 1]
 				topo[(r_masks == 0) * (topo > 0) == 1] = mod_rescale(in_array, max_depth, -0.1)

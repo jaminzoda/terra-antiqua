@@ -7,7 +7,12 @@ from osgeo import (
 	gdal,
 	osr
 )
-from qgis import processing
+
+try:
+	from plugins import processing
+except Exception:
+	import processing
+	
 from qgis.core import (
 	QgsVectorFileWriter,
 	QgsVectorLayer,
@@ -69,22 +74,22 @@ class TopoModifier(QThread):
 
 		# Get the vector masks
 		self.log.emit('Getting the vector layer')
-		mask_layer = self.dlg.masksBox.currentLayer()
+		vlayer = self.dlg.masksBox.currentLayer()
 
 		# Send progress feedback
 		progress_count += 3
 		self.progress.emit(progress_count)
 
-		if mask_layer.isValid:
+		if vlayer.isValid:
 			self.log.emit('The mask layer is loaded properly')
 		else:
 			self.log.emit('There is a problem with the mask layer - not loaded properly')
 
 		if not self.killed:
 			if self.dlg.useAllMasksBox.isChecked():
-				# Get features from the mask_layer
-				features = mask_layer.getFeatures()
-				feats = mask_layer.getFeatures()
+				# Get features from the vlayer
+				features = vlayer.getFeatures()
+				feats = vlayer.getFeatures()
 
 				# Count features
 				feats_count = 0
@@ -102,7 +107,7 @@ class TopoModifier(QThread):
 
 				# TODO add ability to specify several names for the masks
 				expr = QgsExpression(QgsExpression().createFieldEqualityExpression(field, value))
-				features = mask_layer.getFeatures(QgsFeatureRequest(expr))
+				features = vlayer.getFeatures(QgsFeatureRequest(expr))
 
 				# Make sure if any feature is returned by our query above
 				# If the field name or the name of mask is not specified correctly, our feature iterator (features)
@@ -114,10 +119,10 @@ class TopoModifier(QThread):
 
 				# Get the features in the feature iterator again, because during the assertion
 				# we already iterated over the iterator and it is empty now.
-				features = mask_layer.getFeatures(QgsFeatureRequest(expr))
+				features = vlayer.getFeatures(QgsFeatureRequest(expr))
 
 				# Count features
-				feats = mask_layer.getFeatures(QgsFeatureRequest(expr))
+				feats = vlayer.getFeatures(QgsFeatureRequest(expr))
 				feats_count = 0
 				for feat in feats:
 					feats_count += 1
@@ -150,7 +155,7 @@ class TopoModifier(QThread):
 			if self.dlg.formulaCheckBox.isChecked():
 
 				# Get the fields
-				fields = mask_layer.fields().toList()
+				fields = vlayer.fields().toList()
 
 				# Get the field names to be able to fetch formulas from the attributes table
 				field_names = [i.name() for i in fields]
@@ -289,7 +294,7 @@ class TopoModifier(QThread):
 				# specified field in the attribute table or from the spinboxes.
 				if self.dlg.minMaxFromAttrCheckBox.isChecked():
 					# Get the fields from the layer
-					fields = mask_layer.fields().toList()
+					fields = vlayer.fields().toList()
 					# Get the field names to be able to fetch minimum and maximum values from the attributes table
 					field_names = [i.name() for i in fields]
 					# Get the names of fields with the minimum and maximum values.

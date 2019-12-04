@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtGui import QColor
+from PyQt5.QtCore import QVariant
 import datetime
 import os
 from osgeo import gdal, osr, ogr
@@ -11,12 +12,18 @@ from qgis.core import (
 	QgsRasterBandStats,
 	QgsColorRampShader,
 	QgsRasterShader,
-	QgsSingleBandPseudoColorRenderer
+	QgsSingleBandPseudoColorRenderer,
+	QgsProject,
+	QgsField
 	)
 import tempfile
 
 import numpy as np
-from plugins import processing
+
+try:
+	from plugins import processing
+except Exception:
+	import processing
 
 
 def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
@@ -164,7 +171,7 @@ def fill_no_data_in_polygon(in_layer, poly_layer, out_file_path=None, no_data_va
 	## Rasterize the input vector layer with polygon masks
 	poly_array = vector_to_raster(poly_layer, geotransform, width, height)
 	mapped_array = np.zeros((height, width))
-	mapped_array[np.isnan(in_array)*(poly_array == 0)==1] = 1
+	mapped_array[np.isnan(in_array)*(poly_array != 1)==1] = 1
 	raster_ds = None
 	in_array = None
 
@@ -303,7 +310,7 @@ def set_raster_symbology(in_layer):
 	in_layer.triggerRepaint()
 
 
-def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, no_data=None, burn_value=None):
+def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
 	"""
 	Rasterizes a vector layer and returns a numpy array.
 
@@ -319,6 +326,7 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 	"""
 
 	# Convert geotransform to extent if the geotransform is supplied
+	output = os.path.join(tempfile.gettempdir(), "Rasterized_vector_layer.tiff") if output_path is None else output_path
 	if type(geotransform) == tuple and len(geotransform) == 6:
 		upx, xres, xskew, upy, yskew, yres = geotransform
 		cols = width
@@ -336,15 +344,15 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 
 	field_to_burn = field_to_burn if field_to_burn is not None else None
 
-	nodata = no_data if no_data is not None else 0
+	nodata = no_data if no_data is not None else np.nan
 	burn_value = burn_value if burn_value is not None else 1
 
 	input_layer = in_layer
 	r_params = {
 		'INPUT': input_layer,
 		'FIELD': field_to_burn,
-		'BURN': burn_value,
-		'UNITS': 0,
+		'BURN': burn_value, # 0 - if no fixed value is burned
+		'UNITS': 0, # 0- Pixels; 1 - Georeferenced units
 		'WIDTH': width,  # Width of the input layer will be used
 		'HEIGHT': height,  # Height of the input layer will be used
 		'EXTENT': raster_extent,
@@ -353,11 +361,14 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 		'DATA_TYPE': 5,  # Float32 is used
 		'INIT': None,
 		'INVERT': False,
-		'OUTPUT': 'TEMPORARY_OUTPUT'
+		'OUTPUT': output
 	}
 	points_raster = processing.run("gdal:rasterize", r_params)["OUTPUT"]
 	points_raster_ds = gdal.Open(points_raster)
 	points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
+	
+	drv = gdal.GetDriverByName('GTIFF')
+	drv.Delete(output)
 
 	return points_array
 
@@ -591,3 +602,51 @@ def print_log(dialog, msg: str):
 		elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
 			msg = '<span style="color: blue;">{} </span>'.format(msg)
 		dialog.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+		
+def add_raster_layer_for_debug(array, geotransform, iface):
+	out_path = os.path.join(tempfile.tempdir, "Raster_layer_for_debug.tiff")
+	nrows, ncols = np.shape(array)
+	drv = gdal.GetDriverByName("GTIFF")
+	raster = drv.Create(out_path, ncols, nrows, 1, gdal.GDT_Int32)
+	raster.SetGeoTransform(geotransform)
+	crs = osr.SpatialReference()
+	crs.ImportFromEPSG(4326)
+	raster.SetProjection(crs.ExportToWkt())
+	raster.GetRasterBand(1).WriteArray(array)
+	raster.GetRasterBand(1).SetNoDataValue(np.nan)
+	raster.GetRasterBand(1).FlushCache()
+	raster=None
+	
+	
+	rlayer = QgsRasterLayer(out_path, "Raster_Layer_For_Debug", "gdal")
+	iface.addRasterLayer(rlayer)
+def add_vector_layer_for_debug(vlayer, iface):
+	iface.addVectorLayer(vlayer)
+	
+
+def generate_unique_ids(vlayer, id_field) -> QgsVectorLayer: 
+	id_found  = False
+	fields = vlayer.fields().toList()
+	for field in fields:
+		if field.name().lower == id_field:
+			id_found = True
+			id_field = field
+		else:
+			pass
+		
+	
+	
+	if  not id_found:
+		id_field = QgsField("id", QVariant.Int, "integer")
+		vlayer.startEditing()
+		vlayer.addAttribute(id_field)
+		vlayer.commitChanges()
+	
+		
+	features = vlayer.getFeatures()
+	vlayer.startEditing()
+	for current, feature in enumerate(features):
+		feature[id_field.name()]=current
+		vlayer.updateFeature(feature)
+		
+	return vlayer
