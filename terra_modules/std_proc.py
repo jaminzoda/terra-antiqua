@@ -4,7 +4,13 @@ from PyQt5.QtCore import (
 )
 import os
 from osgeo import gdal
-from qgis import processing
+
+try:
+	from plugins import processing
+except Exception:
+	import processing
+	
+	
 from qgis.core import (
 	QgsVectorFileWriter,
 	QgsVectorLayer,
@@ -213,7 +219,7 @@ class StandardProcessing(QThread):
 			if not self.killed:
 				# Get the masks
 				self.log.emit("Getting the mask layer.")
-				mask_layer = self.dlg.masksBox.currentLayer()
+				vlayer = self.dlg.masksBox.currentLayer()
 				progress_count += 5
 				self.progress.emit(progress_count)
 
@@ -231,7 +237,7 @@ class StandardProcessing(QThread):
 					expr = QgsExpression(
 						"lower(\"NAME\") LIKE '%greenland%' OR lower(\"NAME\") LIKE '%antarctic%' OR lower(\"NAME\") LIKE '%marie byrd%' OR lower(\"NAME\") LIKE '%ronne ice%' OR lower(\"NAME\") LIKE '%thurston%' OR lower(\"NAME\") LIKE '%admundsen%'")
 
-					features = mask_layer.getFeatures(QgsFeatureRequest(expr))
+					features = vlayer.getFeatures(QgsFeatureRequest(expr))
 					temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
 					temp_prov = temp_layer.dataProvider()
 					temp_prov.addFeatures(features)
@@ -267,7 +273,7 @@ class StandardProcessing(QThread):
 					progress_count += 5
 					self.progress.emit(progress_count)
 
-					error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", mask_layer.crs(),
+					error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", vlayer.crs(),
 																	"ESRI Shapefile")
 					if error[0] == QgsVectorFileWriter.NoError:
 						self.log.emit("The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
@@ -310,7 +316,7 @@ class StandardProcessing(QThread):
 					geotransform = topo_br_ds.GetGeoTransform()
 					nrows, ncols = np.shape(topo_br_data)
 					self.log.emit("Rasterizing the masks.")
-					r_masks = vector_to_raster(mask_layer, geotransform, ncols, nrows)
+					r_masks = vector_to_raster(vlayer, geotransform, ncols, nrows)
 
 					progress_count += 30
 					self.progress.emit(progress_count)

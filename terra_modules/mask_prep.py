@@ -9,9 +9,11 @@ from qgis.core import (
 	QgsVectorFileWriter
 	)
 import tempfile
-
-from plugins import processing
-
+try:
+	from plugins import processing
+except Exception:
+	import processing
+	
 from .topotools import refactor_fields
 
 

@@ -8,6 +8,7 @@ import os
 from osgeo import (
 	gdal
 )
+
 from qgis.core import (
 	QgsRasterLayer,
 	QgsField,
@@ -15,20 +16,29 @@ from qgis.core import (
 	QgsVectorLayer,
 	QgsVectorFileWriter,
 	QgsProcessingException,
-	QgsExpression
+	QgsExpression,
+	QgsExpressionContext,
+	QgsExpressionContextUtils
 )
 import tempfile
 
 import numpy as np
-from plugins import processing
 
 from .topotools import (
 	is_path_valid,
 	fill_no_data,
 	fill_no_data_in_polygon,
 	vector_to_raster,
-	mod_rescale
+	mod_rescale,
+	add_raster_layer_for_debug
 )
+
+
+try:
+	from plugins import processing
+except Exception:
+	import processing
+
 
 
 
@@ -53,6 +63,14 @@ class FeatureCreator(QThread):
 			self.out_file_path = os.path.join(self.temp_dir, 'PaleoDEM_withCreatedFeatures.tif')
 		else:
 			self.out_file_path = self.dlg.outputPath.filePath()
+		
+		self.context = QgsExpressionContext()
+		self.context.appendScope(QgsExpressionContextUtils.globalScope())
+		if float(self.context.variable("qgis_short_version"))>=float('3.8'):
+			self.processing_output = 'TEMPORARY_OUTPUT'
+		elif float(self.context.variable("qgis_short_version"))<float('3.8'):
+			self.processing_output = 'memory:'
+		
 
 	def run(self):
 		
@@ -161,13 +179,31 @@ class FeatureCreator(QThread):
 			# Densifying the vertices in the feature outlines
 			# # Parameters for densification
 			self.log.emit("Densifying polygon vertices... Densification interval is 0.1 (map units).")
-			d_params = {
-				'INPUT': mask_layer,
-				'INTERVAL': pixel_size_avrg,
-				'OUTPUT': 'TEMPORARY_OUTPUT'
-			}
 			
-			mask_layer_densified = processing.run("native:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+			try:
+				d_params = {
+					'INPUT': mask_layer,
+					'INTERVAL': pixel_size_avrg,
+					'OUTPUT': self.processing_output
+				}
+			
+				mask_layer_densified = processing.run("native:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+			
+			except QgsProcessingException:
+				# the algorithm name and output parameter are different in earlier versions of Qgis (E.g 3.4)
+				d_params = {
+					'INPUT': mask_layer,
+					'INTERVAL': pixel_size_avrg,
+					'OUTPUT': self.processing_output
+				}
+				
+				mask_layer_densified = processing.run("qgis:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+			finally:
+				if not mask_layer_densified.isValid() or mask_layer_densified.featureCount()==0:
+					mask_layer_densified = mask_layer
+					self.log.emit("Warning: Densification of vertices for the feature outlines failed. Initial feature outlines are used. You may densify your geometries manually for smoother surface generation.")
+				
+					
 	
 			self.progress_count += 4
 			self.progress.emit(self.progress_count)
@@ -182,27 +218,25 @@ class FeatureCreator(QThread):
 					'INPUT': mask_layer_densified,
 					'STRATEGY': 1, # type of densification - points density
 					'VALUE': point_density, # points density value
-					'MIN_DISTANCE': None,
-					'OUTPUT': 'TEMPORARY_OUTPUT'
+					'MIN_DISTANCE': pixel_size_avrg,
+					'OUTPUT': self.processing_output
 				}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			except QgsProcessingException:
+			except QgsProcessingException as e:
 				rp_params = {
 					'INPUT': mask_layer_densified,
 					'STRATEGY': 1, # type of densification - points density
 					'EXPRESSION': str(point_density), # points density value
-					'MIN_DISTANCE': None,
-					'OUTPUT': 'TEMPORARY_OUTPUT'
-					}
+					'MIN_DISTANCE': pixel_size_avrg,
+					'OUTPUT': self.processing_output
+				}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			else:
-				pass
 			finally:
 				if not random_points_layer.isValid() or random_points_layer.featureCount()==0:
-					self.log.emit("Error: No random points were created due to an unknown error.")
+					self.log.emit("Error: No random points were created due to the following error: {}.".format(e))
 					self.kill()
-				else:
-					pass
+				
+			
 			
 			
 			self.progress_count += 10
@@ -211,12 +245,15 @@ class FeatureCreator(QThread):
 			
 			# Extracting geographic feature vertices
 			# # Parameters for extracting vertices
-			ev_params = {
-				'INPUT': mask_layer_densified,
-				'OUTPUT': 'TEMPORARY_OUTPUT'
-			}
-			extracted_vertices_layer = processing.run("native:extractvertices", ev_params)['OUTPUT']
-			
+			try:
+				ev_params = {
+					'INPUT': mask_layer_densified,
+					'OUTPUT': self.processing_output
+				}
+				extracted_vertices_layer = processing.run("native:extractvertices", ev_params)['OUTPUT']
+			except Exception as e:
+				self.log.emit("Error: Feature outline vertices are not extracted because of the following error: {}. The distances cannot be calculated. Therefore the algorithm has stopped.".format(e))
+				self.kill()
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 			
@@ -224,15 +261,19 @@ class FeatureCreator(QThread):
 			self.log.emit("Calculating distances to coastline...")
 			# Calculating distance to nearest hub for the random points
 			# # Parameters for the distamce calculation
-			dc_params = {
-				'INPUT': random_points_layer,
-				'HUBS': extracted_vertices_layer,
-				'FIELD': id_field.name(),
-				'UNIT': 3,
-				'OUTPUT': 'TEMPORARY_OUTPUT'
-			}
-	
-			r_points_distance_layer = processing.run("qgis:distancetonearesthubpoints", dc_params)['OUTPUT']
+			try:
+				dc_params = {
+					'INPUT': random_points_layer,
+					'HUBS': extracted_vertices_layer,
+					'FIELD': id_field.name(),
+					'UNIT': 3, #km
+					'OUTPUT': self.processing_output
+				}
+		
+				r_points_distance_layer = processing.run("qgis:distancetonearesthubpoints", dc_params)['OUTPUT']
+			except Exception as e:
+				self.log.emit("Error: Distance calculation for randomly created depth points falied with the following error: {}".format(e))
+				self.kill()
 			
 			self.progress_count += 10
 			self.progress.emit(self.progress_count)
@@ -240,13 +281,17 @@ class FeatureCreator(QThread):
 		if not self.killed:
 			self.log.emit("Sampling existing bathymetry from the input raster...")
 			# Sampling the existing bathymetry values from the input raster
-			sampling_params = {
-				'INPUT': r_points_distance_layer,
-				'RASTERCOPY': topo_layer,
-				'COLUMN_PREFIX': 'depth_value',
-				'OUTPUT': 'TEMPORARY_OUTPUT'
-			}
-			points_dist_depth_layer = processing.run("qgis:rastersampling", sampling_params)['OUTPUT']
+			try:
+				sampling_params = {
+					'INPUT': r_points_distance_layer,
+					'RASTERCOPY': topo_layer,
+					'COLUMN_PREFIX': 'depth_value',
+					'OUTPUT': self.processing_output
+				}
+				points_dist_depth_layer = processing.run("qgis:rastersampling", sampling_params)['OUTPUT']
+			except Exception as e:
+				self.log.emit("Warning: Sampling the initial topography failed with the following error: {}. The depths will be calculated without taking the initial topography into account.".format(e))
+			
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 
@@ -273,12 +318,16 @@ class FeatureCreator(QThread):
 			for current, feat in enumerate(features):
 				attr = feat.attributes()
 				dist = feat.attribute("HubDist")
-				in_depth = feat.attribute("depth_value_1")
+				try:
+					in_depth = feat.attribute("depth_value_1")
+				except Exception:
+					in_depth = None
 	
 				if dist > shelf_width + slope_width:  
 					depth = (max_sea_depth - min_sea_depth) * (dist - min_dist) / (max_dist - min_dist) + min_sea_depth
-					if depth > in_depth:
-						depth = in_depth
+					if in_depth:
+						if depth > in_depth:
+							depth = in_depth
 					attr.append(depth)
 					feat.setAttributes(attr)
 					features_out.append(feat)
@@ -312,15 +361,19 @@ class FeatureCreator(QThread):
 			# # Rasterization parameters
 			
 			self.log.emit("Rasterizing  depth points ...")
-			points_array = vector_to_raster(
-				depth_layer, # layer to rasterize
-				geotransform,  #layer to take crs from
-				width,
-				height,
-				'Depth',	#field take burn value from
-				np.nan,		#no_data value
-				0			#burn value 
-			)
+			try:
+				points_array = vector_to_raster(
+					depth_layer, # layer to rasterize
+					geotransform,  #layer to take crs from
+					width,
+					height,
+					'Depth',	#field take burn value from
+					np.nan,		#no_data value
+					0			#burn value 
+				)
+			except Exception as e:
+				self.log.emit("Error: Rasterization of depth points failed with the following error: {}.".format(e))
+				self.kill()
 			self.progress_count += 10
 			self.progress.emit(self.progress_count)
 		
@@ -336,16 +389,21 @@ class FeatureCreator(QThread):
 			initial_values[:] = bathy[:]  # Copy the elevation values from initial raster
 			
 			self.log.emit("Removing the existing bathymetry within the feature polygons ... ")
-			pol_array = vector_to_raster(
-				mask_layer_densified,
-				geotransform,
-				width,
-				height
-			)
-
-			bathy[pol_array == 1] = np.nan
-			# assign values to the topography raster
-			bathy[np.isfinite(points_array)] = points_array[np.isfinite(points_array)]
+			try:
+				pol_array = vector_to_raster(
+					mask_layer_densified,
+					geotransform,
+					width,
+					height
+				)
+			except Exception as e:
+				self.log.emit("Error: Rasterization of polygon features outlining geographic features failed with the following error: {}.".format(e))
+				self.kill()
+			
+			if not self.killed:
+				bathy[pol_array == 1] = np.nan
+				# assign values to the topography raster
+				bathy[np.isfinite(points_array)] = points_array[np.isfinite(points_array)]
 			
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
@@ -353,23 +411,40 @@ class FeatureCreator(QThread):
 		if not self.killed:
 			self.log.emit("Setting the coastline to zero ...")
 			# Rasterize sea boundaries
-			ptol_params = {
-				'INPUT': mask_layer_densified,
-				'OUTPUT': 'TEMPORARY_OUTPUT'
-			}
-			mlayer_line = processing.run("native:polygonstolines", ptol_params)["OUTPUT"]
+			try:
+				ptol_params = {
+					'INPUT': mask_layer_densified,
+					'OUTPUT': self.processing_output
+				}
+				mlayer_line = processing.run("native:polygonstolines", ptol_params)["OUTPUT"]
+			except Exception as e:
+				ptol_params = {
+					'INPUT': mask_layer_densified,
+					'OUTPUT': self.processing_output
+				}
+				mlayer_line = processing.run("qgis:polygonstolines", ptol_params)["OUTPUT"]
+			finally:
+				if not mlayer_line.isValid() or mlayer_line.featureCount()==0:
+					self.log.emit("Error: Extracting polygon boundaries failed with the following error: {}.".format(e))
+					self.kill()
+		
+			if not self.killed:
+				try:
+					sea_boundary_array = vector_to_raster(
+						mlayer_line,
+						geotransform,
+						width,
+						height
+					)
+				except Exception as e:
+					self.log.emit("Error: Rasterization of feature outline boundaries failed with the following error: {}.".format(e))
+					self.kill()
 	
-			sea_boundary_array = vector_to_raster(
-				mlayer_line,
-				geotransform,
-				width,
-				height
-			)
-	
-			# assign 0m values to the sea line
-			bathy[(sea_boundary_array == 1) * (bathy > 0) == 1] = 0
-			bathy[(sea_boundary_array == 1) * np.isnan(bathy) * np.isfinite(initial_values) * (
-					initial_values > 0) == 1] = 0
+			if not self.killed:
+				# assign 0m values to the sea line
+				bathy[(sea_boundary_array == 1) * (bathy > 0) == 1] = 0
+				bathy[(sea_boundary_array == 1) * np.isnan(bathy) * np.isfinite(initial_values) * (
+						initial_values > 0) == 1] = 0
 			
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
@@ -378,13 +453,18 @@ class FeatureCreator(QThread):
 			self.log.emit("Interpolating depth values for gaps...")
 
 			# Create a temporary raster to store modified data for interpolation
+			
+			
 			raster_for_interpolation = gdal.GetDriverByName('GTIFF').Create(
-				self.out_file_path,
-				width,
-				height,
-				1, #number of bands
-				gdal.GDT_Float32 #data type
-			)
+			self.out_file_path,
+			width,
+			height,
+			1, #number of bands
+			gdal.GDT_Float32 #data type
+		)
+		
+				
+			
 			raster_for_interpolation.SetGeoTransform(geotransform)
 			raster_for_interpolation.SetProjection(projection)
 			band = raster_for_interpolation.GetRasterBand(1)
@@ -392,7 +472,7 @@ class FeatureCreator(QThread):
 			band.WriteArray(bathy)
 			raster_for_interpolation = None
 			bathy = None
-		
+			
 		
 			out_file_path = os.path.join(self.temp_dir, "Interpolated_raster.tiff")
 			rlayer = QgsRasterLayer(self.out_file_path, "Raster for interpolation", "gdal")
@@ -400,8 +480,11 @@ class FeatureCreator(QThread):
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 			
-			
-			fill_no_data(rlayer, out_file_path)
+			try:
+				fill_no_data_in_polygon(rlayer, mask_layer, out_file_path)
+			except Exception as e:
+				self.log.emit("Error: Raster interpolation failed with the following error: {}.".format(e))
+				self.kill()
 			
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
@@ -415,10 +498,13 @@ class FeatureCreator(QThread):
 			
 			
 			# Re-scale the artifacts bsl.
-			in_array = bathy[(pol_array == 1) * (bathy > 0)]
-			if in_array.size>0:
-				bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
-				final_raster.GetRasterBand(1).WriteArray(bathy)
+			try:
+				in_array = bathy[(pol_array == 1) * (bathy > 0)]
+				if in_array.size>0:
+					bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
+					final_raster.GetRasterBand(1).WriteArray(bathy)
+			except Exception:
+				self.log.emit("Warning: Removing artefacts faild.")
 			
 			bathy = None
 			final_raster = None
@@ -524,18 +610,29 @@ class FeatureCreator(QThread):
 		if not self.killed:
 			# Densifying the vertices in the feature outlines
 			# # Parameters for densification
+			
 			try:
-				self.log.emit("Densifying polygon vertices... Densification interval is 0.1 (map units).")
+				self.log.emit("Densifying polygon vertices... Densification interval is {} (map units).".format(pixel_size_avrg))
 				d_params = {
 					'INPUT': mask_layer,
 					'INTERVAL': pixel_size_avrg,
-					'OUTPUT': 'TEMPORARY_OUTPUT'
+					'OUTPUT': self.processing_output
 				}
 				
 				mask_layer_densified = processing.run("native:densifygeometriesgivenaninterval", d_params)['OUTPUT']
-			except Exception:
-				mask_layer_densified = mask_layer
-				self.log.emit("Warning: Densification of vertices for the feature outlines failed with the following exception: {}. Initial feature outlines are used.".format())
+			except QgsProcessingException:
+				# the algorithm name and output parameter are different in earlier versions of Qgis (E.g 3.4)
+				d_params = {
+					'INPUT': mask_layer,
+					'INTERVAL': pixel_size_avrg,
+					'OUTPUT': self.processing_output
+				}
+				
+				mask_layer_densified = processing.run("qgis:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+			finally:
+				if not mask_layer_densified.isValid() or mask_layer_densified.featureCount()==0:
+					mask_layer_densified = mask_layer
+					self.log.emit("Warning: Densification of vertices for the feature outlines failed. Initial feature outlines are used. You may densify your geometries manually for smoother surface generation.")
 				
 			self.progress_count += 4
 			self.progress.emit(self.progress_count)
@@ -550,17 +647,17 @@ class FeatureCreator(QThread):
 					'INPUT': mask_layer_densified,
 					'STRATEGY': 1, # type of densification - points density
 					'VALUE': point_density, # points density value
-					'MIN_DISTANCE': None,
-					'OUTPUT': 'TEMPORARY_OUTPUT'
+					'MIN_DISTANCE': pixel_size_avrg,
+					'OUTPUT': self.processing_output
 				}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			except Exception as e:
+			except QgsProcessingException:
 				rp_params = {
 					'INPUT': mask_layer_densified,
 					'STRATEGY': 1, # type of densification - points density
 					'EXPRESSION': str(point_density), # points density value
-					'MIN_DISTANCE': None,
-					'OUTPUT': 'TEMPORARY_OUTPUT'
+					'MIN_DISTANCE': pixel_size_avrg,
+					'OUTPUT': self.processing_output
 					}
 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
 			else:
@@ -584,12 +681,14 @@ class FeatureCreator(QThread):
 			try:
 				ev_params = {
 					'INPUT': mask_layer_densified,
-					'OUTPUT': 'TEMPORARY_OUTPUT'
+					'OUTPUT': self.processing_output
 				}
 				extracted_vertices_layer = processing.run("native:extractvertices", ev_params)['OUTPUT']
-			except Exception as e:
+			except QgsProcessingException as e:
 				self.log.emit("Error: Extracting feature outline vertices failed with the following error: {}. The algorithm cannot proceed.".format(e))
-				self.kill()
+				self.kill()				
+			
+					
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 			
@@ -602,15 +701,15 @@ class FeatureCreator(QThread):
 					'INPUT': random_points_layer,
 					'HUBS': extracted_vertices_layer,
 					'FIELD': id_field.name(),
-					'UNIT': 3,
-					'OUTPUT': 'TEMPORARY_OUTPUT'
+					'UNIT': 3, #km
+					'OUTPUT': self.processing_output
 				}
 		
 				r_points_distance_layer = processing.run("qgis:distancetonearesthubpoints", dc_params)['OUTPUT']
-			except Exception as e:
-				self.log.emit("Error: Distance calculation for random points inside feature outlines failed with the error: {}".format(e))
+			except QgsProcessingException as e:
+				self.log.emit("Error: Distance calculation for random points inside feature outlines failed with the following error: {}.".format(e))
 				self.kill()
-			
+				
 			self.progress_count += 10
 			self.progress.emit(self.progress_count)
 		
@@ -622,11 +721,12 @@ class FeatureCreator(QThread):
 					'INPUT': r_points_distance_layer,
 					'RASTERCOPY': topo_layer,
 					'COLUMN_PREFIX': 'elev_value',
-					'OUTPUT': 'TEMPORARY_OUTPUT'
+					'OUTPUT': self.processing_output
 				}
 				points_dist_elev_layer = processing.run("qgis:rastersampling", sampling_params)['OUTPUT']
-			except Exception as e:
-				self.log.emit("Warning: Sampling existing topography/bathymetry failed with the following exception: {}. Depth calculation will be done without considering initial topography.".format(e))
+			except QgsProcessingException as e:
+				self.log.emit("Warning: Sampling existing topography/bathymetry failed. Depth calculation will be done without considering initial topography. The following error was thrown: {}".format(e))
+			
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 
@@ -824,9 +924,12 @@ class FeatureCreator(QThread):
 		topo_layer = self.dlg.baseTopoBox.currentLayer()
 		topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
 		topo_projection = topo_ds.GetProjection()
-		bathy = topo_ds.GetRasterBand(1).ReadAsArray()
+		
+		
 		geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
-		nrows, ncols = np.shape(bathy)
+		height = topo_layer.height()
+		width = topo_layer.width()
+		topo_ds = None
 
 		# Get the elevation and depth constrains
 		min_depth = self.dlg.minElevSpinBox.value()
@@ -836,13 +939,13 @@ class FeatureCreator(QThread):
 
 		progress_count += 10
 		self.progress.emit(progress_count)
-
-		if bathy is not None:
-			self.log.emit(('Size of the Topography raster: {}'.format(bathy.shape)))
+		
+		if topo_layer.isValid():
+			self.log.emit("Raster layer is loaded properly.")
 		else:
-			self.log.emit('There is a problem with reading the Topography raster.')
+			self.log.emit("Raster layer is not valid. Please, choose a valid raster layer. ")
 			self.kill()
-			
+
 		if not self.killed:
 			# Get the vector masks
 			self.log.emit('Loading the vector layer')
@@ -899,54 +1002,109 @@ class FeatureCreator(QThread):
 			# Densifying the vertices in the feature outlines
 			# # Parameters for densification
 			self.log.emit("Densifying polygon vertices... Densification interval is {} (map units).".format(pixel_size_avrg))
-			d_params = {
-				'INPUT': mask_layer,
-				'INTERVAL': pixel_size_avrg,
-				'OUTPUT': 'TEMPORARY_OUTPUT'
-			}
+			try:
+				d_params = {
+					'INPUT': mask_layer,
+					'INTERVAL': pixel_size_avrg,
+					'OUTPUT': self.processing_output
+				}
 			
-			mask_layer_densified = processing.run("native:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+				mask_layer_densified = processing.run("native:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+			except QgsProcessingException:
+				
+				d_params = {
+					'INPUT': mask_layer,
+					'INTERVAL': pixel_size_avrg,
+					'OUTPUT': self.processing_output
+				}
+			
+				mask_layer_densified = processing.run("qgis:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+			finally:
+				if not mask_layer_densified.isValid() or mask_layer_densified.featureCount()==0:
+					mask_layer_densified = mask_layer
+					self.log.emit("Warning: Densification of vertices for the feature outlines failed. Initial feature outlines are used. You may densify your geometries manually for smoother surface generation.")
+				else:
+					self.log.emit("The outlines are densified successfully.")
+				
+				
+				
 	
 			
 			# Extract vertices of the polygon
-			extracted_vertices = \
-				processing.run("native:extractvertices", {'INPUT': mask_layer_densified, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+			self.log.emit("Extracting vertices from feature outlines...")
+			ev_params = {
+				'INPUT': mask_layer_densified, 
+				'OUTPUT': self.processing_output
+				}
+			extracted_vertices = processing.run("native:extractvertices", ev_params)["OUTPUT"]
+			assert extracted_vertices.isValid(), "Error: Extracted vertices layer is not valid."
+			self.log.emit("Vertices extracted successfully.")
+			
 
 			# Create voronoy polygons from extracted points
-			voronoy_polygons = processing.run("qgis:voronoipolygons",
-											  {'INPUT': extracted_vertices, 'BUFFER': 0, 'OUTPUT': 'TEMPORARY_OUTPUT'})[
-				"OUTPUT"]
+			self.log.emit("Creating voronoi polygons...")
+			vor_params = {
+				'INPUT': extracted_vertices, 
+				'BUFFER': 0, 
+				'OUTPUT': self.processing_output
+				}
+			voronoy_polygons = processing.run("qgis:voronoipolygons", vor_params)["OUTPUT"]
+			assert voronoy_polygons.isValid(), "Error: Voronoi polygons layer is not valid."
+			self.log.emit("Voronoi polygons created successfully.")
 
 			# Extract vertives of the Voronoy polygons
-			extracted_vor_vertices = \
-				processing.run("native:extractvertices", {'INPUT': voronoy_polygons, 'OUTPUT': 'TEMPORARY_OUTPUT'})[
-					"OUTPUT"]
+			vor_ev_params = {
+				'INPUT': voronoy_polygons, 
+				'OUTPUT': self.processing_output
+				}
+			extracted_vor_vertices = processing.run("native:extractvertices", vor_ev_params)["OUTPUT"]
+			assert extracted_vor_vertices.isValid(), "Error: Extracted voronoi vertices layer is not valid."
+			self.log.emit("Extracted vertices of voronoi polygons successfully.")
 
 			self.progress_count += 10
 			self.progress.emit(progress_count)
 
 		if not self.killed:
 			# Extract the points that lie within the polygon
-			sea_center_points = processing.run("native:extractbylocation",
-											   {'INPUT': extracted_vor_vertices, 'PREDICATE': [6],
-												'INTERSECT': mask_layer,
-												'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+			self.log.emit("Extracting voronoi points from the center of polygons ...")
+			extr_params = {
+				'INPUT': extracted_vor_vertices, 
+				'PREDICATE': [6],
+				'INTERSECT': mask_layer,
+				'OUTPUT': self.processing_output
+				}
+			sea_center_points = processing.run("native:extractbylocation", extr_params)["OUTPUT"]
+			assert sea_center_points.isValid(), "Error: The layer with central sea points extracted is not valid."
+			self.log.emit("Central sea points extracted successfully.")
+			
 
 			# Find the distance from Center-points to edge-points
-			sea_points_dist = processing.run("qgis:distancetonearesthubpoints",
-											 {'INPUT': sea_center_points, 'HUBS': extracted_vertices,
-											  'FIELD': id_field.name(),
-											  'UNIT': 3, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+			self.log.emit("Calculating distance from central points to edges of polygons...")
+			ex_params = {
+				'INPUT': sea_center_points, 
+				'HUBS': extracted_vertices,
+				'FIELD': id_field.name(),
+				'UNIT': 3, 
+				'OUTPUT': self.processing_output
+				}
+			sea_points_dist = processing.run("qgis:distancetonearesthubpoints",ex_params )["OUTPUT"]
+			assert sea_points_dist.isValid(), "The layer with calculated distances is not valid."
+			self.log.emit("Distances calculated successfully.")
+			
 			progress_count += 10
 			self.progress.emit(progress_count)
+			
 		if not self.killed:
-			# Create a new layer to store updated points with depth values
-			sea_points_depth = QgsVectorLayer("Point?crs=epsg:4326", "Depth_values", "memory")
+			
 
 			fields = sea_points_dist.fields().toList()
 			depth_field = QgsField("Depth", QVariant.Double, "double")
+			fid_field = QgsField("fid", QVariant.Int, "double")
 			fields.append(depth_field)
+			fields.append(fid_field)
 
+			# Create a new layer to store updated points with depth values
+			sea_points_depth = QgsVectorLayer("Point?" + topo_layer.crs().toWkt(), "Depth_values", "memory")
 			# Get the depth layer data provider to store the features with depth values
 			sea_points_depth_ds = sea_points_depth.dataProvider()
 			sea_points_depth_ds.addAttributes(fields)
@@ -970,6 +1128,7 @@ class FeatureCreator(QThread):
 			feats_out = []
 			total = 20.0 / sea_points_dist.featureCount() if sea_points_dist.featureCount() else 0
 		if not self.killed:
+			
 			for current, feat in enumerate(feats):
 				if self.killed:
 					break
@@ -979,81 +1138,91 @@ class FeatureCreator(QThread):
 				
 				attr.append(depth)
 				feat.setAttributes(attr)
+				feat["fid"]=current
 				feats_out.append(feat)
 				progress_count += int(current * total)
 				self.progress.emit(progress_count)
 
 		if not self.killed:
 			sea_points_depth_ds.addFeatures(feats_out)
-			sea_points_depth.updateFields()
+			sea_points_depth.updateExtents()
 			sea_points_depth_ds = None
-			out_file = os.path.join(temp_dir, "Point_layer_with_depths.shp")
-			error = QgsVectorFileWriter.writeAsVectorFormat(sea_points_depth, out_file, "UTF-8", sea_points_depth.crs(),
-															"ESRI Shapefile")
-			if error[0] == QgsVectorFileWriter.NoError:
-				pass
-			else:
-				self.log.emit(
-					"ERROR: There was a problem writing the temporary shapefile that stores calculated depths for geographic features to be created.")
-				self.killed()
+			
 
 		# Rasterize layers
 		# Rasterize sea points layer
 		if not self.killed:
-			points_raster = processing.run("gdal:rasterize",
-										   {'INPUT': out_file, 'FIELD': 'Depth', 'BURN': 0, 'UNITS': 0, 'WIDTH': ncols,
-											'HEIGHT': nrows, 'EXTENT': topo_layer, 'NODATA': np.nan, 'OPTIONS': '',
-											'DATA_TYPE': 5,
-											'INIT': None, 'INVERT': False, 'OUTPUT': 'TEMPORARY_OUTPUT'})["OUTPUT"]
+			try:
+				points_array = vector_to_raster(
+					sea_points_depth, 
+					geotransform, 
+					width, 
+					height, 
+					'Depth', 
+					np.nan,
+					0
+				)
+			except Exception as e:
+				self.log.emit("Error: Rasterization of depth points filed with the following error: {}".format(e))
+				self.kill()
 
 			progress_count += 5
 			self.progress.emit(progress_count)
-
-			points_raster_ds = gdal.Open(points_raster)
-			points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
+			
+			topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
+			bathy = topo_ds.GetRasterBand(1).ReadAsArray()
+			topo_ds = None
 
 			# Remove the existing values before assigning
 			# Before we remove values inside the boundaries of the features to be created, we map initial empty cells.
 			initial_values = np.empty(bathy.shape)  # creare an array filled with ones
 			initial_values[:] = bathy[:]  # set the finite (not nan) values to zero
-			pol_array = vector_to_raster(mask_layer, geotransform, ncols, nrows)
+			pol_array = vector_to_raster(mask_layer, geotransform, width, height)
 			bathy[pol_array == 1] = np.nan
 			# assign values to the topography raster
 			bathy[np.isfinite(points_array)] = points_array[np.isfinite(points_array)]
-
+			
+			
+			
+			
 		if not self.killed:
 			# Rasterize sea boundaries
-			vlayer_line = processing.run("native:polygonstolines", {'INPUT': mask_layer, 'OUTPUT': 'TEMPORARY_OUTPUT'})[
-				"OUTPUT"]
-			out_file = os.path.join(temp_dir, "sea_polygon_to_line.shp")
-			error = QgsVectorFileWriter.writeAsVectorFormat(vlayer_line, out_file, "UTF-8", vlayer_line.crs(),
-															"ESRI Shapefile")
-			if error[0] == QgsVectorFileWriter.NoError:
-				pass
-			else:
-				self.log.emit(
-					"ERROR: There was some problem saving a temporary layer with the boundaries of the geographic features.")
-				self.log.emit("ERROR: The algorithm will exit now.")
-				self.killed()
-
+			self.log.emit("Extracting polyline of sea polygon boundaries...")
+			try:
+				r_params = {
+					'INPUT': mask_layer, 
+					'OUTPUT': self.processing_output
+					}
+				vlayer_line = processing.run("native:polygonstolines", r_params)["OUTPUT"]
+			except QgsProcessingException:
+				r_params={
+					'INPUT': mask_layer, 
+					'OUTPUT': self.processing_output
+					}
+				vlayer_line = processing.run("qgis:polygonstolines", r_params)["OUTPUT"]
+			assert vlayer_line.isValid(), "The layer with polygon boundaries is not valid."
+				
+			
 			progress_count += 5
 			self.progress.emit(progress_count)
 
-			vlayer_line = QgsVectorLayer(out_file, "Polygon-lines", "ogr")
-			sea_boundary_array = vector_to_raster(vlayer_line, geotransform, ncols, nrows)
+		
+			sea_boundary_array = vector_to_raster(vlayer_line, geotransform, width, height)
+			
 
 			progress_count += 5
 			self.progress.emit(progress_count)
 
 		if not self.killed:
+			self.log.emit("Setting sea boundaries (shoreline) to 0 m elevation...")
 			# assign 0m values to the sea line
 			bathy[(sea_boundary_array == 1) * (bathy > 0) == 1] = 0
 			bathy[(sea_boundary_array == 1) * np.isnan(bathy) * np.isfinite(initial_values) * (
 					initial_values > 0) == 1] = 0
-
+			
 			out_file = os.path.join(temp_dir, "Raster_for_interpolation.tiff")
 			# Create a temporary raster to store modified data for interpolation
-			raster_for_interpolation = gdal.GetDriverByName('GTIFF').Create(out_file, ncols, nrows, 1, gdal.GDT_Float32)
+			raster_for_interpolation = gdal.GetDriverByName('GTIFF').Create(out_file, width, height, 1, gdal.GDT_Float32)
 			raster_for_interpolation.SetGeoTransform(geotransform)
 			raster_for_interpolation.SetProjection(topo_projection)
 			band = raster_for_interpolation.GetRasterBand(1)
@@ -1061,38 +1230,43 @@ class FeatureCreator(QThread):
 			band.WriteArray(bathy)
 			raster_for_interpolation = None
 			bathy = None
-
-			rlayer = QgsRasterLayer(out_file, "Raster for interpolation", "gdal")
-			fill_no_data(rlayer, out_file_path)
-
-			# Load the raster again to remove artefacts
-			final_raster = gdal.Open(out_file_path, gdal.GA_Update)
-			bathy = final_raster.GetRasterBand(1).ReadAsArray()
-
 			
-			# Rescale the artefacts bsl.
-			in_array = bathy[(pol_array == 1) * (bathy > 0)]
-			if in_array.size>0:
-				bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
-				final_raster.GetRasterBand(1).WriteArray(bathy)
-			bathy=None
-			final_raster = None
+			if not self.killed:
+				rlayer = QgsRasterLayer(out_file, "Raster for interpolation", "gdal")
+				self.log.emit("Interpolating values for empty raster cells...")
+				fill_no_data_in_polygon(rlayer, mask_layer, out_file_path)
+				rlayer=QgsRasterLayer(out_file_path, "Raster after interpolation", "gdal")
+				
+				
+				
+				# Load the raster again to remove artefacts
+				final_raster = gdal.Open(out_file_path, gdal.GA_Update)
+				bathy = final_raster.GetRasterBand(1).ReadAsArray()
+	
+				
+				# Rescale the artefacts bsl.
+				in_array = bathy[(pol_array == 1) * (bathy > 0)]
+				if in_array.size>0:
+					bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
+					final_raster.GetRasterBand(1).WriteArray(bathy)
+				bathy=None
+				final_raster = None
+	
+				# Fill the artefacts with interpolation - did not work well
+				# bathy[(pol_array == 1) * (bathy > 0)] = np.nan
+				# bathy[(sea_boundary_array == 1) * (bathy > 0)] = 0
+				
+	
+				# # Get the layer again to fill emptied cells - this strokes should be enabled (uncommented) for filling the gaps \
+				# # instead of interpolation.
+				# rlayer = QgsRasterLayer(out_file_path, "Raster for interpolation", "gdal")
+				# fill_no_data(rlayer, out_file_path)
+				#
+	
+				progress_count = 100
+				self.progress.emit(progress_count)
 
-			# Fill the artefacts with interpolation - did not work well
-			# bathy[(pol_array == 1) * (bathy > 0)] = np.nan
-			# bathy[(sea_boundary_array == 1) * (bathy > 0)] = 0
-			
-
-			# # Get the layer again to fill emptied cells - this strokes should be enabled (uncommented) for filling the gaps \
-			# # instead of interpolation.
-			# rlayer = QgsRasterLayer(out_file_path, "Raster for interpolation", "gdal")
-			# fill_no_data(rlayer, out_file_path)
-			#
-
-			progress_count = 100
-			self.progress.emit(progress_count)
-
-			self.finished.emit(True, out_file_path)
+				self.finished.emit(True, out_file_path)
 		else:
 			self.finished.emit(False, "")
 
