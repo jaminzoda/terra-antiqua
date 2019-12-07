@@ -14,6 +14,7 @@ from .topotools import (
 	)
 
 
+
 class PaleoShorelines(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
@@ -88,7 +89,14 @@ class PaleoShorelines(QThread):
 				# Converting polygons to polylines in order to set the shoreline values to 0
 				path_to_polylines = os.path.join(os.path.dirname(vlayer.source()), "polylines_from_polygons.shp")
 				pshoreline = polygons_to_polylines(vlayer, path_to_polylines)
-				pshoreline_rmask = vector_to_raster(pshoreline, geotransform, ncols, nrows)
+				pshoreline_rmask = vector_to_raster(
+					pshoreline, 
+					geotransform, 
+					ncols, 
+					nrows,
+					field_to_burn=None,
+					no_data=0
+					)
 				# Setting shorelines to 0 m
 				topo[pshoreline_rmask == 1] = 0
 
@@ -97,7 +105,15 @@ class PaleoShorelines(QThread):
 
 			if not self.killed:
 				# Getting the raster masks of the land and sea area
-				r_masks = vector_to_raster(vlayer, geotransform, ncols, nrows)
+				r_masks = vector_to_raster(
+					vlayer, 
+					geotransform, 
+					ncols, 
+					nrows,
+					field_to_burn=None,
+					no_data=0
+					)
+				
 
 			if not self.killed:
 				# Setting the inland values that are below sea level, and in-sea values that are above sea level to
@@ -123,9 +139,9 @@ class PaleoShorelines(QThread):
 
 					raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
 					raster.SetGeoTransform(geotransform)
-					crs = osr.SpatialReference()
-					crs.ImportFromEPSG(4326)
-					raster.SetProjection(crs.ExportToWkt())
+					crs = topo_layer.crs().toWkt()
+					raster.SetProjection(crs)
+					raster.GetRasterBand(1).SetNoDataValue(np.nan)
 					raster.GetRasterBand(1).WriteArray(topo)
 					raster = None
 
@@ -146,25 +162,30 @@ class PaleoShorelines(QThread):
 					# assigned zero values), the old values will used and rescaled below/above sea level
 					raster_layer_ds = gdal.Open(raster_layer_interpolated, gdalconst.GA_Update)
 					topo_modified = raster_layer_ds.GetRasterBand(1).ReadAsArray()
+					
 					array_to_rescale_bsl = topo_values_copied[np.isfinite(topo_values_copied) * (topo_modified == 0)
 															  * (r_masks == 0) == 1]
+					
 					array_to_rescale_asl = topo_values_copied[np.isfinite(topo_values_copied) * (topo_modified == 0)
 															  * (r_masks == 1) == 1]
-					topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 0) == 1] = \
-						mod_rescale(array_to_rescale_bsl, -5, -0.1)
-					topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 1) == 1] = \
-						mod_rescale(array_to_rescale_asl, 0.1, 5)
+					if array_to_rescale_bsl.size>0 and np.isfinite(array_to_rescale_bsl).size>0:
+						topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 0) == 1] = \
+							mod_rescale(array_to_rescale_bsl, -5, -0.1)
+						
+					if array_to_rescale_asl.size>0 and np.isfinite(array_to_rescale_asl).size>0:
+						topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 1) == 1] = \
+							mod_rescale(array_to_rescale_asl, 0.1, 5)
 
 					progress_count += 5
 					self.progress.emit(progress_count)
 
-					# Removing final artifacts from the sea and land. Some pixels that are close to the shoreline
+					# Removing final artefacts from the sea and land. Some pixels that are close to the shoreline
 					# touch pixels on the other side of the shoreline and get wrong value during the interpolation
 
 					# Pixel values of the sea that are asl
 					data_to_fill_bsl = topo_values_copied[(r_masks == 0) * (topo_modified > 0) *
 														  (np.isfinite(topo_values_copied)) == 1]
-					if data_to_fill_bsl.size>0:
+					if data_to_fill_bsl.size>0 and np.isfinite(data_to_fill_bsl).size>0:
 						topo_modified[(r_masks == 0) * (topo_modified > 0) * np.isfinite(topo_values_copied) == 1] \
 							= mod_rescale(data_to_fill_bsl, -5, -0.1)
 
@@ -174,8 +195,9 @@ class PaleoShorelines(QThread):
 					# Pixel values of land that are bsl
 					data_to_fill_asl = topo_values_copied[(r_masks == 1) * (topo_modified < 0) *
 														  np.isfinite(topo_values_copied) == 1]
-					topo_modified[(r_masks == 1) * (topo_modified < 0) * np.isfinite(topo_values_copied) == 1] \
-						= mod_rescale(data_to_fill_asl, 0.1, 5)
+					if data_to_fill_asl.size>0 and np.isfinite(data_to_fill_asl).size>0:
+						topo_modified[(r_masks == 1) * (topo_modified < 0) * np.isfinite(topo_values_copied) == 1] \
+							= mod_rescale(data_to_fill_asl, 0.1, 5)
 
 					progress_count += 5
 					self.progress.emit(progress_count)
@@ -213,7 +235,14 @@ class PaleoShorelines(QThread):
 
 		elif self.dlg.rescaleCheckBox.isChecked():
 			if not self.killed:
-				r_masks = vector_to_raster(vlayer, geotransform, ncols, nrows)
+				r_masks = vector_to_raster(
+					vlayer, 
+					geotransform, 
+					ncols, 
+					nrows,
+					field_to_burn=None,
+					no_data=0
+					)
 				# The bathymetry values that are above sea level are taken down below sea level
 				in_array = topo[(r_masks == 0) * (topo > 0) == 1]
 				topo[(r_masks == 0) * (topo > 0) == 1] = mod_rescale(in_array, max_depth, -0.1)
