@@ -18,7 +18,8 @@ import tempfile
 
 import numpy as np
 
-from .topotools import vector_to_raster
+from .topotools import vector_to_raster, mod_rescale
+
 
 
 class TopoBathyCompiler(QThread):
@@ -231,17 +232,38 @@ class TopoBathyCompiler(QThread):
 				if not self.killed:
 		
 					# Rasterize extracted masks
-					ss_mask = vector_to_raster(ss_temp, geotransform, ncols, nrows)
+					ss_mask = vector_to_raster(
+						ss_temp, 
+						geotransform, 
+						ncols, 
+						nrows,
+						field_to_burn=None,
+						no_data=0
+						)
 		
 					progress_count += 5
 					self.progress.emit(progress_count)
 		
-					cs_mask = vector_to_raster(cs_temp, geotransform, ncols, nrows)
+					cs_mask = vector_to_raster(
+						cs_temp, 
+						geotransform, 
+						ncols, 
+						nrows,
+						field_to_burn=None,
+						no_data=0
+						)
 		
 					progress_count += 5
 					self.progress.emit(progress_count)
 		
-					coast_mask = vector_to_raster(coast_temp, geotransform, ncols, nrows)
+					coast_mask = vector_to_raster(
+						coast_temp, 
+						geotransform, 
+						ncols, 
+						nrows,
+						field_to_burn=None,
+						no_data=0
+						)
 		
 					progress_count += 5
 					self.progress.emit(progress_count)
@@ -321,7 +343,7 @@ class TopoBathyCompiler(QThread):
 					paleo_dem[:] = np.nan
 					paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
 					paleo_dem[paleo_bathy < -12000] = np.nan
-					paleo_dem[paleo_bathy > 0] = 0
+					paleo_dem[paleo_bathy > 0] = mod_rescale(paleo_dem[paleo_bathy>0], -15, -0.1)
 		
 					progress_count += 20
 					self.progress.emit(progress_count)
@@ -333,7 +355,14 @@ class TopoBathyCompiler(QThread):
 				
 		
 					# Rasterize masks layer
-					coast_mask = vector_to_raster(masks_layer, geotransform, ncols, nrows)
+					coast_mask = vector_to_raster(
+						masks_layer, 
+						geotransform, 
+						ncols, 
+						nrows,
+						field_to_burn=None,
+						no_data=0
+						)
 		
 					progress_count += 20
 					self.progress.emit(progress_count)

@@ -34,6 +34,7 @@ from .topotools import (
 )
 
 
+
 try:
 	from plugins import processing
 except Exception:
@@ -394,7 +395,9 @@ class FeatureCreator(QThread):
 					mask_layer_densified,
 					geotransform,
 					width,
-					height
+					height,
+					field_to_burn=None,
+					no_data=0
 				)
 			except Exception as e:
 				self.log.emit("Error: Rasterization of polygon features outlining geographic features failed with the following error: {}.".format(e))
@@ -434,7 +437,9 @@ class FeatureCreator(QThread):
 						mlayer_line,
 						geotransform,
 						width,
-						height
+						height,
+						field_to_burn=None,
+						no_data=0
 					)
 				except Exception as e:
 					self.log.emit("Error: Rasterization of feature outline boundaries failed with the following error: {}.".format(e))
@@ -839,7 +844,9 @@ class FeatureCreator(QThread):
 					mask_layer_densified,
 					geotransform,
 					width,
-					height
+					height,
+					field_to_burn=None,
+					no_data=0
 				)
 			except Exception as e:
 				self.log.emit("Error: Rasterization of geographic feature polygons failed with the following error: {}.".format(e))
@@ -1177,7 +1184,16 @@ class FeatureCreator(QThread):
 			# Before we remove values inside the boundaries of the features to be created, we map initial empty cells.
 			initial_values = np.empty(bathy.shape)  # creare an array filled with ones
 			initial_values[:] = bathy[:]  # set the finite (not nan) values to zero
-			pol_array = vector_to_raster(mask_layer, geotransform, width, height)
+			pol_array = vector_to_raster(
+				mask_layer, 
+				geotransform, 
+				width, 
+				height,
+				field_to_burn=None,
+				no_data=0
+				)
+			
+			
 			bathy[pol_array == 1] = np.nan
 			# assign values to the topography raster
 			bathy[np.isfinite(points_array)] = points_array[np.isfinite(points_array)]
@@ -1207,7 +1223,14 @@ class FeatureCreator(QThread):
 			self.progress.emit(progress_count)
 
 		
-			sea_boundary_array = vector_to_raster(vlayer_line, geotransform, width, height)
+			sea_boundary_array = vector_to_raster(
+				vlayer_line, 
+				geotransform, 
+				width, 
+				height,
+				field_to_burn=None,
+				no_data=0
+				)
 			
 
 			progress_count += 5

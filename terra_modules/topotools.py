@@ -346,10 +346,13 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 
 	nodata = no_data if no_data is not None else np.nan
 	burn_value = burn_value if burn_value is not None else 1
-
-	input_layer = in_layer
+	
+	#Check if the input vector layer contains any feature
+	assert (in_layer.featureCount()>0), "The Input vector layer does not contain any feature (polygon, polyline or point)."
+		
+	
 	r_params = {
-		'INPUT': input_layer,
+		'INPUT': in_layer,
 		'FIELD': field_to_burn,
 		'BURN': burn_value, # 0 - if no fixed value is burned
 		'UNITS': 0, # 0- Pixels; 1 - Georeferenced units
@@ -367,8 +370,8 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 	points_raster_ds = gdal.Open(points_raster)
 	points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
 	
-	drv = gdal.GetDriverByName('GTIFF')
-	drv.Delete(output)
+# 	drv = gdal.GetDriverByName('GTIFF')
+# 	drv.Delete(output)
 
 	return points_array
 

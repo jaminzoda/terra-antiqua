@@ -144,7 +144,14 @@ class StandardProcessing(QThread):
 				# Rasterize masks
 				geotransform = to_raster.GetGeoTransform()
 				nrows, ncols = to_array.shape
-				mask_array = vector_to_raster(mask_vector_layer, geotransform, ncols, nrows)
+				mask_array = vector_to_raster(
+					mask_vector_layer, 
+					geotransform, 
+					ncols, 
+					nrows,
+					field_to_burn=None,
+					no_data=0
+					)
 
 				self.log.emit("The masks are rasterized.")
 				progress_count += 40
@@ -290,7 +297,14 @@ class StandardProcessing(QThread):
 					geotransform = topo_br_ds.GetGeoTransform()
 					nrows, ncols = np.shape(topo_br_data)
 					v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-					r_masks = vector_to_raster(v_layer, geotransform, ncols, nrows)
+					r_masks = vector_to_raster(
+						v_layer, 
+						geotransform, 
+						ncols, 
+						nrows,
+						field_to_burn=None,
+						no_data=0
+						)
 
 					progress_count += 10
 					self.progress.emit(progress_count)
@@ -316,7 +330,14 @@ class StandardProcessing(QThread):
 					geotransform = topo_br_ds.GetGeoTransform()
 					nrows, ncols = np.shape(topo_br_data)
 					self.log.emit("Rasterizing the masks.")
-					r_masks = vector_to_raster(vlayer, geotransform, ncols, nrows)
+					r_masks = vector_to_raster(
+						vlayer, 
+						geotransform, 
+						ncols, 
+						nrows,
+						field_to_burn=None,
+						no_data=0
+						)
 
 					progress_count += 30
 					self.progress.emit(progress_count)

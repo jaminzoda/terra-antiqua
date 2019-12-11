@@ -277,7 +277,14 @@ class TopoModifier(QThread):
 
 					# Rasterize extracted masks
 					v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-					r_masks = vector_to_raster(v_layer, geotransform, ncols, nrows)
+					r_masks = vector_to_raster(
+						v_layer, 
+						geotransform, 
+						ncols, 
+						nrows,
+						field_to_burn=None,
+						no_data=0
+						)
 					v_layer = None
 
 					# Modify the topography
@@ -348,7 +355,14 @@ class TopoModifier(QThread):
 
 						# Rasterize extracted masks
 						v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-						r_masks = vector_to_raster(v_layer, geotransform, ncols, nrows)
+						r_masks = vector_to_raster(
+							v_layer, 
+							geotransform, 
+							ncols, 
+							nrows,
+							field_to_burn=None,
+							no_data=0
+							)
 						v_layer = None
 
 						# Modify the topography
@@ -397,7 +411,14 @@ class TopoModifier(QThread):
 					if not self.killed:
 						# Rasterize extracted masks
 						v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-						r_masks = vector_to_raster(v_layer, geotransform, ncols, nrows)
+						r_masks = vector_to_raster(
+							v_layer, 
+							geotransform, 
+							ncols, 
+							nrows,
+							field_to_burn=None,
+							no_data=0
+							)
 						v_layer = None
 
 						# Send progress feedback
