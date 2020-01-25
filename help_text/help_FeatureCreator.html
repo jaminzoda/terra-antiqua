@@ -1,0 +1,33 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="StyleSheet.css">
+</head>
+<title> Create geographic feature </title>
+
+<body>
+<p>
+This tool creates new topography or bathymetry in a DEM in the area defined by a polygon.
+<div>This tool is experimental and will be available in the version 0.2 of TerraAntiqua</div>
+
+<p>
+<h4>Geographic feature creation</h4><br/>
+<b>Field - <i>Raster to be modified</i>:</b><br/>
+Select the raster where you want to create the features.
+<p>
+<b>Field - <i>Polygons for the geographic features</i>:</b><br/>
+Select the vector file containing the polygons where you want to create new geographic features
+<p>
+<b>Field - <i>Maximum elevation/depth of geographic features (in m)</i>:</b><br/>
+Enter here the maximum elevation (for topography) or depth (for bathymetry) that the new features must have.
+<p>
+<b>Field - <i>Minimum elevation/depth of geographic features (in m)</i>:</b><br/>
+Enter here the minimum elevation (for topography) or depth (for bathymetry) that the new features must have.
+<p>
+<b>Specify the <i>Output file path</i>.</b><br>
+If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
+    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+</p>
+</body>
+</html>
+

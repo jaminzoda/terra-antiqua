@@ -4,20 +4,20 @@
     </head>
     <title> Fill from another raster </title>
     <body>
-<p> This tool allows you to copy values from a raster into another one. The values of the pixels covered by the masks selected will be copied into the second raster.
-<div>Although <i>Fill from another raster</i> has been designed as a complementary tool for the DEM compiler, it may be used with any single band raster. </div>
+<p> This tool allows you to copy values from a raster into another one. The values of the pixels covered by a mask will be copied into the second raster.
+<div>Please note that the area you copy from the original raster will be in the same position in the target raster.</div>
 <p>
-<b>Field - <i>Raster to be modified (Input)</i></b><br/>
-Choose the Raster (DEM) file corresponding to the DEM you want to copy the values to.
-<br/><b>Field - <i>Select the raster to copy values from</i></b><br/>
-Choose the raster you want to copy the values from.
+<b>Field - <i>Raster to be modified</i></b><br/>
+Choose the DEM you want to copy the values to.
+<br/><b>Field - <i>Raster to copy the values from</i></b><br/>
+Choose the DEM you want to copy the values from.
 <br/><b>Field - <i>Masks</i></b><br/>
-Select the vector layer containing the masks of the areas you want to copy.
+Select the vector layer containing the masks covering the areas you want to copy.
 <p>
 <b>Specify the <i>Output file path</i>.</b><br>
 If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
-    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or file name) each time</div>
+    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 </p>
 </body>
     </html>
