@@ -3,7 +3,7 @@
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QVariant
 import datetime
-import os
+import random
 from osgeo import gdal, osr, ogr
 from osgeo import gdalconst
 from qgis.core import (
@@ -14,17 +14,26 @@ from qgis.core import (
 	QgsRasterShader,
 	QgsSingleBandPseudoColorRenderer,
 	QgsProject,
-	QgsField
+	QgsField,
+	QgsDistanceArea,
+	QgsProcessingContext,
+	QgsGeometry,
+	QgsPointXY,
+	QgsSpatialIndex,
+	QgsFeature,
+	QgsFields
 	)
 import tempfile
+import os
 
 import numpy as np
 
 try:
 	from plugins import processing
+	from plugins.processing.tools import vector
 except Exception:
 	import processing
-
+	from processing.tools import vector
 
 def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
 	"""
@@ -205,7 +214,7 @@ def fill_no_data_in_polygon(in_layer, poly_layer, out_file_path=None, no_data_va
 	if os.path.exists(mask_path):
 		driver.Delete(mask_path)
 
-	return out_file_path
+	return out_file_path 
 
 def raster_smoothing(in_layer, factor, out_file=None, feedback=None):
 	"""
@@ -370,8 +379,8 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 	points_raster_ds = gdal.Open(points_raster)
 	points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
 	
-# 	drv = gdal.GetDriverByName('GTIFF')
-# 	drv.Delete(output)
+	drv = gdal.GetDriverByName('GTIFF')
+	drv.Delete(output)
 
 	return points_array
 
@@ -604,6 +613,9 @@ def print_log(dialog, msg: str):
 			msg = '<span style="color: red;">{} </span>'.format(msg)
 		elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
 			msg = '<span style="color: blue;">{} </span>'.format(msg)
+		
+		msg=msg.replace("<", "&lt;")
+		msg=msg.replace(">", "&gt;")
 		dialog.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 		
 def add_raster_layer_for_debug(array, geotransform, iface):
@@ -653,3 +665,100 @@ def generate_unique_ids(vlayer, id_field) -> QgsVectorLayer:
 		vlayer.updateFeature(feature)
 		
 	return vlayer
+
+def random_points_in_polygon(source, point_density, min_distance, feedback, runtime_percentage):
+	"""
+	Creates random points inside polygons. 
+	:param source: input vector layer with polygon features, inside which the random points will be created.
+	:param point_density: the density of points to be created inside polygons. Number of points to be created will be calculated with the following formula: Pnumber = Pdensity * PolygonArea.
+	:param min_distance: Minimum distance that will be kept between created points.
+	:param feedback: a feedback object to provide progress and other info to user. For now a Qthread object is passed to use its pyqtsignals, functions and attributes for feedback purposes.
+	:param runtime_percentage: time that this part of the algorithm will take (this function is run inside an algorithm e.g. Feature Creator) in percent (e.g. 10%)
+	"""
+		
+	context = QgsProcessingContext()
+	context.setProject(QgsProject.instance())
+	
+	da = QgsDistanceArea()
+	da.setSourceCrs(source.crs(), context.transformContext())
+	da.setEllipsoid(context.project().ellipsoid())
+
+	fields = QgsFields()
+	fields.append(QgsField('id', QVariant.Int, '', 10, 0))
+	crs = source.crs().toWkt()
+	points_layer = QgsVectorLayer("Point?" + crs, "Depth layer", "memory")
+	points_layer_dp = points_layer.dataProvider()
+	points_layer_dp.addAttributes(fields)
+	points_layer.updateFields()
+	
+	total = runtime_percentage / source.featureCount() if source.featureCount() else 0
+	
+	pointId = 0
+	created_features = []
+	for current, f in enumerate(source.getFeatures()):
+		if feedback.killed:
+			break
+
+		if not f.hasGeometry():
+			continue
+
+		feedback.progress_count += total * current
+		feedback.progress.emit(feedback.progress_count)
+
+		fGeom = f.geometry()
+		engine = QgsGeometry.createGeometryEngine(fGeom.constGet())
+		engine.prepareGeometry()
+
+		bbox = fGeom.boundingBox()
+		pointCount = int(round(point_density* da.measureArea(fGeom)))
+
+		if pointCount == 0:
+			feedback.log.emit("Warning: Skip feature {} while creating random points as number of points for it is 0.".format(f.id()))
+			continue
+
+		index = None
+		if min_distance:
+			index = QgsSpatialIndex()
+		points = dict()
+
+		nPoints = 0
+		nIterations = 0
+		maxIterations = pointCount * 200
+		feature_total = total / pointCount if pointCount else 1
+
+		random.seed()
+
+		while nIterations < maxIterations and nPoints < pointCount:
+			if feedback.killed:
+				break
+
+			rx = bbox.xMinimum() + bbox.width() * random.random()
+			ry = bbox.yMinimum() + bbox.height() * random.random()
+
+			p = QgsPointXY(rx, ry)
+			geom = QgsGeometry.fromPointXY(p)
+			if engine.contains(geom.constGet()) and \
+					(not min_distance or vector.checkMinDistance(p, index, min_distance, points)):
+				f = QgsFeature(nPoints)
+				f.initAttributes(1)
+				f.setFields(fields)
+				f.setAttribute('id', pointId)
+				f.setGeometry(geom)
+				created_features.append(f)
+				if min_distance:
+					index.addFeature(f)
+				points[nPoints] = p
+				nPoints += 1
+				pointId += 1
+				feedback.progress.emit(feedback.progress_count + int(nPoints * feature_total))
+			nIterations += 1
+
+		if nPoints < pointCount:
+			feedback.log.emit('Could not generate requested number of random points. Maximum number of attempts exceeded.')
+	points_layer_dp.addFeatures(created_features)
+	points_layer_dp = None
+	nPolygons = source.featureCount()
+	nPoints_created = points_layer.featureCount()
+	feedback.log.emit("{0} random points were created inside {1} polygons.".format(nPoints_created, nPolygons))
+	
+	return points_layer

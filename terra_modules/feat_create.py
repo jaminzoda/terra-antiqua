@@ -30,7 +30,8 @@ from .topotools import (
 	fill_no_data_in_polygon,
 	vector_to_raster,
 	mod_rescale,
-	add_raster_layer_for_debug
+	add_raster_layer_for_debug,
+	random_points_in_polygon
 )
 
 
@@ -65,11 +66,17 @@ class FeatureCreator(QThread):
 		else:
 			self.out_file_path = self.dlg.outputPath.filePath()
 		
+		# The processing algorithms in Qgis starting from version 3.8 use a notation of 'TEMPORARY_OUTPUT' for memory outputs
+		# while in versions below 3.8 the 'memory:' notation is used. 
+		#Here we set the appropriate processing output for relevant qgis versions.
 		self.context = QgsExpressionContext()
 		self.context.appendScope(QgsExpressionContextUtils.globalScope())
-		if float(self.context.variable("qgis_short_version"))>=float('3.8'):
+		qgis_version = self.context.variable("qgis_short_version")
+		if float(qgis_version) >= 3.8:
 			self.processing_output = 'TEMPORARY_OUTPUT'
-		elif float(self.context.variable("qgis_short_version"))<float('3.8'):
+		elif qgis_version == '3.10':					#conversion of 3.10 to float gives 3.1 therefore we do not convert it
+			self.processing_output = 'TEMPORARY_OUTPUT'
+		elif float(qgis_version) < 3.8:
 			self.processing_output = 'memory:'
 		
 
@@ -213,39 +220,40 @@ class FeatureCreator(QThread):
 			self.log.emit("Creating depth points inside feature polygons...")
 			# Creating random points inside feature outline polygons
 			# # Parameters for random points algorithm
-			
 			try:
-				rp_params = {
-					'INPUT': mask_layer_densified,
-					'STRATEGY': 1, # type of densification - points density
-					'VALUE': point_density, # points density value
-					'MIN_DISTANCE': pixel_size_avrg,
-					'OUTPUT': self.processing_output
-				}
-				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			except QgsProcessingException as e:
-				rp_params = {
-					'INPUT': mask_layer_densified,
-					'STRATEGY': 1, # type of densification - points density
-					'EXPRESSION': str(point_density), # points density value
-					'MIN_DISTANCE': pixel_size_avrg,
-					'OUTPUT': self.processing_output
-				}
-				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			finally:
-				if not random_points_layer.isValid() or random_points_layer.featureCount()==0:
-					self.log.emit("Error: No random points were created due to the following error: {}.".format(e))
-					self.kill()
+				random_points_layer = random_points_in_polygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
+			except Exception as e:
+				self.log.emit("Failed to create random points inside feature polygons with the following exception: {}".format(e))
+				self.kill()
+
 				
-			
-			
-			
-			self.progress_count += 10
-			self.progress.emit(self.progress_count)
-			
-			
+# 			try:
+# 				rp_params = {
+# 					'INPUT': mask_layer_densified,
+# 					'STRATEGY': 1, # type of densification - points density
+# 					'VALUE': point_density, # points density value
+# 					'MIN_DISTANCE': pixel_size_avrg,
+# 					'OUTPUT': self.processing_output
+# 				}
+# 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
+# 			except QgsProcessingException as e:
+# 				rp_params = {
+# 					'INPUT': mask_layer_densified,
+# 					'STRATEGY': 1, # type of densification - points density
+# 					'EXPRESSION': str(point_density), # points density value
+# 					'MIN_DISTANCE': pixel_size_avrg,
+# 					'OUTPUT': self.processing_output
+# 				}
+# 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
+# 			finally:
+# 				if not random_points_layer.isValid() or random_points_layer.featureCount()==0:
+# 					self.log.emit("Error: No random points were created due to the following error: {}.".format(e))
+# 					self.kill()
+				
+		if not self.killed:
 			# Extracting geographic feature vertices
 			# # Parameters for extracting vertices
+			self.log.emit("Extracting polygon feature vertices...")
 			try:
 				ev_params = {
 					'INPUT': mask_layer_densified,
@@ -255,6 +263,10 @@ class FeatureCreator(QThread):
 			except Exception as e:
 				self.log.emit("Error: Feature outline vertices are not extracted because of the following error: {}. The distances cannot be calculated. Therefore the algorithm has stopped.".format(e))
 				self.kill()
+			else:
+				if extracted_vertices_layer.featureCount() == 0:
+					self.log.emit("Error: Polygon feature vertices are not extracted.")
+					self.kill()
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 			
@@ -275,6 +287,11 @@ class FeatureCreator(QThread):
 			except Exception as e:
 				self.log.emit("Error: Distance calculation for randomly created depth points falied with the following error: {}".format(e))
 				self.kill()
+			else: 
+				if r_points_distance_layer.featureCount() == 0:
+					self.log.emit("Error: There was an error while calculating distances to coastline.")
+					self.kill()
+
 			
 			self.progress_count += 10
 			self.progress.emit(self.progress_count)
@@ -346,7 +363,7 @@ class FeatureCreator(QThread):
 				self.progress.emit(self.progress_count)
 			
 			crs = mask_layer.crs().toWkt()
-			depth_layer = QgsVectorLayer("Point?" + crs, "Depth layer", "memory")
+			depth_layer = QgsVectorLayer("Point?crs=" + crs, "Depth layer", "memory")
 			depth_layer_dp = depth_layer.dataProvider()
 			fields = points_dist_depth_layer.fields().toList()
 			depth_field = QgsField("Depth", QVariant.Double, "double")
@@ -375,8 +392,10 @@ class FeatureCreator(QThread):
 			except Exception as e:
 				self.log.emit("Error: Rasterization of depth points failed with the following error: {}.".format(e))
 				self.kill()
+				raise e
 			self.progress_count += 10
 			self.progress.emit(self.progress_count)
+			
 		
 		if not self.killed:
 			
@@ -458,10 +477,10 @@ class FeatureCreator(QThread):
 			self.log.emit("Interpolating depth values for gaps...")
 
 			# Create a temporary raster to store modified data for interpolation
-			
+			out_file_path = os.path.join(self.temp_dir, "Interpolated_raster.tiff")
 			
 			raster_for_interpolation = gdal.GetDriverByName('GTIFF').Create(
-			self.out_file_path,
+			out_file_path,
 			width,
 			height,
 			1, #number of bands
@@ -479,14 +498,14 @@ class FeatureCreator(QThread):
 			bathy = None
 			
 		
-			out_file_path = os.path.join(self.temp_dir, "Interpolated_raster.tiff")
-			rlayer = QgsRasterLayer(self.out_file_path, "Raster for interpolation", "gdal")
+			
+			rlayer = QgsRasterLayer(out_file_path, "Raster for interpolation", "gdal")
 			
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 			
 			try:
-				fill_no_data_in_polygon(rlayer, mask_layer, out_file_path)
+				fill_no_data_in_polygon(rlayer, mask_layer, self.out_file_path)
 			except Exception as e:
 				self.log.emit("Error: Raster interpolation failed with the following error: {}.".format(e))
 				self.kill()
@@ -497,7 +516,7 @@ class FeatureCreator(QThread):
 		if not self.killed:
 			self.log.emit("Removing some artifacts")
 			# Load the raster again to remove artifacts
-			final_raster = gdal.Open(out_file_path, gdal.GA_Update)
+			final_raster = gdal.Open(self.out_file_path, gdal.GA_Update)
 			bathy = final_raster.GetRasterBand(1).ReadAsArray()
 	
 			
@@ -523,7 +542,7 @@ class FeatureCreator(QThread):
 			self.progress_count = 100
 			self.progress.emit(self.progress_count)
 			
-			self.finished.emit(True, out_file_path)
+			self.finished.emit(True, self.out_file_path)
 		else:
 			self.finished.emit(False, "")
 			
@@ -645,42 +664,47 @@ class FeatureCreator(QThread):
 		if not self.killed:
 			self.log.emit("Creating depth points inside feature polygons...")
 			# Creating random points inside feature outline polygons
-			# # Parameters for random points algorithm
-			
 			try:
-				rp_params = {
-					'INPUT': mask_layer_densified,
-					'STRATEGY': 1, # type of densification - points density
-					'VALUE': point_density, # points density value
-					'MIN_DISTANCE': pixel_size_avrg,
-					'OUTPUT': self.processing_output
-				}
-				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
-			except QgsProcessingException:
-				rp_params = {
-					'INPUT': mask_layer_densified,
-					'STRATEGY': 1, # type of densification - points density
-					'EXPRESSION': str(point_density), # points density value
-					'MIN_DISTANCE': pixel_size_avrg,
-					'OUTPUT': self.processing_output
-					}
-				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
+				random_points_layer = random_points_in_polygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
+			except Exception as e:
+				self.log.emit("Error: Failed to create random points inside polygon features. The error is: {}".format(e))
+				self.kill()
 			else:
-				pass
-			finally:
-				if not random_points_layer.isValid() or  random_points_layer.featureCount() == 0:
-					self.log.emit("Error: No random points were created due to an unknown error.")
+				if random_points_layer.featureCount() == 0:
+					self.log.emit("Error: Failed to create random points inside polygon features.")
 					self.kill()
-				else:
-					pass
-
+# 			# # Parameters for random points algorithm
 # 			
+# 			try:
+# 				rp_params = {
+# 					'INPUT': mask_layer_densified,
+# 					'STRATEGY': 1, # type of densification - points density
+# 					'VALUE': point_density, # points density value
+# 					'MIN_DISTANCE': pixel_size_avrg,
+# 					'OUTPUT': self.processing_output
+# 				}
+# 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
+# 			except QgsProcessingException:
+# 				rp_params = {
+# 					'INPUT': mask_layer_densified,
+# 					'STRATEGY': 1, # type of densification - points density
+# 					'EXPRESSION': str(point_density), # points density value
+# 					'MIN_DISTANCE': pixel_size_avrg,
+# 					'OUTPUT': self.processing_output
+# 					}
+# 				random_points_layer = processing.run("qgis:randompointsinsidepolygons", rp_params)['OUTPUT']
+# 			else:
+# 				pass
+# 			finally:
+# 				if not random_points_layer.isValid() or  random_points_layer.featureCount() == 0:
+# 					self.log.emit("Error: No random points were created due to an unknown error.")
+# 					self.kill()
+
+# 			self.progress_count += 10
+# 			self.progress.emit(self.progress_count)
 			
-			
-			self.progress_count += 10
-			self.progress.emit(self.progress_count)
-			
-			
+
+		if not self.killed:
 			# Extracting geographic feature vertices
 			# # Parameters for extracting vertices
 			try:
@@ -864,8 +888,9 @@ class FeatureCreator(QThread):
 			self.log.emit("Interpolating depth values for gaps...")
 
 			# Create a temporary raster to store modified data for interpolation
+			out_file_path = os.path.join(self.temp_dir, "Interpolated_raster.tiff")
 			raster_for_interpolation = gdal.GetDriverByName('GTIFF').Create(
-				self.out_file_path,
+				out_file_path,
 				width,
 				height,
 				1, #number of bands
@@ -880,14 +905,14 @@ class FeatureCreator(QThread):
 			topo = None
 		
 		
-			out_file_path = os.path.join(self.temp_dir, "Interpolated_raster.tiff")
-			rlayer = QgsRasterLayer(self.out_file_path, "Raster for interpolation", "gdal")
+			
+			rlayer = QgsRasterLayer(out_file_path, "Raster for interpolation", "gdal")
 			
 			self.progress_count += 5
 			self.progress.emit(self.progress_count)
 			
 			try:
-				fill_no_data_in_polygon(rlayer, mask_layer_densified, out_file_path)
+				fill_no_data_in_polygon(rlayer, mask_layer_densified, self.out_file_path)
 			except Exception as e:
 				self.log.emit("Interpolation failed with the following error: {}.".format(e))
 				self.kill()
@@ -899,7 +924,7 @@ class FeatureCreator(QThread):
 			self.log.emit("Removing some artefacts")
 			# Load the raster again to remove artifacts
 			
-			final_raster = gdal.Open(out_file_path, gdal.GA_Update)
+			final_raster = gdal.Open(self.out_file_path, gdal.GA_Update)
 			topo = final_raster.GetRasterBand(1).ReadAsArray()
 	
 			
@@ -918,7 +943,7 @@ class FeatureCreator(QThread):
 			self.progress_count = 100
 			self.progress.emit(self.progress_count)
 			
-			self.finished.emit(True, out_file_path)
+			self.finished.emit(True, self.out_file_path)
 		else:
 			self.finished.emit(False, "")
 			

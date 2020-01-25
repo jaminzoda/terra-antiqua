@@ -1,4 +1,4 @@
-#This script creates a dialog form for our second tool in the plugin
+
 
 import os
 
@@ -120,7 +120,7 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 
 			#set the help text in the  help box (QTextBrowser)
 
-			path_to_file = os.path.join(os.path.dirname(__file__), "help_text/help_Interpolation.html")
+			path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_Interpolation.html")
 
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
@@ -146,7 +146,7 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 			self.masksFromCoastCheckBox.hide()
 
 			#set the help text in the  help box (QTextBrowser)
-			path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_FillFromAnotherRaster.html")
+			path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_FillFromAnotherRaster.html")
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
 			self.helpBox.setHtml(help_text)
@@ -174,7 +174,7 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 
 			#set the help text in the  help box (QTextBrowser)
 
-			path_to_file = os.path.join(os.path.dirname(__file__), "help_text/help_Smoothing.html")
+			path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_Smoothing.html")
 
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
@@ -202,7 +202,7 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 
 
 			#set the help text in the  help box (QTextBrowser)
-			path_to_file = os.path.join(os.path.dirname(__file__),"help_text/help_IsostaticCompensation.html")
+			path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_IsostaticCompensation.html")
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
 			self.helpBox.setHtml(help_text)
