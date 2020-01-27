@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    </head>
+    <title> Removing artefacts </title>
+    
+    <body>
+        <p>
+        
+ The DEMs, be it reconstructed paleobethymetry or rotated current day Topograpy, often contain artefacts. More oftenly, these artefacts are introduced during various steps of processing in the framework of this plugin, e.g. while interpolating elevation values for thoose, which do not have it (gaps filling). </p>
+ <p>  
+<i><b>Artefact remover</b></i> is designed to remove them from the DEM raster. The polygons that user draws before this dialog emerges, are  used to specify the area from where the pixel values of artefacts will be removed. Artefact values are defined by an expression in the <i><b>Expression field</i></b>. Although any kind of expressions that can be evaluated in python can be used, the focus here is made on expressions with simple comparison operators such as "&gt;", "&lt;", "==" and within a range. One can select a comparison operator from the <i><b>drop-down list</i></b> to see how the expression should be specified. Letter H (height) is used to refer to the current value of the pixels in the DEM. The values for artefact pixels that were removed can be interpolated, if the appropriate option is opted. One can also use any  forms of "NoData" (No data, no data, nodata, NODATA etc) to interpolate values for empty pixels (fill no data pixels). 
+<p>For drawing more polygons one can press the appropriate button. But keep in mind that polygons that you draw are not saved (yet) and will be removed after the tool finishes its job. </p>
+<p>
+
+</p>
+</body>
+</html>

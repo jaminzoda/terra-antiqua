@@ -1,4 +1,4 @@
-#This script creates a dialog form for our second tool in the plugin
+
 import os
 from PyQt5 import uic
 from PyQt5 import QtWidgets
