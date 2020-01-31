@@ -710,7 +710,11 @@ def random_points_in_polygon(source, point_density, min_distance, feedback, runt
 		engine.prepareGeometry()
 
 		bbox = fGeom.boundingBox()
-		pointCount = int(round(point_density* da.measureArea(fGeom)))
+		area = da.measureArea(fGeom)
+		if da.areaUnits()!=8:
+			area = da.convertAreaMeasurement(area, 8)
+			
+		pointCount = int(round(point_density* area))
 
 		if pointCount == 0:
 			feedback.log.emit("Warning: Skip feature {} while creating random points as number of points for it is 0.".format(f.id()))
@@ -727,7 +731,7 @@ def random_points_in_polygon(source, point_density, min_distance, feedback, runt
 		feature_total = total / pointCount if pointCount else 1
 
 		random.seed()
-
+		feedback.log.emit("{0} random points being created inside feature ID {1}.".format(pointCount, f.id()))
 		while nIterations < maxIterations and nPoints < pointCount:
 			if feedback.killed:
 				break
@@ -759,6 +763,6 @@ def random_points_in_polygon(source, point_density, min_distance, feedback, runt
 	points_layer_dp = None
 	nPolygons = source.featureCount()
 	nPoints_created = points_layer.featureCount()
-	feedback.log.emit("{0} random points were created inside {1} polygons.".format(nPoints_created, nPolygons))
+	feedback.log.emit("Created random points   inside {} polygons.".format(nPolygons))
 	
 	return points_layer
