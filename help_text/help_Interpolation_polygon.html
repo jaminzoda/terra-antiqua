@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    </head>
+    <title> Interpolation </title>
+    
+    <body>
+        <p>
+        
+<i>Interpolation</i> is intended to fill the gaps between rotated tectonic blocks with interpolated values. It generates elevation data in each empty pixel by averaging pixel values around it, using inverse distance weighting. Please refer to the manual to know when to use it in your specific case.
+<p>
+<b>Field - <i>Raster to be modified (Input)</i></b>:<br/> Choose the raster (topography and bathymetry DEM) where you want to perform the interpolation.
+<p>
+<b>Field - <i>Smooth resulting raster</i></b>:<br/>
+If you tick this box the resulting raster will be smoothed. This means that the sharp edges will be less pronounced (see manual).
+<br/>You may also specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. <br/>The higher the factor the smoother will the resulting raster be.
+<div> Please be aware that smoothing may take 5 to 10 minutes, depending on the system. A higher smoothing factor will increase the processing time.</div>
+<p>
+<b>Specify the <i>Output file path</i>.</b><br>
+If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
+    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+</p>
+    </body>
+    </html>
