@@ -81,9 +81,8 @@ class PaleoShorelines(QThread):
 		if self.dlg.interpolateCheckBox.isChecked():
 			if not self.killed:
 				self.log.emit('The interpolation mode is selected.')
-				self.log.emit('In this mode the difference area between paleoshorelines and present day shorelines')
-				self.log.emit(
-					'will be set to NAN values, after which the values of these cells will be interpolated from adjacent cells.')
+				self.log.emit('In this mode the areas to emerge or submerge')
+				self.log.emit('will be set to NAN values, after which the values of these cells will be interpolated from adjacent cells.')
 
 			if not self.killed:
 				# Converting polygons to polylines in order to set the shoreline values to 0

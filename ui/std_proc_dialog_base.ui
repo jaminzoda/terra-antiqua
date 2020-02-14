@@ -192,7 +192,7 @@
            <item>
             <widget class="QCheckBox" name="masksFromCoastCheckBox">
              <property name="text">
-              <string>Get the masks from coastlines.</string>
+              <string>Get polar regions automatically.</string>
              </property>
             </widget>
            </item>
