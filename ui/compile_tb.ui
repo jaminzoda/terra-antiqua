@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DEMBuilderDialogBase</class>
- <widget class="QDialog" name="DEMBuilderDialogBase">
+ <class>CompileTopoBathyDlg</class>
+ <widget class="QDialog" name="CompileTopoBathyDlg">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Paleogeography-Compiling topography and bathymetry</string>
+   <string>Terra Antiqua - Compile Topo/Bathymetry</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -42,9 +42,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>478</width>
-            <height>562</height>
+            <y>-258</y>
+            <width>498</width>
+            <height>621</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -70,13 +70,13 @@
                   </property>
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectMasks">
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders" stdset="0">
+                    <property name="excludedProviders">
                      <stringlist>
                       <string>&quot;gdal&quot;</string>
                      </stringlist>
@@ -119,13 +119,13 @@
                   </property>
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectBrTopo">
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders" stdset="0">
+                    <property name="excludedProviders">
                      <stringlist>
                       <string>&quot;gdal&quot;</string>
                      </stringlist>
@@ -168,10 +168,10 @@
                     <property name="currentText">
                      <string/>
                     </property>
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>true</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -206,13 +206,13 @@
                     <property name="currentText">
                      <string/>
                     </property>
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>true</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders" stdset="0">
+                    <property name="excludedProviders">
                      <stringlist/>
                     </property>
                    </widget>
@@ -241,10 +241,10 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectPaleoBathy">
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -313,6 +313,37 @@
             </widget>
            </item>
            <item>
+            <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>Advanced parameters</string>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <property name="collapsed">
+              <bool>true</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <widget class="QCheckBox" name="removeOverlapBathyCheckBox">
+                <property name="text">
+                 <string>Remove overlapping bathymetry </string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
               <widget class="QLabel" name="label_7">
@@ -322,8 +353,8 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath" native="true">
-               <property name="defaultRoot" stdset="0">
+              <widget class="QgsFileWidget" name="outputPath">
+               <property name="defaultRoot">
                 <string/>
                </property>
               </widget>
@@ -467,6 +498,12 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QgsCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>qgscollapsiblegroupbox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>QgsFileWidget</class>
    <extends>QWidget</extends>
    <header>qgsfilewidget.h</header>
@@ -487,7 +524,7 @@
   <connection>
    <sender>closeButton</sender>
    <signal>clicked()</signal>
-   <receiver>DEMBuilderDialogBase</receiver>
+   <receiver>CompileTopoBathyDlg</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

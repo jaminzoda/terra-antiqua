@@ -8,15 +8,11 @@ import os
 from osgeo import (
 	gdal
 )
-
 from qgis.core import (
 	QgsRasterLayer,
 	QgsField,
-	QgsProject,
 	QgsVectorLayer,
-	QgsVectorFileWriter,
 	QgsProcessingException,
-	QgsExpression,
 	QgsExpressionContext,
 	QgsExpressionContextUtils
 )
@@ -24,16 +20,13 @@ import tempfile
 
 import numpy as np
 
-from .topotools import (
-	is_path_valid,
-	fill_no_data,
-	fill_no_data_in_polygon,
-	vector_to_raster,
-	mod_rescale,
-	add_raster_layer_for_debug,
-	random_points_in_polygon
+from .utils import (
+	isPathValid,
+	fillNoDataInPolygon,
+	vectorToRaster,
+	modRescale,
+	randomPointsInPolygon
 )
-
 
 
 try:
@@ -48,7 +41,7 @@ except Exception:
 
 
 
-class FeatureCreator(QThread):
+class TaCreateTopoBathy(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
 	log = pyqtSignal(object)
@@ -85,7 +78,7 @@ class FeatureCreator(QThread):
 		self.dlg.Tabs.setCurrentIndex(1)
 		# check if the provided path for the output path is valid
 		if not self.killed:
-			ret = is_path_valid(self.out_file_path)
+			ret = isPathValid(self.out_file_path)
 			if ret[0]:
 				pass
 			else:
@@ -94,13 +87,13 @@ class FeatureCreator(QThread):
 			
 		if not self.killed:
 			if self.dlg.featureTypeBox.currentText() == "Sea":
-				self.create_sea()
+				self.createSea()
 			elif self.dlg.featureTypeBox.currentText() == "Sea-voronoi":
-				self.create_sea_voronoi()
+				self.createSeaVoronoi()
 			elif self.dlg.featureTypeBox.currentText() == "Mountain range":
-				self.create_mountain_range()
+				self.createMountainRange()
 		
-	def create_sea(self):
+	def createSea(self):
 		if not self.killed:
 			
 			self.log.emit('Creating open sea ... ')	
@@ -221,7 +214,7 @@ class FeatureCreator(QThread):
 			# Creating random points inside feature outline polygons
 			# # Parameters for random points algorithm
 			try:
-				random_points_layer = random_points_in_polygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
+				random_points_layer = randomPointsInPolygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
 			except Exception as e:
 				self.log.emit("Failed to create random points inside feature polygons with the following exception: {}".format(e))
 				self.kill()
@@ -380,7 +373,7 @@ class FeatureCreator(QThread):
 			
 			self.log.emit("Rasterizing  depth points ...")
 			try:
-				points_array = vector_to_raster(
+				points_array = vectorToRaster(
 					depth_layer, # layer to rasterize
 					geotransform,  #layer to take crs from
 					width,
@@ -410,7 +403,7 @@ class FeatureCreator(QThread):
 			
 			self.log.emit("Removing the existing bathymetry within the feature polygons ... ")
 			try:
-				pol_array = vector_to_raster(
+				pol_array = vectorToRaster(
 					mask_layer_densified,
 					geotransform,
 					width,
@@ -452,7 +445,7 @@ class FeatureCreator(QThread):
 		
 			if not self.killed:
 				try:
-					sea_boundary_array = vector_to_raster(
+					sea_boundary_array = vectorToRaster(
 						mlayer_line,
 						geotransform,
 						width,
@@ -505,7 +498,7 @@ class FeatureCreator(QThread):
 			self.progress.emit(self.progress_count)
 			
 			try:
-				fill_no_data_in_polygon(rlayer, mask_layer, self.out_file_path)
+				fillNoDataInPolygon(rlayer, mask_layer, self.out_file_path)
 			except Exception as e:
 				self.log.emit("Error: Raster interpolation failed with the following error: {}.".format(e))
 				self.kill()
@@ -525,7 +518,7 @@ class FeatureCreator(QThread):
 			try:
 				in_array = bathy[(pol_array == 1) * (bathy > 0)]
 				if in_array.size>0:
-					bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
+					bathy[(pol_array == 1) * (bathy > 0)] = modRescale(in_array, -15, -1)
 					final_raster.GetRasterBand(1).WriteArray(bathy)
 			except Exception:
 				self.log.emit("Warning: Removing artefacts faild.")
@@ -546,7 +539,7 @@ class FeatureCreator(QThread):
 		else:
 			self.finished.emit(False, "")
 			
-	def create_mountain_range(self):
+	def createMountainRange(self):
 		if not self.killed:
 			
 			self.log.emit('Creating mountain range ... ')	
@@ -665,7 +658,7 @@ class FeatureCreator(QThread):
 			self.log.emit("Creating depth points inside feature polygons...")
 			# Creating random points inside feature outline polygons
 			try:
-				random_points_layer = random_points_in_polygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
+				random_points_layer = randomPointsInPolygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
 			except Exception as e:
 				self.log.emit("Error: Failed to create random points inside polygon features. The error is: {}".format(e))
 				self.kill()
@@ -832,7 +825,7 @@ class FeatureCreator(QThread):
 			
 			self.log.emit("Rasterizing  elevation points ...")
 			try:
-				points_array = vector_to_raster(
+				points_array = vectorToRaster(
 					elev_layer, # layer to rasterize
 					geotransform,  #layer to take crs from
 					width,
@@ -864,7 +857,7 @@ class FeatureCreator(QThread):
 			
 			self.log.emit("Removing the existing topography within the feature polygons ... ")
 			try:
-				pol_array = vector_to_raster(
+				pol_array = vectorToRaster(
 					mask_layer_densified,
 					geotransform,
 					width,
@@ -912,7 +905,7 @@ class FeatureCreator(QThread):
 			self.progress.emit(self.progress_count)
 			
 			try:
-				fill_no_data_in_polygon(rlayer, mask_layer_densified, self.out_file_path)
+				fillNoDataInPolygon(rlayer, mask_layer_densified, self.out_file_path)
 			except Exception as e:
 				self.log.emit("Interpolation failed with the following error: {}.".format(e))
 				self.kill()
@@ -933,7 +926,7 @@ class FeatureCreator(QThread):
 			
 			in_array = topo[(pol_array == 1) * (topo < 0)]
 			if in_array.size>0:
-				topo[(pol_array == 1) * (topo < 0)] = mod_rescale(in_array, 15, 1)
+				topo[(pol_array == 1) * (topo < 0)] = modRescale(in_array, 15, 1)
 				final_raster.GetRasterBand(1).WriteArray(topo)
 			topo=None
 			final_raster = None
@@ -948,7 +941,7 @@ class FeatureCreator(QThread):
 			self.finished.emit(False, "")
 			
 
-	def create_sea_voronoi(self):
+	def createSeaVoronoi(self):
 		progress_count = self.progress_count
 		temp_dir = self.temp_dir
 		out_file_path = self.out_file_path
@@ -1185,7 +1178,7 @@ class FeatureCreator(QThread):
 		# Rasterize sea points layer
 		if not self.killed:
 			try:
-				points_array = vector_to_raster(
+				points_array = vectorToRaster(
 					sea_points_depth, 
 					geotransform, 
 					width, 
@@ -1209,7 +1202,7 @@ class FeatureCreator(QThread):
 			# Before we remove values inside the boundaries of the features to be created, we map initial empty cells.
 			initial_values = np.empty(bathy.shape)  # creare an array filled with ones
 			initial_values[:] = bathy[:]  # set the finite (not nan) values to zero
-			pol_array = vector_to_raster(
+			pol_array = vectorToRaster(
 				mask_layer, 
 				geotransform, 
 				width, 
@@ -1248,7 +1241,7 @@ class FeatureCreator(QThread):
 			self.progress.emit(progress_count)
 
 		
-			sea_boundary_array = vector_to_raster(
+			sea_boundary_array = vectorToRaster(
 				vlayer_line, 
 				geotransform, 
 				width, 
@@ -1282,7 +1275,7 @@ class FeatureCreator(QThread):
 			if not self.killed:
 				rlayer = QgsRasterLayer(out_file, "Raster for interpolation", "gdal")
 				self.log.emit("Interpolating values for empty raster cells...")
-				fill_no_data_in_polygon(rlayer, mask_layer, out_file_path)
+				fillNoDataInPolygon(rlayer, mask_layer, out_file_path)
 				rlayer=QgsRasterLayer(out_file_path, "Raster after interpolation", "gdal")
 				
 				
@@ -1295,7 +1288,7 @@ class FeatureCreator(QThread):
 				# Rescale the artefacts bsl.
 				in_array = bathy[(pol_array == 1) * (bathy > 0)]
 				if in_array.size>0:
-					bathy[(pol_array == 1) * (bathy > 0)] = mod_rescale(in_array, -15, -1)
+					bathy[(pol_array == 1) * (bathy > 0)] = modRescale(in_array, -15, -1)
 					final_raster.GetRasterBand(1).WriteArray(bathy)
 				bathy=None
 				final_raster = None
@@ -1308,7 +1301,7 @@ class FeatureCreator(QThread):
 				# # Get the layer again to fill emptied cells - this strokes should be enabled (uncommented) for filling the gaps \
 				# # instead of interpolation.
 				# rlayer = QgsRasterLayer(out_file_path, "Raster for interpolation", "gdal")
-				# fill_no_data(rlayer, out_file_path)
+				# fillNoData(rlayer, out_file_path)
 				#
 	
 				progress_count = 100

@@ -25,16 +25,16 @@ import tempfile
 
 import numpy as np
 
-from .topotools import (
-	 vector_to_raster,
-	 mod_formula,
-	 mod_min_max,
-	 mod_rescale
+from .utils import (
+	 vectorToRaster,
+	 modFormula,
+	 modMinMax,
+	 modRescale
 	 )
 
 
 
-class TopoModifier(QThread):
+class TaModifyTopoBathy(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
 	log = pyqtSignal(object)
@@ -277,7 +277,7 @@ class TopoModifier(QThread):
 
 					# Rasterize extracted masks
 					v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-					r_masks = vector_to_raster(
+					r_masks = vectorToRaster(
 						v_layer, 
 						geotransform, 
 						ncols, 
@@ -290,7 +290,7 @@ class TopoModifier(QThread):
 					# Modify the topography
 					x = topo
 					in_array = x[r_masks == 1]
-					x[r_masks == 1] = mod_formula(in_array, feat_formula, feat_min_value, feat_max_value)
+					x[r_masks == 1] = modFormula(in_array, feat_formula, feat_min_value, feat_max_value)
 
 					# Send progress feedback
 					progress_count += 70 / feats_count
@@ -355,7 +355,7 @@ class TopoModifier(QThread):
 
 						# Rasterize extracted masks
 						v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-						r_masks = vector_to_raster(
+						r_masks = vectorToRaster(
 							v_layer, 
 							geotransform, 
 							ncols, 
@@ -368,7 +368,7 @@ class TopoModifier(QThread):
 						# Modify the topography
 						x = topo
 						in_array = x[r_masks == 1]
-						x[r_masks == 1] = mod_rescale(in_array, fmin, fmax)
+						x[r_masks == 1] = modRescale(in_array, fmin, fmax)
 
 						# Send progress feedback
 						progress_count += 75 / feats_count
@@ -411,7 +411,7 @@ class TopoModifier(QThread):
 					if not self.killed:
 						# Rasterize extracted masks
 						v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-						r_masks = vector_to_raster(
+						r_masks = vectorToRaster(
 							v_layer, 
 							geotransform, 
 							ncols, 
@@ -429,7 +429,7 @@ class TopoModifier(QThread):
 						# Modify the topography
 						x = topo
 						in_array = x[r_masks == 1]
-						x[r_masks == 1] = mod_rescale(in_array, fmin, fmax)
+						x[r_masks == 1] = modRescale(in_array, fmin, fmax)
 
 						# Send progress feedback
 						progress_count += 30

@@ -12,13 +12,14 @@ from qgis.core import (
 	QgsRasterLayer
 	)
 
+from .utils import loadHelp
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-	os.path.dirname(__file__), '../ui/std_proc_dialog_base.ui'))
+	os.path.dirname(__file__), '../ui/standard_proc.ui'))
 
-class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
+class TaStandardProcessingDlg(QtWidgets.QDialog, FORM_CLASS):
 	def __init__(self, parent=None):
 		"""Constructor."""
-		super(StdProcessingDialog, self).__init__(parent)
+		super(TaStandardProcessingDlg, self).__init__(parent)
 		# Set up the user interface from Designer through FORM_CLASS2.
 		# After self.setupUi() you can access any designer object by doing
 		# self.<objectname>, and you can use autoconnect slots - see
@@ -28,10 +29,11 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 
 		# Specify the type for filling the gaps.
 		# list of options
-		options = ['Interpolation', 'Fill from another raster', 'Smoothing','Isostatic compensation', "Interpolation inside polygon"]
+		options = ['Fill gaps', 'Copy/Paste raster', 'Smoothing','Isostatic compensation']
 		self.fillingTypeBox.addItems(options)
 		# Elements of dialog are changed appropriately, when a filling type is selected
 		self.fillingTypeBox.currentIndexChanged.connect(self.typeOfFilling)
+		self.interpInsidePolygonCheckBox.stateChanged.connect(self.showMasksWidget)
 
 		#Set the default appearance of the dialog
 		self.copyFromRasterBox.hide()
@@ -88,12 +90,11 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 		
 		#set the help text in the  help box (QTextBrowser)
 
-		path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_Interpolation.html")
+		path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/fill_gaps.html")
 
 		help_file = open(path_to_file, 'r', encoding='utf-8')
 		help_text = help_file.read()
 		self.helpBox.setHtml(help_text)
-
 
 
 	def typeOfFilling(self):
@@ -117,10 +118,11 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 			self.iceAmountLabel.hide()
 			self.iceAmountSpinBox.hide()
 			self.masksFromCoastCheckBox.hide()
+			self.interpInsidePolygonCheckBox.show()
 
 			#set the help text in the  help box (QTextBrowser)
 
-			path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_Interpolation.html")
+			path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/fill_gaps.html")
 
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
@@ -144,9 +146,10 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 			self.iceAmountLabel.hide()
 			self.iceAmountSpinBox.hide()
 			self.masksFromCoastCheckBox.hide()
+			self.interpInsidePolygonCheckBox.hide()
 
 			#set the help text in the  help box (QTextBrowser)
-			path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_FillFromAnotherRaster.html")
+			path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/copy_paste.html")
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
 			self.helpBox.setHtml(help_text)
@@ -171,10 +174,11 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 			self.iceAmountLabel.hide()
 			self.iceAmountSpinBox.hide()
 			self.masksFromCoastCheckBox.hide()
+			self.interpInsidePolygonCheckBox.hide()
 
 			#set the help text in the  help box (QTextBrowser)
 
-			path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_Smoothing.html")
+			path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/smoothing.html")
 
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
@@ -199,43 +203,38 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 			self.iceAmountLabel.show()
 			self.iceAmountSpinBox.show()
 			self.masksFromCoastCheckBox.show()
+			self.interpInsidePolygonCheckBox.hide()
 
 
 			#set the help text in the  help box (QTextBrowser)
-			path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/help_IsostaticCompensation.html")
+			path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/isostat_cp.html")
 			help_file = open(path_to_file, 'r', encoding='utf-8')
 			help_text = help_file.read()
 			self.helpBox.setHtml(help_text)
-		elif current_index == 4:
-			self.copyFromRasterBox.hide()
-			self.copyFromRasterLabel.hide()
-			self.selectCopyFromRasterButton.hide()
-
-			self.masksBox.show()
-			self.selectMasksButton.show()
-			self.masksBoxLabel.show()
-			self.smoothingBox.show()
-			self.smoothingLabel.show()
-			self.smFactorSpinBox.show()
-
-			self.selectIceTopoBox.hide()
-			self.selectIceTopoButton.hide()
-			self.iceTopoLabel.hide()
-
-			self.iceAmountLabel.hide()
-			self.iceAmountSpinBox.hide()
-			self.masksFromCoastCheckBox.hide()
+	
+			
 			
 
 
-
+	def showMasksWidget(self, state):
+		
+		if state ==2: #checked
+			self.masksBox.show()
+			self.selectMasksButton.show()
+			self.masksBoxLabel.show()
+		else:
+			self.masksBox.hide()
+			self.selectMasksButton.hide()
+			self.masksBoxLabel.hide()
+					
+				
 
 	def enableRunButton(self):
 		if  self.baseTopoBox.currentLayer()!=None:
 			self.runButton.setEnabled(True)
 			self.warningLabel.setText('')
 		else:
-			self.warningLabel.setText('Plaese, select all the base raster file.')
+			self.warningLabel.setText('Please, select all the base raster file.')
 			self.warningLabel.setStyleSheet('color:red')
 
 	def addLayerToBaseTopo(self):
@@ -266,10 +265,10 @@ class StdProcessingDialog(QtWidgets.QDialog, FORM_CLASS):
 			QgsProject.instance().addMapLayer(rlayer)
 			box.setLayer(rlayer)
 
-	def set_progress_value(self, value):
+	def setProgressValue(self, value):
 		self.progressBar.setValue(value)
 
-	def reset_progress_value(self):
+	def resetProgressValue(self):
 		self.progressBar.setValue(0)
 
 

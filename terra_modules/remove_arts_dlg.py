@@ -11,13 +11,15 @@ from qgis.core import (
 	QgsRasterLayer
 	)
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-	os.path.dirname(__file__), '../ui/artefact_remover_dialog_base.ui'))
+from .utils import loadHelp
 
-class ArtefactRemoverDialog(QtWidgets.QDialog, FORM_CLASS):
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+	os.path.dirname(__file__), '../ui/remove_arts.ui'))
+
+class TaRemoveArtefactsDlg(QtWidgets.QDialog, FORM_CLASS):
 	def __init__(self, parent=None):
 		"""Constructor."""
-		super(ArtefactRemoverDialog, self).__init__(parent)
+		super(TaRemoveArtefactsDlg, self).__init__(parent)
 		self.setupUi(self)
 
 		# List comparison operators.TypeBox
@@ -40,14 +42,7 @@ class ArtefactRemoverDialog(QtWidgets.QDialog, FORM_CLASS):
 		
 		
 		
-		#set the help text in the  help box (QTextBrowser)
-
-		path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_ArtefactRemover.html")
-
-		help_file = open(path_to_file, 'r', encoding='utf-8')
-		help_text = help_file.read()
-		self.helpBox.setHtml(help_text)
-
+		loadHelp(self)
 
 
 	def typeOfComparison(self):
@@ -75,10 +70,10 @@ class ArtefactRemoverDialog(QtWidgets.QDialog, FORM_CLASS):
 
    
 
-	def set_progress_value(self, value):
+	def setProgressValue(self, value):
 		self.progressBar.setValue(value)
 
-	def reset_progress_value(self):
+	def resetProgressValue(self):
 		self.progressBar.setValue(0)
 
 

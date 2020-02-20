@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Paleogeography - Mask preparation</string>
+   <string>Terra Antiqua - Prepare masks</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -48,8 +48,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>491</width>
-              <height>472</height>
+              <width>496</width>
+              <height>575</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
