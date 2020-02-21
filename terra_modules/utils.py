@@ -760,9 +760,10 @@ def bufferAroundGeometries(in_layer, buf_dist, num_segments):
 	out_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
 	dp = out_layer.dataProvider()
 	for feat in feats:
-		geom = feat.geometry()
-		buf = geom.buffer(buf_dist, num_segments)
-		feat.setGeometry(buf)
+		geom_in = feat.geometry()
+		buf = geom_in.buffer(buf_dist, num_segments)
+		geom_out = buf.difference(geom_in)
+		feat.setGeometry(geom_out)
 		dp.addFeature(feat)
 	dp = None
 	return out_layer
