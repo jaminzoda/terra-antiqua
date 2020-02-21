@@ -5,7 +5,7 @@ from qgis.core import (
 	QgsVectorLayer,
 	QgsWkbTypes,
 	QgsGeometry,
-	QgsFeatureRequest,
+	QgsFeature,
 	QgsVectorFileWriter
 	)
 import tempfile
@@ -14,10 +14,10 @@ try:
 except Exception:
 	import processing
 	
-from .topotools import refactor_fields
+from .utils import refactorFields
 
 
-class MaskMaker(QThread):
+class TaPrepareMasks(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
 	log = pyqtSignal(object)
@@ -117,7 +117,7 @@ class MaskMaker(QThread):
 					else:
 						self.log.emit("The geometry is neither polyline nor multipolyline")
 					poly_geometry = QgsGeometry.fromPolygonXY(line_coords)
-					feature = QgsFeatureRequest()
+					feature = QgsFeature()
 					feature.setGeometry(poly_geometry)
 					feature.setAttributes(geom.attributes())
 					poly_features.append(feature)
@@ -138,7 +138,7 @@ class MaskMaker(QThread):
 
 			if line is not None and poly is not None:
 				# Refactor the field types, if they are different
-				fixed_line_refactored, fields_refactored = refactor_fields(fixed_line, fixed_poly)
+				fixed_line_refactored, fields_refactored = refactorFields(fixed_line, fixed_poly, name)
 
 				if len(fields_refactored) == 0:
 					layers_to_merge = [fixed_poly, fixed_line]
@@ -209,7 +209,7 @@ class MaskMaker(QThread):
 			# Combining the extracted masks in one shape file.
 			if ss_extracted is not None and cs_extracted is not None:
 				# Refactor the field types, if they are different
-				ss_extracted_refactored, fields_refactored = refactor_fields(ss_extracted, cs_extracted)
+				ss_extracted_refactored, fields_refactored = refactorFields(ss_extracted, cs_extracted, 'Shallow sea')
 
 				if len(fields_refactored) == 0:
 					layers_to_merge = [ss_extracted, cs_extracted]
@@ -244,7 +244,7 @@ class MaskMaker(QThread):
 		if not self.killed:
 			if masks_layer is not None and coast_temp is not None:
 				# Refactor the field types, if they are different
-				masks_layer_refactored, fields_refactored = refactor_fields(masks_layer, coast_temp)
+				masks_layer_refactored, fields_refactored = refactorFields(masks_layer, coast_temp, 'Continental Shelves+Shallow sea')
 
 				if len(fields_refactored) == 0:
 					layers_to_merge = [masks_layer, coast_temp]

@@ -6,16 +6,16 @@ import tempfile
 
 import numpy as np
 
-from .topotools import (
-	polygons_to_polylines,
-	vector_to_raster,
-	fill_no_data,
-	mod_rescale
+from .utils import (
+	polygonsToPolylines,
+	vectorToRaster,
+	fillNoData,
+	modRescale
 	)
 
 
 
-class PaleoShorelines(QThread):
+class TaSetPaleoshorelines(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
 	log = pyqtSignal(object)
@@ -87,8 +87,8 @@ class PaleoShorelines(QThread):
 			if not self.killed:
 				# Converting polygons to polylines in order to set the shoreline values to 0
 				path_to_polylines = os.path.join(os.path.dirname(vlayer.source()), "polylines_from_polygons.shp")
-				pshoreline = polygons_to_polylines(vlayer, path_to_polylines)
-				pshoreline_rmask = vector_to_raster(
+				pshoreline = polygonsToPolylines(vlayer, path_to_polylines)
+				pshoreline_rmask = vectorToRaster(
 					pshoreline, 
 					geotransform, 
 					ncols, 
@@ -104,7 +104,7 @@ class PaleoShorelines(QThread):
 
 			if not self.killed:
 				# Getting the raster masks of the land and sea area
-				r_masks = vector_to_raster(
+				r_masks = vectorToRaster(
 					vlayer, 
 					geotransform, 
 					ncols, 
@@ -151,7 +151,7 @@ class PaleoShorelines(QThread):
 
 					raster_layer_interpolated = os.path.join(os.path.dirname(out_file_path),
 															 "PaleoShorelines_with-gaps_filled.tiff")
-					ret = fill_no_data(raster_layer, raster_layer_interpolated)
+					ret = fillNoData(raster_layer, raster_layer_interpolated)
 
 					progress_count += 10
 					self.progress.emit(progress_count)
@@ -169,11 +169,11 @@ class PaleoShorelines(QThread):
 															  * (r_masks == 1) == 1]
 					if array_to_rescale_bsl.size>0 and np.isfinite(array_to_rescale_bsl).size>0:
 						topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 0) == 1] = \
-							mod_rescale(array_to_rescale_bsl, -5, -0.1)
+							modRescale(array_to_rescale_bsl, -5, -0.1)
 						
 					if array_to_rescale_asl.size>0 and np.isfinite(array_to_rescale_asl).size>0:
 						topo_modified[np.isfinite(topo_values_copied) * (topo_modified == 0) * (r_masks == 1) == 1] = \
-							mod_rescale(array_to_rescale_asl, 0.1, 5)
+							modRescale(array_to_rescale_asl, 0.1, 5)
 
 					progress_count += 5
 					self.progress.emit(progress_count)
@@ -186,7 +186,7 @@ class PaleoShorelines(QThread):
 														  (np.isfinite(topo_values_copied)) == 1]
 					if data_to_fill_bsl.size>0 and np.isfinite(data_to_fill_bsl).size>0:
 						topo_modified[(r_masks == 0) * (topo_modified > 0) * np.isfinite(topo_values_copied) == 1] \
-							= mod_rescale(data_to_fill_bsl, -5, -0.1)
+							= modRescale(data_to_fill_bsl, -5, -0.1)
 
 					progress_count += 5
 					self.progress.emit(progress_count)
@@ -196,7 +196,7 @@ class PaleoShorelines(QThread):
 														  np.isfinite(topo_values_copied) == 1]
 					if data_to_fill_asl.size>0 and np.isfinite(data_to_fill_asl).size>0:
 						topo_modified[(r_masks == 1) * (topo_modified < 0) * np.isfinite(topo_values_copied) == 1] \
-							= mod_rescale(data_to_fill_asl, 0.1, 5)
+							= modRescale(data_to_fill_asl, 0.1, 5)
 
 					progress_count += 5
 					self.progress.emit(progress_count)
@@ -234,7 +234,7 @@ class PaleoShorelines(QThread):
 
 		elif self.dlg.rescaleCheckBox.isChecked():
 			if not self.killed:
-				r_masks = vector_to_raster(
+				r_masks = vectorToRaster(
 					vlayer, 
 					geotransform, 
 					ncols, 
@@ -244,7 +244,7 @@ class PaleoShorelines(QThread):
 					)
 				# The bathymetry values that are above sea level are taken down below sea level
 				in_array = topo[(r_masks == 0) * (topo > 0) == 1]
-				topo[(r_masks == 0) * (topo > 0) == 1] = mod_rescale(in_array, max_depth, -0.1)
+				topo[(r_masks == 0) * (topo > 0) == 1] = modRescale(in_array, max_depth, -0.1)
 
 				progress_count += 30
 				self.progress.emit(progress_count)
@@ -252,7 +252,7 @@ class PaleoShorelines(QThread):
 			if not self.killed:
 				# The topography values that are below sea level are taken up above sea level
 				in_array = topo[(r_masks == 1) * (topo < 0) == 1]
-				topo[(r_masks == 1) * (topo < 0) == 1] = mod_rescale(in_array, 0.1, max_elev)
+				topo[(r_masks == 1) * (topo < 0) == 1] = modRescale(in_array, 0.1, max_elev)
 
 				progress_count += 30
 				self.progress.emit(progress_count)

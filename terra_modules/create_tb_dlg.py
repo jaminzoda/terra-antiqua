@@ -6,14 +6,15 @@ from PyQt5 import QtWidgets
 from PyQt5 import uic
 from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
+from .utils import loadHelp
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), '../ui/feature_creator_dialog_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), '../ui/create_tb.ui'))
 
 
-class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
+class TaCreateTopoBathyDlg(QtWidgets.QDialog, FORM_CLASS):
 	def __init__(self, parent=None):
 		"""Constructor."""
-		super(FeatureCreatorDialog, self).__init__(parent)
+		super(TaCreateTopoBathyDlg, self).__init__(parent)
 		# Set up the user interface from Designer through FORM_CLASS2.
 		# After self.setupUi() you can access any designer object by doing
 		# self.<objectname>, and you can use autoconnect slots - see
@@ -50,13 +51,7 @@ class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
 		self.runButton.setEnabled(False)
 		self.masksBox.layerChanged.connect(self.enableRunButton)
 		self.baseTopoBox.layerChanged.connect(self.enableRunButton)
-
-		# set the help text in the  help box (QTextBrowser)
-		path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/help_FeatureCreator.html")
-		help_file = open(path_to_file, 'r', encoding='utf-8')
-		help_text = help_file.read()
-		self.helpBox.setHtml(help_text)
-	
+		loadHelp(self)	
 	def selectFeatureType(self):
 		if self.featureTypeBox.currentText() == "Sea" or self.featureTypeBox.currentText() == "Sea-voronoi":
 			self.maxElevSpinBox.setMaximum(0)
@@ -140,8 +135,8 @@ class FeatureCreatorDialog(QtWidgets.QDialog, FORM_CLASS):
 			QgsProject.instance().addMapLayer(rlayer)
 			box.setLayer(rlayer)
 
-	def set_progress_value(self, value):
+	def setProgressValue(self, value):
 		self.progressBar.setValue(value)
 
-	def reset_progress_value(self):
+	def resetProgressValue(self):
 		self.progressBar.setValue(0)

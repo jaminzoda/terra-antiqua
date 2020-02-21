@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Paleogeography - Topography modification</string>
+   <string>Terra Antiqua - Modify topography</string>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>
@@ -96,9 +96,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-336</y>
-            <width>518</width>
-            <height>923</height>
+            <y>0</y>
+            <width>556</width>
+            <height>971</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -229,10 +229,10 @@
                 <property name="title">
                  <string>Formula for topography modification</string>
                 </property>
-                <property name="collapsed" stdset="0">
+                <property name="collapsed">
                  <bool>false</bool>
                 </property>
-                <property name="saveCollapsedState" stdset="0">
+                <property name="saveCollapsedState">
                  <bool>true</bool>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -250,7 +250,7 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,1">
                    <item>
                     <widget class="QgsFieldComboBox" name="formulaField">
-                     <property name="allowEmptyFieldName" stdset="0">
+                     <property name="allowEmptyFieldName">
                       <bool>true</bool>
                      </property>
                     </widget>
@@ -456,7 +456,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QgsFileWidget" name="outputPath" native="true"/>
+               <widget class="QgsFileWidget" name="outputPath"/>
               </item>
              </layout>
             </widget>
@@ -590,16 +590,6 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QgsFileWidget</class>
-   <extends>QWidget</extends>
-   <header>qgsfilewidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsMapLayerComboBox</class>
-   <extends>QComboBox</extends>
-   <header>qgsmaplayercombobox.h</header>
-  </customwidget>
-  <customwidget>
    <class>QgsCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>qgscollapsiblegroupbox.h</header>
@@ -609,6 +599,16 @@
    <class>QgsFieldComboBox</class>
    <extends>QComboBox</extends>
    <header>qgsfieldcombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

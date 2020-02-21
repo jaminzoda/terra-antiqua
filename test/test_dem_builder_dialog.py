@@ -16,7 +16,7 @@ import unittest
 
 from PyQt5.QtGui import QDialogButtonBox, QDialog
 
-from terra_antiqua_dialog import TerraAntiquaDialog
+from terra_antiqua_dialog import TaCompileTopoBathyDlg
 
 from utilities import get_qgis_app
 QGIS_APP = get_qgis_app()
@@ -27,7 +27,7 @@ class DEMBuilderDialogTest(unittest.TestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.dialog = TerraAntiquaDialog(None)
+        self.dialog = TaCompileTopoBathyDlg(None)
 
     def tearDown(self):
         """Runs after each test."""

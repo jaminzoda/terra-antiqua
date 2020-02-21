@@ -24,16 +24,16 @@ import tempfile
 import numpy as np
 
 
-from.topotools import (
-	vector_to_raster, 
-	fill_no_data, 
-	raster_smoothing,
-	fill_no_data_in_polygon
+from.utils import (
+	vectorToRaster, 
+	fillNoData, 
+	rasterSmoothing,
+	fillNoDataInPolygon
 	)
 
 
 
-class StandardProcessing(QThread):
+class TaStandardProcessing(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
 	log = pyqtSignal(object)
@@ -42,9 +42,9 @@ class StandardProcessing(QThread):
 		super().__init__()
 		self.dlg = dlg
 		self.killed = False
+		self.progress_count = 0
 
 	def run(self):
-		progress_count = 0
 
 		self.log.emit("Starting the processing...")
 		processing_type = self.dlg.fillingTypeBox.currentIndex()
@@ -72,15 +72,24 @@ class StandardProcessing(QThread):
 			if not self.killed:
 				self.log.emit("Getting the raster layer for the interpolation.")
 				base_raster_layer = self.dlg.baseTopoBox.currentLayer()
-				progress_count += 5
-				self.progress.emit(progress_count)
 				self.log.emit("Starting the interpolation.")
 				self.log.emit("Interpolation method is Inverse Distance Weighting.")
-				interpolated_raster = fill_no_data(base_raster_layer, out_file_path)
+				
+				if self.dlg.interpInsidePolygonCheckBox.isChecked():
+					mask_layer = self.dlg.masksBox.currentLayer()
+					interpolated_raster = fillNoDataInPolygon(base_raster_layer, mask_layer, out_file_path)
+				else:
+					interpolated_raster = fillNoData(base_raster_layer, out_file_path)
 				self.log.emit("Interpolation finished.")
 
-				progress_count += 40
-				self.progress.emit(progress_count)
+				if self.dlg.smoothingBox.isChecked():
+					self.progress_count += 20
+					self.progress.emit(self.progress_count)
+				else:
+					self.progress_count += 40
+					self.progress.emit(self.progress_count)
+
+					
 			if not self.killed:
 
 				if self.dlg.smoothingBox.isChecked():
@@ -91,11 +100,9 @@ class StandardProcessing(QThread):
 					# Get smoothing factor
 					sm_factor = self.dlg.smFactorSpinBox.value()
 
-					progress_count += 10
-					self.progress.emit(progress_count)
 
 					# Smooth the raster
-					raster_smoothing(interpolated_raster_layer, sm_factor)
+					rasterSmoothing(interpolated_raster_layer, sm_factor, feedback=self, runtime_percentage=78)
 					self.log.emit("Smoothing has finished.")
 
 					# progress_count += 40
@@ -124,16 +131,16 @@ class StandardProcessing(QThread):
 				from_raster_layer = self.dlg.copyFromRasterBox.currentLayer()
 				from_raster = gdal.Open(from_raster_layer.dataProvider().dataSourceUri())
 				from_array = from_raster.GetRasterBand(1).ReadAsArray()
-				progress_count += 10
-				self.progress.emit(progress_count)
+				self.rogress_count += 10
+				self.progress.emit(self.progress_count)
 			if not self.killed:
 				# Get a raster layer to copy the elevation values TO
 				self.log.emit("Getting the raster to copy the elevation values to.")
 				to_raster_layer = self.dlg.baseTopoBox.currentLayer()
 				to_raster = gdal.Open(to_raster_layer.dataProvider().dataSourceUri())
 				to_array = to_raster.GetRasterBand(1).ReadAsArray()
-				progress_count += 10
-				self.progress.emit(progress_count)
+				self.progress_count += 10
+				self.progress.emit(self.progress_count)
 
 			if not self.killed:
 				self.log.emit("Getting the masks from the vector layer.")
@@ -144,7 +151,7 @@ class StandardProcessing(QThread):
 				# Rasterize masks
 				geotransform = to_raster.GetGeoTransform()
 				nrows, ncols = to_array.shape
-				mask_array = vector_to_raster(
+				mask_array = vectorToRaster(
 					mask_vector_layer, 
 					geotransform, 
 					ncols, 
@@ -154,14 +161,14 @@ class StandardProcessing(QThread):
 					)
 
 				self.log.emit("The masks are rasterized.")
-				progress_count += 40
-				self.progress.emit(progress_count)
+				self.progress_count += 40
+				self.progress.emit(self.progress_count)
 			if not self.killed:
 				self.log.emit("Copying the elevation values.")
 				# Fill the raster
 				to_array[mask_array == 1] = from_array[mask_array == 1]
-				progress_count += 20
-				self.progress.emit(progress_count)
+				self.progress_count += 20
+				self.progress.emit(self.progress_count)
 
 			if not self.killed:
 				self.log.emit("Saving the resulting raster.")
@@ -194,8 +201,8 @@ class StandardProcessing(QThread):
 				output_file = self.dlg.outputPath.filePath()
 			if not self.killed:
 				self.log.emit("Smoothing the raster.")
-				smoothed_raster_layer = raster_smoothing(raster_to_smooth_layer, smoothing_factor, out_file_path,
-															self.progress)
+				smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_factor, out_file_path,
+															feedback = self)
 				self.log.emit("The raster is smoothed successfully and saved at: "
 							  "<a href='file://{}'>{}</a>".format(os.path.dirname(out_file_path), out_file_path))
 				self.finished.emit(True, out_file_path)
@@ -212,8 +219,8 @@ class StandardProcessing(QThread):
 				topo_br_layer = self.dlg.baseTopoBox.currentLayer()
 				topo_br_ds = gdal.Open(topo_br_layer.dataProvider().dataSourceUri())
 				topo_br_data = topo_br_ds.GetRasterBand(1).ReadAsArray()
-				progress_count += 5
-				self.progress.emit(progress_count)
+				self.progress_count += 5
+				self.progress.emit(self.progress_count)
 
 			if not self.killed:
 				self.log.emit("Getting the ice topography raster layer.")
@@ -221,14 +228,14 @@ class StandardProcessing(QThread):
 				topo_ice_layer = self.dlg.selectIceTopoBox.currentLayer()
 				topo_ice_ds = gdal.Open(topo_ice_layer.dataProvider().dataSourceUri())
 				topo_ice_data = topo_ice_ds.GetRasterBand(1).ReadAsArray()
-				progress_count += 5
-				self.progress.emit(progress_count)
+				self.progress_count += 5
+				self.progress.emit(self.progress_count)
 			if not self.killed:
 				# Get the masks
 				self.log.emit("Getting the mask layer.")
 				vlayer = self.dlg.masksBox.currentLayer()
-				progress_count += 5
-				self.progress.emit(progress_count)
+				self.progress_count += 5
+				self.progress.emit(self.progress_count)
 
 			if self.dlg.masksFromCoastCheckBox.isChecked():
 
@@ -249,8 +256,8 @@ class StandardProcessing(QThread):
 					temp_prov = temp_layer.dataProvider()
 					temp_prov.addFeatures(features)
 
-					progress_count += 5
-					self.progress.emit(progress_count)
+					self.progress_count += 5
+					self.progress.emit(self.progress_count)
 
 				if not self.killed:
 
@@ -277,8 +284,8 @@ class StandardProcessing(QThread):
 						else:
 							self.log.emit(out_file + "is not deleted.")
 
-					progress_count += 5
-					self.progress.emit(progress_count)
+					self.progress_count += 5
+					self.progress.emit(self.progress_count)
 
 					error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", vlayer.crs(),
 																	"ESRI Shapefile")
@@ -288,8 +295,8 @@ class StandardProcessing(QThread):
 						self.log.emit("Failed to create the {} shapefile because {}.".format(os.path.basename(out_file),
 																							 error[1]))
 
-					progress_count += 5
-					self.progress.emit(progress_count)
+					self.progress_count += 5
+					self.progress.emit(self.progress_count)
 
 				if not self.killed:
 					self.log.emit("Rasterizing exrtacted masks.")
@@ -297,7 +304,7 @@ class StandardProcessing(QThread):
 					geotransform = topo_br_ds.GetGeoTransform()
 					nrows, ncols = np.shape(topo_br_data)
 					v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-					r_masks = vector_to_raster(
+					r_masks = vectorToRaster(
 						v_layer, 
 						geotransform, 
 						ncols, 
@@ -306,8 +313,8 @@ class StandardProcessing(QThread):
 						no_data=0
 						)
 
-					progress_count += 10
-					self.progress.emit(progress_count)
+					self.progress_count += 10
+					self.progress.emit(self.progress_count)
 
 					# Close  the temporary vector layer
 					v_layer = None
@@ -322,15 +329,15 @@ class StandardProcessing(QThread):
 							else:
 								self.log.emit('I created a temporary folder with a shapefile at: ' + os.path.join(path))
 								self.log.emit('And could not delete it. You may need delete it manually.')
-					progress_count += 5
-					self.progress.emit(progress_count)
+					self.progress_count += 5
+					self.progress.emit(self.progress_count)
 
 			else:
 				if not self.killed:
 					geotransform = topo_br_ds.GetGeoTransform()
 					nrows, ncols = np.shape(topo_br_data)
 					self.log.emit("Rasterizing the masks.")
-					r_masks = vector_to_raster(
+					r_masks = vectorToRaster(
 						vlayer, 
 						geotransform, 
 						ncols, 
@@ -339,8 +346,8 @@ class StandardProcessing(QThread):
 						no_data=0
 						)
 
-					progress_count += 30
-					self.progress.emit(progress_count)
+					self.progress_count += 30
+					self.progress.emit(self.progress_count)
 			if not self.killed:
 				# Compensate for ice load
 				self.log.emit("Compensating for ice load.")
@@ -349,8 +356,8 @@ class StandardProcessing(QThread):
 				comp_factor[np.isnan(comp_factor)] = 0
 				comp_factor[comp_factor < 0] = 0
 				topo_br_data[r_masks == 1] = topo_br_data[r_masks == 1] + comp_factor
-				progress_count += 30
-				self.progress.emit(progress_count)
+				self.progress_count += 30
+				self.progress.emit(self.progress_count)
 			if not self.killed:
 				# Create a new raster for the result
 				self.log.emit("Saving the resulting layer.")
@@ -370,58 +377,11 @@ class StandardProcessing(QThread):
 				self.finished.emit(True, out_file_path)
 			else:
 				self.finished.emit(False, "")
-		elif processing_type == 4:
-			if not self.killed:
-				self.log.emit("Getting the raster layer for the interpolation.")
-				base_raster_layer = self.dlg.baseTopoBox.currentLayer()
-				progress_count += 5
-				self.progress.emit(progress_count)
-				self.log.emit("Starting the interpolation.")
-				self.log.emit("Interpolation method is Inverse Distance Weighting.")
-				masks_layer = self.dlg.masksBox.currentLayer()
-				interpolated_raster = fill_no_data_in_polygon(base_raster_layer, masks_layer, out_file_path)
-				self.log.emit("Interpolation finished.")
-
-				progress_count += 40
-				self.progress.emit(progress_count)
-			if not self.killed:
-
-				if self.dlg.smoothingBox.isChecked():
-					self.log.emit("Starting smoothing.")
-					# Get the layer for smoothing
-					interpolated_raster_layer = QgsRasterLayer(interpolated_raster, 'Interpolated DEM', 'gdal')
-
-					# Get smoothing factor
-					sm_factor = self.dlg.smFactorSpinBox.value()
-
-					progress_count += 10
-					self.progress.emit(progress_count)
-
-					# Smooth the raster
-					raster_smoothing(interpolated_raster_layer, sm_factor)
-					self.log.emit("Smoothing has finished.")
-
-					# progress_count += 40
-
-					self.log.emit("The gaps in the raster were filled and it was smoothed successfully.")
-					self.log.emit("The resulting layer is saved at: "
-								  "<a href='file://{}'>{}</a>".format(os.path.dirname(out_file_path), out_file_path))
-					self.progress.emit(100)
-					self.finished.emit(True, out_file_path)
-
-				else:
-					self.log.emit("The gaps in the raster were filled successfully.")
-					self.log.emit("The resulting layer is saved at: "
-								  "<a href='file://{}'>{}</a>".format(os.path.dirname(out_file_path), out_file_path))
-					self.progress.emit(100)
-					self.finished.emit(True, out_file_path)
-			else:
-				self.finished.emit(False, "")
+		
 			
 
 	def kill(self):
 		self.killed = True
 
-	def set_change_value(self, value):
-		self.progress.emit(value)
+
 

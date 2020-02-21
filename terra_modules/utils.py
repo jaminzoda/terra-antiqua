@@ -2,7 +2,7 @@
 
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QVariant
-import datetime
+
 import random
 from osgeo import gdal, osr, ogr
 from osgeo import gdalconst
@@ -35,7 +35,7 @@ except Exception:
 	import processing
 	from processing.tools import vector
 
-def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
+def fillNoData(in_layer, out_file_path=None, no_data_value=None):
 	"""
 	Fills the missing data by interpolating from edges.
 	:param in_layer: QgsRasterLayer
@@ -118,7 +118,7 @@ def fill_no_data(in_layer, out_file_path=None, no_data_value=None):
 		driver.Delete(mask_path)
 
 	return out_file_path
-def fill_no_data_in_polygon(in_layer, poly_layer, out_file_path=None, no_data_value=None):
+def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=None):
 	"""
 	Fills the missing data by interpolating from edges.
 	:param in_layer: Input raster layer in which the empty cells are filled with interpolation (IDW). Type: QgsRasterLayer.
@@ -178,7 +178,7 @@ def fill_no_data_in_polygon(in_layer, poly_layer, out_file_path=None, no_data_va
 	
 	# Set the no_data values outside the polygon to -99999
 	## Rasterize the input vector layer with polygon masks
-	poly_array = vector_to_raster(poly_layer, geotransform, width, height)
+	poly_array = vectorToRaster(poly_layer, geotransform, width, height)
 	mapped_array = np.zeros((height, width))
 	mapped_array[np.isnan(in_array)*(poly_array != 1)==1] = 1
 	raster_ds = None
@@ -216,7 +216,7 @@ def fill_no_data_in_polygon(in_layer, poly_layer, out_file_path=None, no_data_va
 
 	return out_file_path 
 
-def raster_smoothing(in_layer, factor, out_file=None, feedback=None):
+def rasterSmoothing(in_layer, factor, out_file=None, feedback=None, runtime_percentage=None):
 	"""
 	Smoothes values of pixels in a raster  by averaging  values around them
 	:param in_layer: input raster layer (QgsRasterLayer) for smoothing
@@ -231,7 +231,10 @@ def raster_smoothing(in_layer, factor, out_file=None, feedback=None):
 	cols = in_array.shape[1]
 
 	out_array = np.zeros(in_array.shape)
-	total = 100 / rows if rows else 0
+	if runtime_percentage:
+		total = runtime_percentage / rows if rows else 0
+	else:
+		total = 100 / rows if rows else 0
 	for i in range(rows - 1):
 		for j in range(cols - 1):
 			# Define smoothing mask; periodic boundary along date line
@@ -240,8 +243,8 @@ def raster_smoothing(in_layer, factor, out_file=None, feedback=None):
 			y_vector = np.arange(np.maximum(0, i - factor), (np.minimum((rows - 1), i + factor) + 1), 1)
 			y_vector = y_vector.reshape(len(y_vector), 1)
 			out_array[i, j] = np.mean(in_array[y_vector, x_vector])
-		if feedback is not None:
-			feedback.emit(i * total)
+		if feedback:
+			feedback.progress.emit(feedback.progress_count + (i * total))
 
 	# Write the smoothed raster
 	# If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
@@ -276,7 +279,7 @@ def raster_smoothing(in_layer, factor, out_file=None, feedback=None):
 
 	return smoothed_layer
 
-def set_raster_symbology(in_layer):
+def setRasterSymbology(in_layer):
 	"""
 	Applies a color palette to a raster layer. It does not add the raster layer to the Map canvas. Before passing a layer to this function, it should be added to the map canvas.
 	
@@ -310,16 +313,16 @@ def set_raster_symbology(in_layer):
 	shader = QgsRasterShader()
 	shader.setRasterShaderFunction(ramp_shader)
 
-	"""Finally, we need to apply the symbology we’ve create to the raster layer. 
-	First, we’ll create a renderer using our raster shader. 
-	Then we’ll Assign the renderer to our raster layer."""
+	#Finally, we need to apply the symbology we’ve created to the raster layer. 
+	#First, we’ll create a renderer using our raster shader. 
+	#Then we’ll Assign the renderer to our raster layer.
 
 	renderer = QgsSingleBandPseudoColorRenderer(in_layer.dataProvider(), 1, shader)
 	in_layer.setRenderer(renderer)
 	in_layer.triggerRepaint()
 
 
-def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
+def vectorToRaster(in_layer, geotransform, width, height, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
 	"""
 	Rasterizes a vector layer and returns a numpy array.
 
@@ -363,7 +366,7 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 	r_params = {
 		'INPUT': in_layer,
 		'FIELD': field_to_burn,
-		'BURN': burn_value, # 0 - if no fixed value is burned
+		'BURN': burn_value, # 1 - if no fixed value is burned
 		'UNITS': 0, # 0- Pixels; 1 - Georeferenced units
 		'WIDTH': width,  # Width of the input layer will be used
 		'HEIGHT': height,  # Height of the input layer will be used
@@ -384,7 +387,7 @@ def vector_to_raster(in_layer, geotransform, width, height, field_to_burn=None, 
 
 	return points_array
 
-def vector_to_raster_old(in_layer, geotransform, ncols, nrows):
+def vectorToRasterOld(in_layer, geotransform, ncols, nrows):
 	"""
 	Rasterizes a vector layer and returns a numpy array.
 
@@ -426,7 +429,7 @@ def vector_to_raster_old(in_layer, geotransform, ncols, nrows):
 
 	return raster_array
 
-def polygons_to_polylines(in_layer, out_layer_path: str):
+def polygonsToPolylines(in_layer, out_layer_path: str):
 	"""
 	Converts polygons to polylines.
 
@@ -442,7 +445,7 @@ def polygons_to_polylines(in_layer, out_layer_path: str):
 
 	return polylines_layer
 
-def refactor_fields(in_layer, layer2):
+def refactorFields(in_layer, layer2, out_layer_name):
 	layer1 = in_layer
 	fields1 = layer1.fields()
 	fields2 = layer2.fields()
@@ -486,13 +489,13 @@ def refactor_fields(in_layer, layer2):
 							 }
 			field_mapping.append(refact_params)
 
-	params = {'INPUT': layer1, 'FIELDS_MAPPING': field_mapping, 'OUTPUT': 'memory:Refactored_layer'}
+	params = {'INPUT': layer1, 'FIELDS_MAPPING': field_mapping, 'OUTPUT': 'memory:{}'.format(out_layer_name)}
 	refactored_layer = processing.run("qgis:refactorfields", params)['OUTPUT']
 
 	return refactored_layer, fields_refactored
 
 
-def mod_min_max(in_array, fmin: int, fmax: int):
+def modMinMax(in_array, fmin: int, fmax: int):
 	"""
 	Modifies the elevation/bathimetry
 	values based on the current and provided
@@ -513,7 +516,7 @@ def mod_min_max(in_array, fmin: int, fmax: int):
 	out_array[out_array >= fmin] = fmin + (in_array[in_array >= fmin] - fmin) / ratio
 	return out_array
 
-def mod_rescale(in_array, min: int, max: int):
+def modRescale(in_array, min: int, max: int):
 	"""
 	Modifies the elevation/bathimetry
 	values based on the current and provided
@@ -536,7 +539,7 @@ def mod_rescale(in_array, min: int, max: int):
 
 	return out_array
 
-def mod_formula(in_array, formula, min=None, max=None):
+def modFormula(in_array, formula, min=None, max=None):
 		"""
 		:input in_array (numpy array): an input array that contains elevation values.
 		:param formula: the formula to be used for topography modification.
@@ -573,7 +576,7 @@ def mod_formula(in_array, formula, min=None, max=None):
 		topo[np.isfinite(x)] = x[np.isfinite(x)]
 
 		return topo
-def is_path_valid(path: str)-> tuple: # for now is used for output paths. Modify the raise texts to fit in other contexts. 
+def isPathValid(path: str)-> tuple: # for now is used for output paths. Modify the raise texts to fit in other contexts. 
 	"""
 	Checks if the specified output path is valid and accessible. Returns True, if the path is a file path and writable. False otherwise. 
 	"""
@@ -604,21 +607,7 @@ def is_path_valid(path: str)-> tuple: # for now is used for output paths. Modify
 	
 
 
-
-def print_log(dialog, msg: str):
-		# get the current time
-		time = datetime.datetime.now()
-		time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-		if msg.split(' ')[0].lower() == 'error:' or msg.split(':')[0].lower() == 'error':
-			msg = '<span style="color: red;">{} </span>'.format(msg)
-		elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
-			msg = '<span style="color: blue;">{} </span>'.format(msg)
-		
-		msg=msg.replace("<", "&lt;")
-		msg=msg.replace(">", "&gt;")
-		dialog.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-		
-def add_raster_layer_for_debug(array, geotransform, iface):
+def addRasterLayerForDebug(array, geotransform, iface):
 	out_path = os.path.join(tempfile.tempdir, "Raster_layer_for_debug.tiff")
 	nrows, ncols = np.shape(array)
 	drv = gdal.GetDriverByName("GTIFF")
@@ -635,11 +624,11 @@ def add_raster_layer_for_debug(array, geotransform, iface):
 	
 	rlayer = QgsRasterLayer(out_path, "Raster_Layer_For_Debug", "gdal")
 	iface.addRasterLayer(rlayer)
-def add_vector_layer_for_debug(vlayer, iface):
+def addVectorLayerForDebug(vlayer, iface):
 	iface.addVectorLayer(vlayer)
 	
 
-def generate_unique_ids(vlayer, id_field) -> QgsVectorLayer: 
+def generateUniqueIds(vlayer, id_field) -> QgsVectorLayer: 
 	id_found  = False
 	fields = vlayer.fields().toList()
 	for field in fields:
@@ -666,7 +655,7 @@ def generate_unique_ids(vlayer, id_field) -> QgsVectorLayer:
 		
 	return vlayer
 
-def random_points_in_polygon(source, point_density, min_distance, feedback, runtime_percentage):
+def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime_percentage):
 	"""
 	Creates random points inside polygons. 
 	:param source: input vector layer with polygon features, inside which the random points will be created.
@@ -762,7 +751,37 @@ def random_points_in_polygon(source, point_density, min_distance, feedback, runt
 	points_layer_dp.addFeatures(created_features)
 	points_layer_dp = None
 	nPolygons = source.featureCount()
-	nPoints_created = points_layer.featureCount()
-	feedback.log.emit("Created random points   inside {} polygons.".format(nPolygons))
+	feedback.log.emit("Created random points inside {} polygons.".format(nPolygons))
 	
 	return points_layer
+
+def bufferAroundGeometries(in_layer, buf_dist, num_segments):
+	feats = in_layer.getFeatures()
+	out_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
+	dp = out_layer.dataProvider()
+	for feat in feats:
+		geom = feat.geometry()
+		buf = geom.buffer(buf_dist, num_segments)
+		feat.setGeometry(buf)
+		dp.addFeature(feat)
+	dp = None
+	return out_layer
+
+def loadHelp(dlg):
+	#set the help text in the  help box (QTextBrowser)
+	files = [
+			('TaCompileTopoBathyDlg', 'compile_tb'),
+			('TaSetPaleoshorelinesDlg', 'set_pls'),
+			('TaModifyTopoBathyDlg', 'modify_tb'),
+			('TaCreateTopoBathyDlg', 'create_tb'),
+			('TaRemoveArtefactsDlg', 'remove_arts'),
+			('TaPrepareMasksDlg', 'prepare_masks'),
+			('TaRemoveArtefactsTooltip', 'remove_arts_tooltip')
+			]
+	for class_name, file_name in files:
+		if class_name	== type(dlg).__name__:
+			path_to_file = os.path.join(os.path.dirname(__file__),'../help_text/{}.html'.format(file_name))
+	
+	with open(path_to_file, 'r', encoding='utf-8') as help_file:
+		help_text = help_file.read()
+	dlg.helpBox.setHtml(help_text)

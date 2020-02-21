@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Paleogeography - Removing artefacts</string>
+   <string>Terra Antiqua - Remove artefacts</string>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>

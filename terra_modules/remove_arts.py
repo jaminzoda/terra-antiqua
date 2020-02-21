@@ -29,14 +29,14 @@ import tempfile
 import numpy as np
 
 
-from .topotools import (
-	vector_to_raster,
-	fill_no_data_in_polygon)
+from .utils import (
+	vectorToRaster,
+	fillNoDataInPolygon)
 from qgis._core import QgsRasterLayer
 from psycopg2.errorcodes import NO_DATA
 
 
-class PolygonCreator(QgsMapToolEmitPoint):
+class TaPolygonCreator(QgsMapToolEmitPoint):
 	finished = pyqtSignal(bool)
 	geom = pyqtSignal(object)
 	
@@ -93,7 +93,7 @@ class PolygonCreator(QgsMapToolEmitPoint):
 		self.iface.mapCanvas().refresh()
 
 
-class ArtefactRemover(QThread):
+class TaRemoveArtefacts(QThread):
 	progress = pyqtSignal(int)
 	finished = pyqtSignal(bool, object)
 	log = pyqtSignal(object)
@@ -120,7 +120,7 @@ class ArtefactRemover(QThread):
 	def run(self):
 		if not self.killed:	
 			try:
-				topo_layer = self.get_topo_layer()
+				topo_layer = self.getTopoLayer()
 			except Exception as e:
 				self.log.emit(e)
 				self.kill()
@@ -140,7 +140,7 @@ class ArtefactRemover(QThread):
 					break
 				if not feature.hasGeometry():
 					continue
-                	
+
 				if feature.isValid():
 					
 					temp_layer = QgsVectorLayer("Polygon?crs={}".format(self.vl.crs().toWkt()), "Temporary vector layer for rasterization", "memory")
@@ -148,13 +148,13 @@ class ArtefactRemover(QThread):
 					temp_layer.updateFields()
 					temp_layer.dataProvider().addFeatures([feature])
 					temp_layer.updateExtents()
-					mask_array = vector_to_raster(temp_layer, topo_layer, topo_layer.width(), topo_layer.height())
+					mask_array = vectorToRaster(temp_layer, topo_layer, topo_layer.width(), topo_layer.height())
 					temp_layer = None
 					
 					expr = feature["Expression"]
 					self.log.emit("The expression for feature ID {0} is: {1}.".format(feature.id(), expr))
 					try:
-						expr = self.prepare_expression(H, expr)
+						expr = self.prepareExpression(H, expr)
 					except Exception as e:
 						self.log.emit("Warning: Expression evaluation failed for feature ID {}.".format(feature.id()))
 						self.log.emit("Warning: Please use a valid python expression (e.g. H&gt;500 or H&gt;=500 or (H&gt;500)&(H&lt;700))")
@@ -163,7 +163,7 @@ class ArtefactRemover(QThread):
 						try:
 							H[expr*mask_array==1] = np.nan
 						except Exception as e:
-							self.log.emit("Warning: Although the expression seems to be ok, during topography modification an exception was raised for feature id {}".format(feaure.id()))
+							self.log.emit("Warning: Although the expression seems to be ok, during topography modification an exception was raised for feature id {}".format(feature.id()))
 							continue
 				else:
 					self.log.emit("The polygon of feature ID {} is invalid.".format(feature.id()))
@@ -198,7 +198,7 @@ class ArtefactRemover(QThread):
 				if not self.killed:
 					rlayer = QgsRasterLayer(out_file_path, "Raster Layer for interpolation", "gdal")
 					try:
-						interpolated_raster = fill_no_data_in_polygon(rlayer, self.vl, self.out_file_path) 
+						interpolated_raster = fillNoDataInPolygon(rlayer, self.vl, self.out_file_path) 
 					except Exception as e:
 						self.log.emit("Error: An error occured wile interpolating values for the artefact pixels: {}".format(e))
 						self.kill()
@@ -241,7 +241,7 @@ class ArtefactRemover(QThread):
 			
 
 				
-	def get_topo_layer(self):
+	def getTopoLayer(self):
 		topo_layer = None
 		layer_found = False
 		for layer in self.iface.mapCanvas().layers():
@@ -256,11 +256,11 @@ class ArtefactRemover(QThread):
 			topo_layer.setCrs(new_crs)
 		return topo_layer
 	
-	def prepare_expression(self, H, expr):
+	def prepareExpression(self, H, expr):
 		if expr.lower() == "nodata" or expr.lower() == "no data":
 			
 			try:
-				topo_layer = self.get_topo_layer()
+				topo_layer = self.getTopoLayer()
 			except Exception as e:
 				self.log.emit(e)
 				self.kill()
@@ -290,7 +290,7 @@ class ArtefactRemover(QThread):
 		self.killed = True
 
 
-class CustomFeatureSink(QObject):
+class TaFeatureSink(QObject):
 	
 	def __init__(self, crs):
 		super().__init__()
