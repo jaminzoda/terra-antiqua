@@ -1,6 +1,6 @@
 
 import os
-
+from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
 from PyQt5 import uic
 from .utils import loadHelp
@@ -12,6 +12,14 @@ class TaRemoveArtefactsTooltip(QtWidgets.QDialog, FORM_CLASS):
 		"""Constructor."""
 		super(TaRemoveArtefactsTooltip, self).__init__(parent)
 		self.setupUi(self)
+		# enable custom window hint
+		self.setWindowFlags(self.windowFlags() | Qt.CustomizeWindowHint)
+
+		# disable (but not hide) close button
+		self.setWindowFlags(self.windowFlags() & ~Qt.WindowCloseButtonHint)
+		
+		#self.setWindowFlags(Qt.CustomizeWindowHint)
+		#self.setWindowFlags(Qt.WindowCloseButtonHint, False)
 
 		# List comparison operators.TypeBox
 		
