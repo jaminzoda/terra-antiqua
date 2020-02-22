@@ -322,9 +322,9 @@ class TaCompileTopoBathy(QThread):
 						paleo_dem[cs_mask == 1] = self.shelf_depth
 						paleo_dem[((cs_mask == 1) * (s_bathy > -2000) * (s_bathy < self.shelf_depth)) == 1] = s_bathy[
 							((cs_mask == 1) * (s_bathy > -2000) * (s_bathy < self.shelf_depth)) == 1]
-		
-						self.progress_count += 10
-						self.progress.emit(self.progress_count)
+						if not self.remove_overlap:
+							self.progress_count += 10
+							self.progress.emit(self.progress_count)
 		
 					# Fill the land area with the present day rotated topography
 		
@@ -338,7 +338,7 @@ class TaCompileTopoBathy(QThread):
 				# This is needed to remove bathymetry between continental blocks inside the coastlines area. 	
 				if not self.killed:
 					if self.remove_overlap:
-						buffer_layer = bufferAroundGeometries(coast_temp, 0.5, 100)
+						buffer_layer = bufferAroundGeometries(coast_temp, 0.5, 100, self, 10)
 						buffer_array = vectorToRaster(
 							buffer_layer, 
 							geotransform, 
@@ -427,11 +427,12 @@ class TaCompileTopoBathy(QThread):
 					topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
 					paleo_dem[coast_mask == 1] = topo_br[coast_mask == 1]
 		
-					self.progress_count += 27
-					self.progress.emit(self.progress_count)
+					if not self.remove_overlap:
+						self.progress_count += 27
+						self.progress.emit(self.progress_count)
 				if not self.killed:
 					if self.remove_overlap:
-						buffer_layer = bufferAroundGeometries(self.masks_layer, 0.5, 100)
+						buffer_layer = bufferAroundGeometries(self.masks_layer, 0.5, 100, self, 27)
 						buffer_array = vectorToRaster(
 							buffer_layer, 
 							geotransform, 
