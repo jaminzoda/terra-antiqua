@@ -89,11 +89,11 @@ class TerraAntiqua:
 		self.actions = []
 		self.menu = self.tr(u'&Terra Antiqua')
 
-		# Create a separate toolbar for the tool
-		self.pg_toolBar = iface.mainWindow().findChild(QToolBar, u'Terra Antiqua')
-		if not self.pg_toolBar:
-			self.pg_toolBar = iface.addToolBar(u'Terra Antiqua')
-			self.pg_toolBar.setObjectName(u'Terra Antiqua')
+		# Create a separate toolbar for the plugin
+		self.ta_toolBar = iface.mainWindow().findChild(QToolBar, u'Terra Antiqua')
+		if not self.ta_toolBar:
+			self.ta_toolBar = iface.addToolBar(u'Terra Antiqua')
+			self.ta_toolBar.setObjectName(u'Terra Antiqua')
 				
 		# Load the settings object. Read settings and passes them to the plugin
 		self.settings = TaSettings()
@@ -184,8 +184,8 @@ class TerraAntiqua:
 			action.setWhatsThis(whats_this)
 
 		if add_to_toolbar:
-			# Adds plugin icon to Plugins toolbar
-			self.pg_toolBar.addAction(action)
+			# Adds plugin icon to Terra Antiqua toolbar
+			self.ta_toolBar.addAction(action)
 
 		if add_to_menu:
 			self.iface.addPluginToMenu(
@@ -261,9 +261,10 @@ class TerraAntiqua:
 		"""Removes the plugin menu item and icon from QGIS GUI."""
 		for action in self.actions:
 			self.iface.removePluginMenu(
-				self.tr(u'&Paleogeography'),
+				self.tr(u'&Terra Antiqua'),
 				action)
 			self.iface.removeToolBarIcon(action)
+			self.ta_toolBar.removeAction(action)
 	
 	def initCompileTopoBathy(self):
 		"""Initializes the Compile Topo/Bathymetry algotithm and loads it"""
@@ -365,8 +366,6 @@ class TaAlgorithm:
 		elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
 			msg = '<span style="color: blue;">{} </span>'.format(msg)
 		
-		#msg=msg.replace("<", "&lt;")
-		#msg=msg.replace(">", "&gt;")
 		self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 	
 	def add_result(self, finished, output_path):
