@@ -755,17 +755,32 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
 	
 	return points_layer
 
-def bufferAroundGeometries(in_layer, buf_dist, num_segments):
+def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_percentage):
 	feats = in_layer.getFeatures()
-	out_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
-	dp = out_layer.dataProvider()
-	for feat in feats:
+	buffer_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
+	fixed_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
+	dp = buffer_layer.dataProvider()
+	dp_fixed = fixed_layer.dataProvider()
+	total = runtime_percentage/fixed_layer.featureCount() if fixed_layer.featureCount() else 0
+	for current, feat in enumerate(feats):
 		geom_in = feat.geometry()
-		buf = geom_in.buffer(buf_dist, num_segments)
-		geom_out = buf.difference(geom_in)
-		feat.setGeometry(geom_out)
-		dp.addFeature(feat)
+		fixed_geom = geom_in.makeValid()
+		buf = fixed_geom.buffer(buf_dist, num_segments)
+		feat.setGeometry(fixed_geom)
+		buf_feat = QgsFeature()
+		buf_feat.setGeometry(buf)
+		dp.addFeature(buf_feat)
+		dp_fixed.addFeature(feat)
+		feedback.progress_count += current*total
+		feedback.progress.emit(feedback.progress_count)
 	dp = None
+	dp_fixed = None
+	params = {
+				'INPUT':buffer_layer,
+				'OVERLAY':fixed_layer,
+				'OUTPUT':'TEMPORARY_OUTPUT'
+			}
+	out_layer = processing.run("native:difference", params)['OUTPUT']	
 	return out_layer
 
 def loadHelp(dlg):
