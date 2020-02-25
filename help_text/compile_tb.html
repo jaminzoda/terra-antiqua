@@ -2,7 +2,7 @@
 <head>
 <link rel="stylesheet" type="text/css" href="StyleSheet.css">
 </head>
-<title> Digital Elevation Model Compiler </title>
+<title> Compile Topography / Bathymetry </title>
 
 <body>
 <p>
@@ -28,13 +28,19 @@
     
     <b>Field -<i> Reconstructed paleobathymetry</i> </b> <br/> Select your bathymetry file, already reconstructed to the desired time (eg. Mueller et al. 2008).<br/>
     <p>
-    <div> If you select datasets for the optional fields below, they will be used to reconstruct the paleobathymetry, and the data from the raster entered as <i> reconstructed paleobathymetry</i> will only be used to fill in the gaps. Please refer to the manual for more info.</div>
+    <div> If you select datasets for the optional fields below, they will be used to reconstruct the paleobathymetry, and the data from the raster entered as <i> reconstructed paleobathymetry</i> will only be used to fill in the gaps. Please refer to the manual for more info.</div> <br/>
     
     <b> Field (optional) - <i>Ocean age</i> </b><br/> If you have a present day ocean age raster, select it from the list.  It must be rotated to its position at the time of reconstruction.
-   You will have to specify the age of the reconstruction (Ma) in the corresponding field. This will be used to calculate the paleobathymetry.<br/>
+   You will have to specify the <i><b>age of the reconstruction (Ma)</b></i> in the corresponding field. This will be used to calculate the paleobathymetry.<br/>
     
     <b> Field (optional) - <i>Shallow sea bathymetry</i> </b> <br/> If you have a present day shallow bathymetry raster, enter it here (rotated to its position at the time of reconstruction).
-    You will have to specify a maximum depth (in m) for the continental shelf.
+    You will have to specify a <b><i>maximum depth (in m) for the continental shelf</i></b>.
+
+    </p>
+<p>
+<h4> Advanced parameters</h4><br/>
+
+In some cases, small pieces of the bathymetry rater might overlap the topography raster, leading to the formation of artefacts. If you choose to <b><i>remove ovelapping bathymetry</i></b>, a buffer zone will be created around the continental blocks to avoid bathymetry values appearing accidentally within continents.
 </p>
 
 <p>
@@ -42,8 +48,10 @@
     
     <b>Specify the <i>Output file path</i>.</b><br>
     If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-    <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
-           II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+  
+    <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
+    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div> </br>
+       <p>Note: This tool is beeing redesigned for v0.3 of Terra Antiqua</p>
 </p>
 </body>
 </html>

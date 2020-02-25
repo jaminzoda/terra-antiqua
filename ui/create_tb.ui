@@ -141,8 +141,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>498</width>
-            <height>519</height>
+            <width>479</width>
+            <height>530</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -189,7 +189,7 @@
              <item>
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Layer with polygons of geographic features:</string>
+                <string>Layer with polygons for the geographic features:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -337,23 +337,23 @@
             </spacer>
            </item>
            <item>
-            <widget class="QgsFileWidget" name="outputPath">
-             <property name="fileWidgetButtonVisible">
+            <widget class="QgsFileWidget" name="outputPath" native="true">
+             <property name="fileWidgetButtonVisible" stdset="0">
               <bool>true</bool>
              </property>
-             <property name="useLink">
+             <property name="useLink" stdset="0">
               <bool>false</bool>
              </property>
-             <property name="fullUrl">
+             <property name="fullUrl" stdset="0">
               <bool>false</bool>
              </property>
-             <property name="dialogTitle">
+             <property name="dialogTitle" stdset="0">
               <string/>
              </property>
-             <property name="filter">
+             <property name="filter" stdset="0">
               <string/>
              </property>
-             <property name="defaultRoot">
+             <property name="defaultRoot" stdset="0">
               <string>[Create temporary layer]</string>
              </property>
             </widget>
