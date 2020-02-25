@@ -7,25 +7,11 @@
     <body>
         <p>
         
-        The (Digital Elevation Models) DEMs often contain artefacts introduced mostly during different processing steps in the framework of this plugin, e.g. while interpolating elevation values to fill in gaps.
+ The DEMs, be it reconstructed paleobethymetry or rotated current day Topograpy, often contain artefacts. More oftenly, these artefacts are introduced during various steps of processing in the framework of this plugin, e.g. while interpolating elevation values for thoose, which do not have it (gaps filling). </p>
+ <p>  
+<i><b>Artefact remover</b></i> is designed to remove them from the DEM raster. The polygons that user draws before this dialog emerges, are  used to specify the area from where the pixel values of artefacts will be removed. Artefact values are defined by an expression in the <i><b>Expression field</i></b>. Although any kind of expressions that can be evaluated in python can be used, the focus here is made on expressions with simple comparison operators such as "&gt;", "&lt;", "==" and within a range. One can select a comparison operator from the <i><b>drop-down list</i></b> to see how the expression should be specified. Letter H (height) is used to refer to the current value of the pixels in the DEM. The values for artefact pixels that were removed can be interpolated, if the appropriate option is opted. One can also use any  forms of "NoData" (No data, no data, nodata, NODATA etc) to interpolate values for empty pixels (fill no data pixels). 
+<p>For drawing more polygons one can press the appropriate button. But keep in mind that polygons that you draw are not saved (yet) and will be removed after the tool finishes its job. </p>
 <p>
-<b>Artefact remover</b> is designed to remove them from the DEM raster. The polygons drawn before this dialog emerges, are  used to specify the area where artefacts will be removed.<br/>
-Artefact values are defined by the <i><b>Expression</i></b> you enter in the corresponding field.<br/>
-
-<div>Your expression should consist of simple comparison operators such as "&gt;", "&lt;", "==" and "within a range". These can be selected from the drop-down menu. You can also use any forms of "NoData" (No data, no data, nodata, NODATA etc) to refer to empty pixels. In this case no pixel will be erased, and the empty pixels will simply be filled with interpolated values.</div>
-<p>
-<b>Field - <i>Enter your expressions</i>:</b><br/>
-Enter the expression that will define which range of elevation values is to be consideres as artefacts and thus removed. The expression must contain the letter <b>H</b> (height) which refers to the value of the pixels in the DEM.<br/>
-
-<div> Click <b><i>add more polygons</i></b> to go to back to the map and draw another polygon. Keep in mind the same expression will be applied to every polygon you draw.</div><br/>
-
-<b>Field - <i>Interpolate values for removed artefacts</i>:</b><br/>
-Tick this box to fill in the gaps left by removed pixels.
-<p>
-<div><b>Warning:</b> <br/>
-    I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
-    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time<br>
-    III) The polygons you draw while using this tool are temporary and will be erased as soon as the processing is finished.</div>
 
 </p>
 </body>
