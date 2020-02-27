@@ -2,16 +2,18 @@
     <head>
         <link rel="stylesheet" type="text/css" href="StyleSheet.css">
     </head>
-    <title> Interpolation </title>
+    <title> Fill gaps </title>
     
     <body>
         <p>
-        
-<i>Interpolation</i> is intended to fill the gaps between rotated tectonic blocks with interpolated values. It generates elevation data in each empty pixel by averaging pixel values around it, using inverse distance weighting. Please refer to the manual to know when to use it in your specific case.
+        <b>Field - <i>How would you like to process the DEM</i></b>:<br/>
+        Choose the processing tool you want to use.
+        <p>
+<i>Fill gaps</i> is intended to interpolate values for gaps between rotated tectonic blocks. It generates elevation data in each empty pixel by averaging pixel values around it, using inverse distance weighting. Please refer to the manual to know when to use it in your specific case.
 <p>
 <b>Field - <i>Raster to be modified (Input)</i></b>:<br/> Choose the raster (topography and bathymetry DEM) where you want to perform the interpolation.
 
-<div><b>Available in version 0.3</b> </br>If you tick the box <i><b>Interpolate inside polygons</b></i>, the interpolation will be constrained to the <i><b>masks</b></i> you select. </div>
+<br>If you tick the box <i><b>Interpolate inside polygons</b></i>, the interpolation will be constrained to the <i><b>masks</b></i> you select. </div>
 <p>
 <b>Field - <i>Smooth resulting raster</i></b>:<br/>
 If you tick this box the resulting raster will be smoothed. This means that the sharp edges will be less pronounced (see manual).
@@ -20,8 +22,9 @@ If you tick this box the resulting raster will be smoothed. This means that the 
 <p>
 <b>Specify the <i>Output file path</i>.</b><br>
 If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
-    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+
+<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
+II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 </p>
     </body>
     </html>

@@ -2,7 +2,7 @@
     <head>
         <link rel="stylesheet" type="text/css" href="StyleSheet.css">
     </head>
-    <title> Paleoshorelines </title>
+    <title> Set Paleoshorelines </title>
     <body>
     <p>
     This tool performs a correction to the compiled DEM (topography and bathymetry) according to the provided paleoshoreline polygons.<br/>
@@ -11,21 +11,21 @@
 <p>
 <b>Field - <i>Raster to be modified (Input)</b></i>:<br/> Select the raster (DEM) compiling the topography and the bathymetry (rotated to the time of reconstruction)
 <p>
-<b>Field - <i>Rotated Paleoshorelines</b></i>:<br/> Select the vector layer with the paleoshorelines rotated to the time of reconstruction (to get or modify paleoshorelines, see manual).
+<b>Field - <i>Rotated Paleoshorelines</b></i>:<br/> Select the vector layer with the paleoshorelines rotated to the time of reconstruction (to get or modify paleoshorelines, see the manual).
 <p> <b>Field - <i>Modification mode</b></i>:<br/>
 If you select <i><b>Interpolation</b></i>, elevation values of the areas to be emerged or submerged are erased and these gaps subsequently interpolated.<br/>
 If you select <i><b>Rescaling</b></i>, the originally submerged values are linearly rescaled between <i>0.1</i> and the elevation you enter. For the newly submerged areas, the originally emerged values are linearly rescaled between <i>-0.1</i> and the depth you enter.
  <div>For more information, please refer to the manual</div>
 <p>
-<b>Field - <i>Maximum elevation of the emerged area</b></i>:<br/> Enter the chosen maximum elevation for the newly emerged area in m (default = 2.0m). This is only available for the <I>Rescaling</i> modification mode.
+<b>Field - <i>Maximum elevation of the emerged area</b></i>:<br/> Enter the chosen maximum elevation for the newly emerged areas in m (default = 2.0m). This is only available for the <I>Rescaling</i> modification mode.
 <p>
 <b>Field - <i>Maximum depth of the submerged area</b></i>:<br/>
 Enter the chosen maximum depth for the newly submerged area in m (default = -5.0m). This must be a negative value since it's related to bathymetry. This is only available for the <i>Rescaling</i> modification mode.
 <p>
 <b>Specify the <i>Output file path</i>.</b><br>
-If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
-        II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
+II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 </p>
 </body>
 </html>

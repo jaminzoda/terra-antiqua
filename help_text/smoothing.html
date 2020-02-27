@@ -5,6 +5,10 @@
     <title> Smoothing </title>
     
     <body>
+        <p>
+            <b>Field - <i>How would you like to process the DEM</i></b>:<br/>
+            Choose the processing tool you want to use.
+            
    <p> This tool is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after topography modification and interpolation. However, it may be used in any DEM raster (1 band).
    <p>
    <b>Field - <i>Raster to be modified (Input)</i></b><br/>You need to specify the raster (DEM) where you want to perform the smoothing.
@@ -14,9 +18,10 @@
       <div>Please be aware that smoothing may take 5 to 10 minutes, depending on the system. A higher smoothing factor will increase the processing time.</div>
    <p>
    <b>Specify the <i>Output file path</i>.</b><br>
-   If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-   <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br><br>
-         II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+   If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+   
+   <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
+   II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 
    </p>
    </body>
