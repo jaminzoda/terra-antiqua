@@ -122,10 +122,12 @@ class TaRemoveArtefacts(QThread):
 			try:
 				topo_layer = self.getTopoLayer()
 			except Exception as e:
-				self.log.emit(e)
+				self.log.emit("Error: {}".format(e))
 				self.kill()
-			self.log.emit("Removing artefacts from the {} raster".format(topo_layer.name()))
 		
+		if not self.killed:
+			self.log.emit("Removing artefacts from the {} raster".format(topo_layer.name()))
+			
 			self.log.emit("{} polygons are found in the input layer.".format(self.vl.featureCount()))
 
 		
@@ -251,9 +253,10 @@ class TaRemoveArtefacts(QThread):
 				break
 		if not layer_found:
 			raise Exception("There is no visible raster layer in the project. Please check a raster layer  with topography that you want to modify.")
-		if not topo_layer.crs() == self.crs:
+		if not topo_layer.crs().authid() == self.crs and self.crs:
 			new_crs = QgsCoordinateReferenceSystem(self.crs)
 			topo_layer.setCrs(new_crs)
+
 		return topo_layer
 	
 	def prepareExpression(self, H, expr):

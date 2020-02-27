@@ -1,27 +1,15 @@
-The QGIS plugin directory is located at:
-    /home/USER_PROFILE/.local/share/QGIS/QGIS3/profiles/default/python/plugins
+Terra Antiqua is a QGIS plugin for paleogeographic reconstructions and paleogeographic map creation. 
+This plugin has utilities and tools for:
+<ul>
+<li>Merging reconstructed topography and bathymetry data that are rotated to the time of reconstruction in Gplates; 
+Defining paleoshorelines (also rotated to the time of reconstruction);
+<li>Modifying topography and bathymetry with formula or by defining new maximum and minimum elevation/depth values for various regions. To define the formula minimum and maximum values for topography/bathymetry regions, polygons should be drawn for the areas of modification;
+<li>Creating new topography and bathymetry (mountain ranges and sea);
+<li>It also has utilities that provide easy to use standard processing tools such filling the gaps in the raster files by interpolation, smoothing the raster files, compensation for isostasy and copying topography/bathymetry data and pasting in other rasters;
+<li>The Remove Artefacts tool allows users to remove artefacts that are often created in datasets during processing;
+<li>The Prepare masks tool allows to prepare several shapefiles containing masks, merging them together in order to use them as input in the Compile TopoBathymetry tool that merges topography and bathymetry raster data. 
+</ul>
+To install the plugin you need to switch to Releases tab and download a zip file with the latest version, then in plugins manager of QGIS select the option for installing local packages and install it. 
 
-To use this plugin do the following:
-
-  * Copy the entire directory containing your new plugin to the QGIS plugin
-    directory
-
-  * Compile the resources file using pyrcc5
-
-  * Run the tests (``make test``)
-
-  * Test the plugin by enabling it in the QGIS plugin manager
-
-  * Customize it by editing the implementation file: ``dem_builder.py``
-
-  * Create your own custom icon, replacing the default icon.png
-
-  * Modify the user interface by opening DEMBuilder_dialog_base.ui in Qt Designer
-
-  * You can use the Makefile to compile your Ui and resource files when
-    you make changes. This requires GNU make (gmake)
-
-For more information, see the PyQGIS Developer Cookbook at:
-http://www.qgis.org/pyqgis-cookbook/index.html
 
 (C) 2019 Magic - paleoenvironment.eu

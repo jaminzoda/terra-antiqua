@@ -83,5 +83,21 @@ p, li { white-space: pre-wrap; }
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>Dialog</sender>
+   <signal>rejected()</signal>
+   <receiver>Dialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>217</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>217</x>
+     <y>83</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>

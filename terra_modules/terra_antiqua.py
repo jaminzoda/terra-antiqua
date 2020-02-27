@@ -30,7 +30,13 @@ from PyQt5.QtCore import (
 						)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
-from qgis.core import QgsExpressionContext, QgsExpressionContextUtils, QgsProject, QgsMapLayerType
+from qgis.core import QgsExpressionContext, QgsExpressionContextUtils, QgsProject
+
+try:
+	from qgis.core import QgsMapLayerType
+except Exception:
+	from qgis.core import QgsMapLayer
+
 import datetime
 import os.path
 
@@ -89,11 +95,11 @@ class TerraAntiqua:
 		self.actions = []
 		self.menu = self.tr(u'&Terra Antiqua')
 
-		# Create a separate toolbar for the tool
-		self.pg_toolBar = iface.mainWindow().findChild(QToolBar, u'Terra Antiqua')
-		if not self.pg_toolBar:
-			self.pg_toolBar = iface.addToolBar(u'Terra Antiqua')
-			self.pg_toolBar.setObjectName(u'Terra Antiqua')
+		# Create a separate toolbar for the plugin
+		self.ta_toolBar = iface.mainWindow().findChild(QToolBar, u'Terra Antiqua')
+		if not self.ta_toolBar:
+			self.ta_toolBar = iface.addToolBar(u'Terra Antiqua')
+			self.ta_toolBar.setObjectName(u'Terra Antiqua')
 				
 		# Load the settings object. Read settings and passes them to the plugin
 		self.settings = TaSettings()
@@ -184,8 +190,8 @@ class TerraAntiqua:
 			action.setWhatsThis(whats_this)
 
 		if add_to_toolbar:
-			# Adds plugin icon to Plugins toolbar
-			self.pg_toolBar.addAction(action)
+			# Adds plugin icon to Terra Antiqua toolbar
+			self.ta_toolBar.addAction(action)
 
 		if add_to_menu:
 			self.iface.addPluginToMenu(
@@ -261,9 +267,10 @@ class TerraAntiqua:
 		"""Removes the plugin menu item and icon from QGIS GUI."""
 		for action in self.actions:
 			self.iface.removePluginMenu(
-				self.tr(u'&Paleogeography'),
+				self.tr(u'&Terra Antiqua'),
 				action)
 			self.iface.removeToolBarIcon(action)
+			self.ta_toolBar.removeAction(action)
 	
 	def initCompileTopoBathy(self):
 		"""Initializes the Compile Topo/Bathymetry algotithm and loads it"""
@@ -303,7 +310,7 @@ class TerraAntiqua:
 			self.removeArtefacts.clean()
 		else:
 			self.settings.removeArtefactsChecked = True
-			self.removeArtefacts = TaRemoveArtefacts(TaRemoveArtefactsTooltip, TaRemoveArtefactsDlg, self.iface, self.actions, self.settings)
+			self.removeArtefacts = TaRemoveArtefactsAlgProvider(TaRemoveArtefactsTooltip, TaRemoveArtefactsDlg, self.iface, self.actions, self.settings)
 			self.removeArtefacts.initiate()
 		
 		
@@ -365,8 +372,6 @@ class TaAlgorithm:
 		elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
 			msg = '<span style="color: blue;">{} </span>'.format(msg)
 		
-		#msg=msg.replace("<", "&lt;")
-		#msg=msg.replace(">", "&gt;")
 		self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
 	
 	def add_result(self, finished, output_path):
@@ -379,8 +384,12 @@ class TaAlgorithm:
 				layer = self.iface.addVectorLayer(output_path, file_name, "ogr")
 			if layer:
 				# Rendering a symbology style for the resulting raster layer.
-				if layer.type() == QgsMapLayerType.RasterLayer:
-					setRasterSymbology(layer)
+				try:
+					if layer.type() == QgsMapLayerType.RasterLayer:
+						setRasterSymbology(layer)
+				except Exception:
+					if layer.type() == QgsMapLayer.LayerType.RasterLayer:
+						setRasterSymbology(layer)
 				else:
 					pass
 				self.log("The algorithm finished processing successfully,")
@@ -392,7 +401,7 @@ class TaAlgorithm:
 		else:
 			self.stop()
 			
-class TaRemoveArtefacts:
+class TaRemoveArtefactsAlgProvider:
 	
 	def __init__(self, dlg1, dlg, iface, actions, settings):
 		self.dlg = dlg()

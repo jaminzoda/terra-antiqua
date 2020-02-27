@@ -23,7 +23,7 @@ class TaCreateTopoBathyDlg(QtWidgets.QDialog, FORM_CLASS):
 		self.setupUi(self)
 		
 		# Define the list of geographic features can be created
-		geo_features_list = ["Sea", "Sea-voronoi", "Mountain range"]
+		geo_features_list = ["Sea", "Mountain range"]
 		self.featureTypeBox.addItems(geo_features_list)
 		
 		#Connect feature type combobox with function that change the dialog according to feature type.
@@ -53,7 +53,7 @@ class TaCreateTopoBathyDlg(QtWidgets.QDialog, FORM_CLASS):
 		self.baseTopoBox.layerChanged.connect(self.enableRunButton)
 		loadHelp(self)	
 	def selectFeatureType(self):
-		if self.featureTypeBox.currentText() == "Sea" or self.featureTypeBox.currentText() == "Sea-voronoi":
+		if self.featureTypeBox.currentText() == "Sea":
 			self.maxElevSpinBox.setMaximum(0)
 			self.maxElevSpinBox.setMinimum(-9999)
 			self.maxElevSpinBox.setValue(-5750)
@@ -66,7 +66,11 @@ class TaCreateTopoBathyDlg(QtWidgets.QDialog, FORM_CLASS):
 			
 			self.shelfDepthSpinBox.show()
 			self.shelfWidthSpinBox.show()
+			self.shelfDepthSpinBox.setMaximum(0)
+			self.shelfDepthSpinBox.setMinimum(-1000)
+			self.shelfDepthSpinBox.setValue(-200)
 			self.shelfDepthLabel.show()
+			self.shelfDepthLabel.setText("Maximum shelf depth (in m):")
 			self.shelfWidthLabel.show()
 			
 			self.slopeWidthSpinBox.setValue(100)
