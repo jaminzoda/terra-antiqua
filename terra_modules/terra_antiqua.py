@@ -30,7 +30,13 @@ from PyQt5.QtCore import (
 						)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
-from qgis.core import QgsExpressionContext, QgsExpressionContextUtils, QgsProject, QgsMapLayerType
+from qgis.core import QgsExpressionContext, QgsExpressionContextUtils, QgsProject
+
+try:
+	from qgis.core import QgsMapLayerType
+except Exception:
+	from qgis.core import QgsMapLayer
+
 import datetime
 import os.path
 
@@ -304,7 +310,7 @@ class TerraAntiqua:
 			self.removeArtefacts.clean()
 		else:
 			self.settings.removeArtefactsChecked = True
-			self.removeArtefacts = TaRemoveArtefacts(TaRemoveArtefactsTooltip, TaRemoveArtefactsDlg, self.iface, self.actions, self.settings)
+			self.removeArtefacts = TaRemoveArtefactsAlgProvider(TaRemoveArtefactsTooltip, TaRemoveArtefactsDlg, self.iface, self.actions, self.settings)
 			self.removeArtefacts.initiate()
 		
 		
@@ -378,8 +384,12 @@ class TaAlgorithm:
 				layer = self.iface.addVectorLayer(output_path, file_name, "ogr")
 			if layer:
 				# Rendering a symbology style for the resulting raster layer.
-				if layer.type() == QgsMapLayerType.RasterLayer:
-					setRasterSymbology(layer)
+				try:
+					if layer.type() == QgsMapLayerType.RasterLayer:
+						setRasterSymbology(layer)
+				except Exception:
+					if layer.type() == QgsMapLayer.LayerType.RasterLayer:
+						setRasterSymbology(layer)
 				else:
 					pass
 				self.log("The algorithm finished processing successfully,")
@@ -391,7 +401,7 @@ class TaAlgorithm:
 		else:
 			self.stop()
 			
-class TaRemoveArtefacts:
+class TaRemoveArtefactsAlgProvider:
 	
 	def __init__(self, dlg1, dlg, iface, actions, settings):
 		self.dlg = dlg()
