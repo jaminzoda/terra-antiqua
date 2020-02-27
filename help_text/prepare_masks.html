@@ -2,7 +2,7 @@
     <head>
         <link rel="stylesheet" type="text/css" href="StyleSheet.css">
     </head>
-    <title> Mask maker </title>
+    <title> Prepare masks </title>
     
 <body>
    <p>This tool prepares the general masks such as coastlines, continental shelves and shallow sea regions for the bathymetry / topography compilation. These are used when you export topograpy and bathymetry from Gplates in different raster files (such as done by Baatsen et al. 2016).
@@ -17,7 +17,7 @@
    <p><h4>Coastlines</h4><br/>
    <b>Field - <i>Polygon layer</i></b><br/> Select the vector file with the polygons for the coastlines<br/>
    <b>Field - <i>Polyline layer</i></b><br/>Select the vector file with the lines representing the coastlines
-   <div><b>Note:</b> The input data can contain both polygons and polylines because in some models (eg. Baatsen et al.) the masks aren't always closed polygons and they may consist of open lines to allow shape modification in GPlates. <i>Make masks</i> will polygonize these lines and add them to the polygon layer.</div>
+   <div><b>Note:</b> The input data can contain both polygons and polylines because in some models (eg. Baatsen et al.) the masks aren't always closed polygons and they may consist of open lines to allow shape modification in GPlates. <i>Prepare masks</i> will polygonize these lines and add them to the polygon layer.</div>
    
    <p><h4>Continental shelves</h4><br/>
  <b>Field - <i>Polygon layer</i></b><br/> Select the vector file with the polygons representing the continental shelves<br/>
@@ -28,7 +28,7 @@
   <b>Field - <i>Polyline layer</i></b> (see <b>Note</b> above)<br/> Select the vector file with the lines representing the shallow seas<br/>
   <p><h4>Output</h4><br>
   <b>Specify the <i>Output file path</i>.</b><br>
-  If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+  If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 
 
   <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
