@@ -14,7 +14,7 @@ version=0.2
 author=Jovid Aminov, Diego Ruitz
 email=jovid.aminov@outlook.com
 
-about=Terra Antiqua allows creation of paleogeoraphic digital elevation models (DEM) by combyning several bathymetry and topography datasets that are rotated to the time of reconstruction in GPlates software. The final compiled topgraphy and bathymetry DEM can be further modified and processed with the plugin. 
+about=Terra Antiqua allows creation of paleogeoraphic digital elevation models (DEM) by combining several bathymetry and topography datasets that are rotated to the time of reconstruction in GPlates software. The final compiled topography and bathymetry DEM can be further modified and processed with the plugin. 
 
 tracker=http://bugs
 repository=http://repo
