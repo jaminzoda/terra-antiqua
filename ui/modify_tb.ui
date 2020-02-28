@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>880</width>
+    <width>940</width>
     <height>500</height>
    </rect>
   </property>
@@ -96,8 +96,8 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>686</width>
+            <y>-237</y>
+            <width>556</width>
             <height>971</height>
            </rect>
           </property>
@@ -229,10 +229,10 @@
                 <property name="title">
                  <string>Formula for topography modification</string>
                 </property>
-                <property name="collapsed" stdset="0">
+                <property name="collapsed">
                  <bool>false</bool>
                 </property>
-                <property name="saveCollapsedState" stdset="0">
+                <property name="saveCollapsedState">
                  <bool>true</bool>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -250,13 +250,20 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,1">
                    <item>
                     <widget class="QgsFieldComboBox" name="formulaField">
-                     <property name="allowEmptyFieldName" stdset="0">
+                     <property name="allowEmptyFieldName">
                       <bool>true</bool>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLineEdit" name="formulaText"/>
+                    <widget class="QLineEdit" name="formulaText">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </item>
@@ -456,7 +463,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QgsFileWidget" name="outputPath" native="true"/>
+               <widget class="QgsFileWidget" name="outputPath"/>
               </item>
              </layout>
             </widget>
@@ -596,6 +603,11 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>QgsFieldComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsfieldcombobox.h</header>
+  </customwidget>
+  <customwidget>
    <class>QgsFileWidget</class>
    <extends>QWidget</extends>
    <header>qgsfilewidget.h</header>
@@ -604,11 +616,6 @@
    <class>QgsMapLayerComboBox</class>
    <extends>QComboBox</extends>
    <header>qgsmaplayercombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsFieldComboBox</class>
-   <extends>QComboBox</extends>
-   <header>qgsfieldcombobox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
