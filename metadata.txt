@@ -7,14 +7,14 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=TerraAntiqua
-qgisMinimumVersion=3.0
-description=The plugin creates a paleoDEM by combyning present day topography and paleobathimetry, and modiying the final topography by introducing masks.
-version=0.1
-author=Jovid Aminov
+name=Terra Antiqua
+qgisMinimumVersion=3.4
+description=This plugin creates paleogeographic maps and their digital elevation models. 
+version=0.2
+author=Jovid Aminov, Diego Ruitz
 email=jovid.aminov@outlook.com
 
-about=Provide a brief description of the plugin and its purpose.
+about=Terra Antiqua allows creation of paleogeoraphic digital elevation models (DEM) by combyning several bathymetry and topography datasets that are rotated to the time of reconstruction in GPlates software. The final compiled topgraphy and bathymetry DEM can be further modified and processed with the plugin. 
 
 tracker=http://bugs
 repository=http://repo
@@ -23,7 +23,7 @@ repository=http://repo
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-# changelog=
+# changelog= 
 
 # Tags are comma separated with spaces allowed
 tags=python

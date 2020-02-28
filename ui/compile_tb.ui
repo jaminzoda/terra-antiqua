@@ -43,8 +43,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>686</width>
-            <height>695</height>
+            <width>537</width>
+            <height>678</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -70,13 +70,13 @@
                   </property>
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectMasks">
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders" stdset="0">
+                    <property name="excludedProviders">
                      <stringlist>
                       <string>&quot;gdal&quot;</string>
                      </stringlist>
@@ -119,13 +119,13 @@
                   </property>
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectBrTopo">
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders" stdset="0">
+                    <property name="excludedProviders">
                      <stringlist>
                       <string>&quot;gdal&quot;</string>
                      </stringlist>
@@ -168,10 +168,10 @@
                     <property name="currentText">
                      <string/>
                     </property>
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>true</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -206,13 +206,13 @@
                     <property name="currentText">
                      <string/>
                     </property>
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>true</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
-                    <property name="excludedProviders" stdset="0">
+                    <property name="excludedProviders">
                      <stringlist/>
                     </property>
                    </widget>
@@ -241,10 +241,10 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
                   <item>
                    <widget class="QgsMapLayerComboBox" name="selectPaleoBathy">
-                    <property name="allowEmptyLayer" stdset="0">
+                    <property name="allowEmptyLayer">
                      <bool>false</bool>
                     </property>
-                    <property name="showCrs" stdset="0">
+                    <property name="showCrs">
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -261,28 +261,7 @@
                </layout>
               </item>
               <item row="3" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,1">
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_9">
-                  <item>
-                   <widget class="QLabel" name="ageBoxLabel">
-                    <property name="text">
-                     <string>Age of reconstruction (Ma)</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QgsSpinBox" name="ageBox">
-                    <property name="maximum">
-                     <number>4500</number>
-                    </property>
-                    <property name="singleStep">
-                     <number>5</number>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
+               <layout class="QVBoxLayout" name="verticalLayout_14" stretch="1,1">
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_10">
                   <item>
@@ -302,6 +281,27 @@
                     </property>
                     <property name="singleStep">
                      <number>10</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <item>
+                   <widget class="QLabel" name="ageBoxLabel">
+                    <property name="text">
+                     <string>Age of reconstruction (Ma)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QgsSpinBox" name="ageBox">
+                    <property name="maximum">
+                     <number>4500</number>
+                    </property>
+                    <property name="singleStep">
+                     <number>5</number>
                     </property>
                    </widget>
                   </item>
@@ -329,7 +329,7 @@
              <property name="checkable">
               <bool>false</bool>
              </property>
-             <property name="collapsed" stdset="0">
+             <property name="collapsed">
               <bool>true</bool>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -353,8 +353,8 @@
               </widget>
              </item>
              <item>
-              <widget class="QgsFileWidget" name="outputPath" native="true">
-               <property name="defaultRoot" stdset="0">
+              <widget class="QgsFileWidget" name="outputPath">
+               <property name="defaultRoot">
                 <string/>
                </property>
               </widget>
