@@ -223,7 +223,9 @@ def rasterSmoothing(in_layer, factor, out_file=None, feedback=None, runtime_perc
 	:param out_file: String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will be written in a new raster, otherwise the old raster will be updated.
 	:return:QgsRasterLayer. Smoothed raster layer.
 	"""
-
+	extent = in_layer.extent()
+	x_max = extent.xMaximum()
+	x_min = extent.xMinimum()
 	raster_ds = gdal.Open(in_layer.source(), gdalconst.GA_Update)
 	in_band = raster_ds.GetRasterBand(1)
 	in_array = in_band.ReadAsArray()
@@ -237,8 +239,12 @@ def rasterSmoothing(in_layer, factor, out_file=None, feedback=None, runtime_perc
 		total = 100 / rows if rows else 0
 	for i in range(rows - 1):
 		for j in range(cols - 1):
-			# Define smoothing mask; periodic boundary along date line
-			x_vector = np.mod((np.arange((j - factor), (j + factor + 1))), (cols - 1))
+			#Check if the raster covers the globe. To smooth across the date line.
+			if x_max>=180 and x_min<=-180:
+				# Define smoothing mask; periodic boundary along date line
+				x_vector = np.mod((np.arange((j - factor), (j + factor + 1))), (cols - 1))
+			else:
+				x_vector = np.arange(np.maximum(0, j-factor), (np.minimum((cols-1), j+factor)+1),1)
 			x_vector = x_vector.reshape(1, len(x_vector))
 			y_vector = np.arange(np.maximum(0, i - factor), (np.minimum((rows - 1), i + factor) + 1), 1)
 			y_vector = y_vector.reshape(len(y_vector), 1)
