@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QVariant
+from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
 
 import random
 from osgeo import gdal, osr, ogr
@@ -34,6 +34,10 @@ try:
 except Exception:
 	import processing
 	from processing.tools import vector
+
+import time
+
+
 
 def fillNoData(in_layer, out_file_path=None, no_data_value=None):
 	"""
@@ -237,8 +241,8 @@ def rasterSmoothing(in_layer, factor, out_file=None, feedback=None, runtime_perc
 		total = runtime_percentage / rows if rows else 0
 	else:
 		total = 100 / rows if rows else 0
-	for i in range(rows - 1):
-		for j in range(cols - 1):
+	for i in range(rows):
+		for j in range(cols):
 			#Check if the raster covers the globe. To smooth across the date line.
 			if x_max>=180 and x_min<=-180:
 				# Define smoothing mask; periodic boundary along date line
@@ -251,7 +255,6 @@ def rasterSmoothing(in_layer, factor, out_file=None, feedback=None, runtime_perc
 			out_array[i, j] = np.mean(in_array[y_vector, x_vector])
 		if feedback:
 			feedback.progress.emit(feedback.progress_count + (i * total))
-
 	# Write the smoothed raster
 	# If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
 	if out_file != None:
@@ -807,3 +810,38 @@ def loadHelp(dlg):
 	with open(path_to_file, 'r', encoding='utf-8') as help_file:
 		help_text = help_file.read()
 	dlg.helpBox.setHtml(help_text)
+
+
+
+
+
+class TaProgressImitation(QThread):
+	finished = False
+
+	def __init__(self, total,total_time, finish_signal, feedback):
+		super().__init__()
+		self.total = total
+		self.signal = finish_signal.finished
+		self.signal.connect(self.finish)
+		self.unit_time = total_time/self.total
+		self.feedback = feedback
+	def run(self):
+		for i in range(round(self.total)):
+			if self.finished:
+				break
+			self.feedback.progress.emit(self.feedback.progress_count+i)
+			time.sleep(self.unit_time)
+		self.feedback.progress.emit(self.feedback.progress_count+self.total)
+			
+			
+	def finish(self):
+		self.finished=True	
+
+
+
+class TaFeedback(QObject):
+	finished = pyqtSignal(bool)
+
+	def __init__(self):
+		super().__init__()
+	

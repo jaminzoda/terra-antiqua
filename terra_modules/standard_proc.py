@@ -27,10 +27,10 @@ import numpy as np
 from.utils import (
 	vectorToRaster, 
 	fillNoData, 
-	rasterSmoothing,
+#	rasterSmoothing,
 	fillNoDataInPolygon
 	)
-#from .gauss_smooth import rasterSmoothing
+from .gauss_smooth import rasterSmoothing
 
 
 
