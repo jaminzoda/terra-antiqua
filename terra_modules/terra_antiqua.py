@@ -5,7 +5,7 @@
  The Terra Antiqua plugin creates a paleogeographic map of a specific time.
  It modifies present day topography and bathymetry that is rotated to the time
  of reconstruction in Gplates with a set of masks that are also rotated in Gplates.
- 
+
                               -------------------
         begin                : 2019-03-18
         git sha              : $Format:%H$
@@ -62,7 +62,7 @@ from .settings import TaSettings
 
 
 class TerraAntiqua:
-    
+
     def __init__(self, iface):
         """Constructor.
 
@@ -100,10 +100,10 @@ class TerraAntiqua:
         if not self.ta_toolBar:
             self.ta_toolBar = iface.addToolBar(u'Terra Antiqua')
             self.ta_toolBar.setObjectName(u'Terra Antiqua')
-                
+
         # Load the settings object. Read settings and passes them to the plugin
         self.settings = TaSettings()
-        
+
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
@@ -181,7 +181,7 @@ class TerraAntiqua:
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
-        
+
 
         if status_tip is not None:
             action.setStatusTip(status_tip)
@@ -220,7 +220,7 @@ class TerraAntiqua:
             text = self.tr(u'Compile Topo/Bathymetry'),
             callback = self.initCompileTopoBathy,
             parent = self.iface.mainWindow())
-                    
+
         self.add_action(
             p_coastline_icon,
             text = self.tr(u'Set Paleoshorelines'),
@@ -247,19 +247,19 @@ class TerraAntiqua:
             callback = self.initRemoveArtefacts,
             parent = self.iface.mainWindow(),
             checkable = True)
-        
+
         self.add_action(
             mask_prep_icon,
             text = self.tr(u'Prepare masks'),
             callback = self.initPrepareMasks,
             parent = self.iface.mainWindow())
-        
+
         self.add_action(
             std_proc_icon,
             text = self.tr(u'Standard Processing'),
             callback = self.initStandardProcessing,
             parent = self.iface.mainWindow())
-        
+
         # will be set False in run()
         self.first_start = True
 
@@ -271,38 +271,38 @@ class TerraAntiqua:
                 action)
             self.iface.removeToolBarIcon(action)
             self.ta_toolBar.removeAction(action)
-    
+
     def initCompileTopoBathy(self):
         """Initializes the Compile Topo/Bathymetry algotithm and loads it"""
-        self.compileTopoBathy = TaAlgorithm(TaCompileTopoBathyDlg, TaCompileTopoBathy, self.iface)
+        self.compileTopoBathy = TaAlgorithmProvider(TaCompileTopoBathyDlg, TaCompileTopoBathy, self.iface)
         self.compileTopoBathy.load()
-    
+
     def initPrepareMasks(self):
         """Initializes the Prepare masks algorithm and loads it"""
-        self.prepareMasks = TaAlgorithm(TaPrepareMasksDlg, TaPrepareMasks, self.iface)
+        self.prepareMasks = TaAlgorithmProvider(TaPrepareMasksDlg, TaPrepareMasks, self.iface)
         self.prepareMasks.load()
-    
+
     def initModifyTopoBathy(self):
         """Initializes the Modify Topo/Bathymetry algorithm and loads it"""
-        self.modifyTopoBathy = TaAlgorithm(TaModifyTopoBathyDlg, TaModifyTopoBathy, self.iface)
+        self.modifyTopoBathy = TaAlgorithmProvider(TaModifyTopoBathyDlg, TaModifyTopoBathy, self.iface)
         self.modifyTopoBathy.load()
 
-    
+
     def initSetPaleoShorelines(self):
         """Initializes the Set Paleoshorelines algorithm and loads it"""
-        self.setPaleoshorelines = TaAlgorithm(TaSetPaleoshorelinesDlg, TaSetPaleoshorelines, self.iface)
+        self.setPaleoshorelines = TaAlgorithmProvider(TaSetPaleoshorelinesDlg, TaSetPaleoshorelines, self.iface)
         self.setPaleoshorelines.load()
-        
+
     def initStandardProcessing(self):
         """Initializes the Standard processing algorithm set and loads it"""
-        self.standardProcessing = TaAlgorithm(TaStandardProcessingDlg, TaStandardProcessing, self.iface)
+        self.standardProcessing = TaAlgorithmProvider(TaStandardProcessingDlg, TaStandardProcessing, self.iface)
         self.standardProcessing.load()
 
     def initCreateTopoBathy(self):
         """Initializes the Create Topography/Bathymetry algorithm and loads it"""
-        self.createTopoBathy = TaAlgorithm(TaCreateTopoBathyDlg, TaCreateTopoBathy, self.iface)
+        self.createTopoBathy = TaAlgorithmProvider(TaCreateTopoBathyDlg, TaCreateTopoBathy, self.iface)
         self.createTopoBathy.load()
-    
+
     def initRemoveArtefacts(self):
         """Initializes the Remove artefacts algorithm and activates it"""
         if self.settings.removeArtefactsChecked:
@@ -312,20 +312,20 @@ class TerraAntiqua:
             self.settings.removeArtefactsChecked = True
             self.removeArtefacts = TaRemoveArtefactsAlgProvider(TaRemoveArtefactsTooltip, TaRemoveArtefactsDlg, self.iface, self.actions, self.settings)
             self.removeArtefacts.initiate()
-        
-        
-    
 
-        
 
-class TaAlgorithm:
-    
+
+
+
+
+class TaAlgorithmProvider:
+
     def __init__(self, dlg, thread, iface):
         self.dlg = dlg()
         self.thread = thread(self.dlg)
         self.iface = iface
-        
-    
+
+
     def load(self):
         self.dlg.show()
         self.dlg.runButton.clicked.connect(self.start)
@@ -334,7 +334,7 @@ class TaAlgorithm:
             self.dlg.Tabs.setCurrentIndex(0)
         except Exception:
             pass
-    
+
     def start(self):
         try:
             self.dlg.Tabs.setCurrentIndex(1)
@@ -346,17 +346,17 @@ class TaAlgorithm:
         self.thread.log.connect(self.log)
         self.thread.start()
         self.thread.finished.connect(self.add_result)
-    
+
     def stop(self):
         self.thread.kill()
         self.dlg.resetProgressValue()
         self.dlg.cancelButton.setEnabled(False)
         self.dlg.runButton.setEnabled(True)
-        self.log("The algorithm did not finish successfully, because the user canceled processing.")
-        self.log("Or something went wrong. Please, refer to the log above for more details.")
+        self.log("Error: The algorithm did not finish successfully, because the user canceled processing.")
+        self.log("Error: Or something went wrong. Please, refer to the log above for more details.")
         self.dlg.warningLabel.setText('Error!')
         self.dlg.warningLabel.setStyleSheet('color:red')
-    
+
     def finish(self):
         self.dlg.cancelButton.setEnabled(False)
         self.dlg.runButton.setEnabled(True)
@@ -371,9 +371,9 @@ class TaAlgorithm:
             msg = '<span style="color: red;">{} </span>'.format(msg)
         elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
             msg = '<span style="color: blue;">{} </span>'.format(msg)
-        
+
         self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-    
+
     def add_result(self, finished, output_path):
         if finished is True:
             file_name = os.path.splitext(os.path.basename(output_path))[0]
@@ -400,9 +400,9 @@ class TaAlgorithm:
             self.finish()
         else:
             self.stop()
-            
+
 class TaRemoveArtefactsAlgProvider:
-    
+
     def __init__(self, dlg1, dlg, iface, actions, settings):
         self.dlg = dlg()
         self.tooltip = dlg1()
@@ -414,12 +414,12 @@ class TaRemoveArtefactsAlgProvider:
         self.rbCollection = None
         self.pointCollection = None
         self.vertexCollection = None
-        
+
         self.dlg.runButton.clicked.connect(self.start)
         self.dlg.cancelButton.clicked.connect(self.stop)
         self.dlg.addButton.clicked.connect(self.createPolygon)
         self.dlg.closeButton.clicked.connect(self.clean)
-    
+
     def initiate(self):
         if self.tooltip.showAgain:
             self.tooltip.show()
@@ -439,7 +439,7 @@ class TaRemoveArtefactsAlgProvider:
             if action.text() == "Remove Artefacts":
                 self.toolPoly.setAction(action)
 
-    
+
     def load(self):
         self.storeRubberbands(self.toolPoly.rubberband, self.toolPoly.vertices, self.toolPoly.points)
         self.dlg.show()
@@ -448,9 +448,9 @@ class TaRemoveArtefactsAlgProvider:
             context.appendScope(QgsExpressionContextUtils.projectScope(QgsProject.instance()))
             crs = context.variable("project_crs")
             self.feature_sink = TaFeatureSink(crs)
-        
-        
-    
+
+
+
     def createPolygon(self):
         self.nFeatures+=1
         expr = self.dlg.exprLineEdit.value()
@@ -458,8 +458,8 @@ class TaRemoveArtefactsAlgProvider:
         self.feature_sink.createFeature(geom, expr)
         self.dlg.hide()
         self.drawPolygon()
-        
-    
+
+
     def start(self):
         expr = self.dlg.exprLineEdit.value()
         geom = self.toolPoly.geometry
@@ -474,8 +474,8 @@ class TaRemoveArtefactsAlgProvider:
         self.thread.start()
         self.thread.finished.connect(self.addResult)
         self.nFeatures = 0
-        
-    
+
+
     def stop(self):
         self.thread.kill()
         self.dlg.resetProgressValue()
@@ -487,7 +487,7 @@ class TaRemoveArtefactsAlgProvider:
         self.dlg.warningLabel.setStyleSheet('color:red')
         self.nFeatures = 0
         self.clean()
-    
+
     def storeRubberbands(self, rb, vrtx, pnt):
         if not self.rbCollection:
             self.rbCollection = []
@@ -495,12 +495,12 @@ class TaRemoveArtefactsAlgProvider:
             self.pointCollection = []
         if not self.vertexCollection:
             self.vertexCollection = []
-        
+
         self.rbCollection.append(rb)
         self.pointCollection.append(pnt)
         self.vertexCollection.append(vrtx)
-    
-    
+
+
     def log(self, msg):
         # get the current time
         time = datetime.datetime.now()
@@ -509,7 +509,7 @@ class TaRemoveArtefactsAlgProvider:
             msg = '<span style="color: red;">{} </span>'.format(msg)
         elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
             msg = '<span style="color: blue;">{} </span>'.format(msg)
-        
+
         #msg=msg.replace("<", "&lt;")
         #msg=msg.replace(">", "&gt;")
         self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))

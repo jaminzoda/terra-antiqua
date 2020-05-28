@@ -34,12 +34,12 @@ from .utils import (
     fillNoDataInPolygon)
 from qgis._core import QgsRasterLayer
 from psycopg2.errorcodes import NO_DATA
-
+from .base_algorithm import TaBaseAlgorithm
 
 class TaPolygonCreator(QgsMapToolEmitPoint):
     finished = pyqtSignal(bool)
     geom = pyqtSignal(object)
-    
+
 
     def __init__(self, canvas, iface):
         self.canvas = canvas
@@ -55,12 +55,12 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
         self.geometry = None
 
     def canvasPressEvent(self, e):
-        
+
         if e.button() == Qt.RightButton:
             geometry = self.rubberband.asGeometry()
             self.geometry = geometry
             self.finished.emit(True)
-            
+
 
         if e.button() == Qt.LeftButton:
             self.point = self.toMapCoordinates(e.pos())
@@ -74,14 +74,14 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
             self.vertices.append(m)
             self.isEmittingPoint = True
             self.showRubberband()
-    
+
     def showRubberband(self):
         self.rubberband.reset(QgsWkbTypes.PolygonGeometry)
         for point in self.points:
             self.rubberband.addPoint(point, True)
             self.rubberband.show()
-    
-    
+
+
     def removePolygons(self, rb, pnt, vrtx):
         for rubber, point, vertex in zip(rb, pnt, vrtx):
             point = []
@@ -93,48 +93,32 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
         self.iface.mapCanvas().refresh()
 
 
-class TaRemoveArtefacts(QThread):
-    progress = pyqtSignal(int)
-    finished = pyqtSignal(bool, object)
-    log = pyqtSignal(object)
+class TaRemoveArtefacts(TaBaseAlgorithm):
 
     def __init__(self, vl, dlg, iface):
-        super().__init__()
+        super().__init__(dlg)
         self.iface = iface
-        self.dlg = dlg
         self.vl = vl
-        self.killed = False
-        self.progress_count = 0
-        self.temp_dir = tempfile.gettempdir()
-        # Get the output path
-        if not self.dlg.outputPath.filePath():
-            self.out_file_path = os.path.join(self.temp_dir, 'PaleoDEM_withArtefactsRemoved.tif')
-        else:
-            self.out_file_path = self.dlg.outputPath.filePath()
-        
-        self.context = QgsExpressionContext()
-        self.context.appendScope(QgsExpressionContextUtils.projectScope(QgsProject.instance()))
-        self.crs = self.context.variable("project_crs")
-        
-        
+
+
     def run(self):
-        if not self.killed:    
+        if not self.killed:
             try:
                 topo_layer = self.getTopoLayer()
             except Exception as e:
                 self.log.emit("Error: {}".format(e))
                 self.kill()
-        
+
         if not self.killed:
             self.log.emit("Removing artefacts from the {} raster".format(topo_layer.name()))
-            
+
             self.log.emit("{} polygons are found in the input layer.".format(self.vl.featureCount()))
 
-        
+
         if not self.killed:
             topo_raster = gdal.Open(topo_layer.source())
             H=topo_raster.GetRasterBand(1).ReadAsArray()
-        if not self.killed:    
+        if not self.killed:
             total = 75 / self.vl.featureCount() if self.vl.featureCount() else 0
             features= self.vl.getFeatures()
             for feature in features:
@@ -144,7 +128,7 @@ class TaRemoveArtefacts(QThread):
                     continue
 
                 if feature.isValid():
-                    
+
                     temp_layer = QgsVectorLayer("Polygon?crs={}".format(self.vl.crs().toWkt()), "Temporary vector layer for rasterization", "memory")
                     temp_layer.dataProvider().addAttributes(feature.fields())
                     temp_layer.updateFields()
@@ -152,7 +136,7 @@ class TaRemoveArtefacts(QThread):
                     temp_layer.updateExtents()
                     mask_array = vectorToRaster(temp_layer, topo_layer, topo_layer.width(), topo_layer.height())
                     temp_layer = None
-                    
+
                     expr = feature["Expression"]
                     self.log.emit("The expression for feature ID {0} is: {1}.".format(feature.id(), expr))
                     try:
@@ -169,11 +153,11 @@ class TaRemoveArtefacts(QThread):
                             continue
                 else:
                     self.log.emit("The polygon of feature ID {} is invalid.".format(feature.id()))
-                
-                self.progress_count += total
-                self.progress.emit(self.progress_count)
-            
-        
+
+                self.set_progress += total
+
+
+
         if not self.killed:
             if self.dlg.interpolateCheckBox.isChecked():
                 # Create a temporary raster to store modified data for interpolation
@@ -193,27 +177,27 @@ class TaRemoveArtefacts(QThread):
                 raster_for_interpolation = None
                 H = None
                 topo_raster = None
-                
-                self.progress_count+=10
-                self.progress.emit(self.progress_count)
-                
+
+                self.set_progress+=10
+
+
                 if not self.killed:
                     rlayer = QgsRasterLayer(out_file_path, "Raster Layer for interpolation", "gdal")
                     try:
-                        interpolated_raster = fillNoDataInPolygon(rlayer, self.vl, self.out_file_path) 
+                        interpolated_raster = fillNoDataInPolygon(rlayer, self.vl, self.out_file_path)
                     except Exception as e:
                         self.log.emit("Error: An error occured wile interpolating values for the artefact pixels: {}".format(e))
                         self.kill()
-                    
-                    self.progress_count=100
-                    self.progress.emit(self.progress_count)
-                    
+
+                    self.set_progress=100
+
+
                     self.finished.emit(True, interpolated_raster)
                 if os.path.exists(out_file_path):
                     drv = gdal.GetDriverByName('GTIFF')
                     drv.Delete(out_file_path)
             else:
-                
+
                 output_raster = gdal.GetDriverByName('GTIFF').Create(
                 self.out_file_path,
                 topo_layer.width(),
@@ -230,19 +214,19 @@ class TaRemoveArtefacts(QThread):
                 output_raster = None
                 H = None
                 topo_raster = None
-                
-                self.progress_count=100
-                self.progress.emit(self.progress_count)
+
+                self.set_progress=100
+
 
                 self.finished.emit(True, self.out_file_path)
-            
+
             QgsProject.instance().layerTreeRoot().findLayer(topo_layer.id()).setItemVisibilityChecked(False)
-            
+
         else:
             self.finished.emit(False, "")
-            
 
-                
+
+
     def getTopoLayer(self):
         topo_layer = None
         layer_found = False
@@ -258,10 +242,10 @@ class TaRemoveArtefacts(QThread):
             topo_layer.setCrs(new_crs)
 
         return topo_layer
-    
+
     def prepareExpression(self, H, expr):
         if expr.lower() == "nodata" or expr.lower() == "no data":
-            
+
             try:
                 topo_layer = self.getTopoLayer()
             except Exception as e:
@@ -274,37 +258,35 @@ class TaRemoveArtefacts(QThread):
                 expr = "H=={}".format(no_data_value)
             else:
                 expr = "np.isnan(H)"
-            
+
             try:
                 mask = eval(expr)
             except Exception as e:
                 raise Exception(e)
-                
+
         else:
             try:
                 mask = eval(expr)
-                
+
             except Exception as e:
                 raise Exception(e)
-        
+
         return mask
-    
-    def kill(self):
-        self.killed = True
+
 
 
 class TaFeatureSink(QObject):
-    
+
     def __init__(self, crs):
         super().__init__()
-            
+
         self.vl = QgsVectorLayer("Polygon?crs={}".format(crs), "Polygons created", "memory")
         expr_field = QgsField("Expression", QVariant.String, "text")
         fields=QgsFields()
         fields.append(expr_field)
         self.vl.dataProvider().addAttributes(fields)
         self.vl.updateFields()
-    
+
     def createFeature(self, geom, expr):
         feature = QgsFeature()
         feature.setGeometry(geom)
@@ -315,6 +297,6 @@ class TaFeatureSink(QObject):
         feature["Expression"]=expr
         self.vl.dataProvider().addFeature(feature)
         self.vl.updateExtents()
-    
+
     def getVectorLayer(self):
         return self.vl

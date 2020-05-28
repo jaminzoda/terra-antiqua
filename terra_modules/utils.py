@@ -587,7 +587,7 @@ def modFormula(in_array, formula, min=None, max=None):
         topo[np.isfinite(x)] = x[np.isfinite(x)]
 
         return topo
-def isPathValid(path: str)-> tuple: # for now is used for output paths. Modify the raise texts to fit in other contexts.
+def isPathValid(path: str, output_type: str)-> tuple: # for now is used for output paths. Modify the raise texts to fit in other contexts.
     """
     Checks if the specified output path is valid and accessible. Returns True, if the path is a file path and writable. False otherwise.
     """
@@ -596,9 +596,15 @@ def isPathValid(path: str)-> tuple: # for now is used for output paths. Modify t
     path_check = False
     file_name = os.path.split(path)[1]
     file_ext = os.path.splitext(file_name)[1]
+
     if file_name and file_ext:
-        if file_ext == ".tiff" or file_ext == ".tif":
-            file_check = True
+        if output_type == 'raster':
+            if file_ext == ".tiff" or file_ext == ".tif":
+                file_check = True
+        elif output_type=='vector':
+            if file_ext == ".shp":
+                file_check = True
+
 
 
     dir_path = os.path.split(path)[0]
@@ -609,12 +615,14 @@ def isPathValid(path: str)-> tuple: # for now is used for output paths. Modify t
     if path_check and file_check:
         return (True,"")
     else:
-        if not file_check:
-            return(False, "Error: The file output file name is incorrect. Please provide a proper file name for the output. The file name should have a 'tif' or 'tiff' extension.")
+        if not file_check and output_type=='raster':
+            return(False, "Error: The file output file name is incorrect. Please provide a proper file name for the output. The file name should have a '.tif' or '.tiff' extension.")
+        elif not file_check and output_type=='vector':
+            return(False, "Error: The file output file name is incorrect. Please provide a proper file name for the output. The file name should have a '.shp' extension.")
         elif not path_check:
             return(False, "Error: The output path does not exist or you do not have write permissions.")
         else:
-            return(False, "Error: The provided path for the output is not correct. Example: {}".format(r'C:\\Users\user_name\Documents\file.tiff'))
+            return(False, "Error: The provided path for the output is not correct. Example: {} or {}".format(r'C:\\Users\user_name\Documents\file.tiff', r'C:\\Users\user_name\Documents\file.shp'))
 
 
 
@@ -849,28 +857,3 @@ class TaFeedback(QObject):
 
     def __init__(self):
         super().__init__()
-        self.progress_count = 0
-
-
-    @property
-    def set_progress(self):
-        return self.progress_count
-
-    @set_progress.setter
-    def set_progress(self, value):
-        self.progress_count = value
-        self.emit_progress(self.progress_count)
-
-    def emit_progress(self, progress_count):
-        self.progress.emit(progress_count)
-
-    def log(self, msg):
-        # get the current time
-        time = datetime.datetime.now()
-        time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-        if msg.split(' ')[0].lower() == 'error:' or msg.split(':')[0].lower() == 'error':
-            msg = '<span style="color: red;">{} </span>'.format(msg)
-        elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
-            msg = '<span style="color: blue;">{} </span>'.format(msg)
-
-        self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))

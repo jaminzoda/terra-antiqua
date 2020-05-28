@@ -12,7 +12,7 @@ try:
     from plugins import processing
 except Exception:
     import processing
-    
+
 from qgis.core import (
     QgsVectorFileWriter,
     QgsVectorLayer,
@@ -31,31 +31,15 @@ from .utils import (
      modMinMax,
      modRescale
      )
+from .base_algorithm import TaBaseAlgorithm
 
 
-
-class TaModifyTopoBathy(QThread):
-    progress = pyqtSignal(int)
-    finished = pyqtSignal(bool, object)
-    log = pyqtSignal(object)
+class TaModifyTopoBathy(TaBaseAlgorithm):
 
     def __init__(self, dlg):
-        super().__init__()
-        self.dlg = dlg
-        self.killed = False
+        super().__init__(dlg)
 
     def run(self):
-        self.log.emit("The processing  has started")
-        progress_count = 0
-        # Get the path of the output file
-        if not self.dlg.outputPath.filePath():
-            temp_dir = tempfile.gettempdir()
-            out_file_path = os.path.join(temp_dir, 'PaleoDEM_modified_topography.tif')
-        else:
-            out_file_path = self.dlg.outputPath.filePath()
-
-        out_path = os.path.dirname(out_file_path)
-
         self.log.emit('The processing algorithm has started.')
 
         # Get the topography as an array
@@ -77,8 +61,8 @@ class TaModifyTopoBathy(QThread):
         vlayer = self.dlg.masksBox.currentLayer()
 
         # Send progress feedback
-        progress_count += 3
-        self.progress.emit(progress_count)
+        self.set_progress += 3
+
 
         if vlayer.isValid:
             self.log.emit('The mask layer is loaded properly')
@@ -129,11 +113,11 @@ class TaModifyTopoBathy(QThread):
 
         if not self.killed:
             # Create a directory for temporary vector files
-            path = os.path.join(out_path, "vector_masks")
+            path = os.path.join(os.path.dirname(self.out_file_path), "vector_masks")
 
             # Send progress feedback
-            progress_count += 3
-            self.progress.emit(progress_count)
+            self.set_progress += 3
+
 
             if not os.path.exists(path):
                 try:
@@ -146,8 +130,8 @@ class TaModifyTopoBathy(QThread):
                 self.log.emit("The folder raster_masks is already created.")
 
             # Send progress feedback
-            progress_count += 2
-            self.progress.emit(progress_count)
+            self.set_progress += 2
+
 
         if not self.killed:
             # Check if the formula mode of topography modification is checked
@@ -177,8 +161,8 @@ class TaModifyTopoBathy(QThread):
                     self.log.emit('Formula for topography modification is: {}'.format(formula))
 
                 # Send progress feedback
-                progress_count += 3
-                self.progress.emit(progress_count)
+                self.set_progress += 3
+
 
                 # Get the minimum and maximum bounding values for selecting the elevation values that should be modified.
                 # Values outside the bounding values will not be touched.
@@ -200,8 +184,8 @@ class TaModifyTopoBathy(QThread):
                     min_value_pos = None
 
                 # Send progress feedback
-                progress_count += 3
-                self.progress.emit(progress_count)
+                self.set_progress += 3
+
 
                 if self.dlg.minMaxValuesFromAttrCheckBox.isChecked() and self.dlg.maxValueField.currentField():
                     max_value_field = self.dlg.maxValueField.currentField()
@@ -219,8 +203,8 @@ class TaModifyTopoBathy(QThread):
                     max_value_pos = None
 
                 # Send progress feedback
-                progress_count += 4
-                self.progress.emit(progress_count)
+                self.set_progress += 4
+
 
                 mask_number = 0
                 for feat in features:
@@ -278,9 +262,9 @@ class TaModifyTopoBathy(QThread):
                     # Rasterize extracted masks
                     v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
                     r_masks = vectorToRaster(
-                        v_layer, 
-                        geotransform, 
-                        ncols, 
+                        v_layer,
+                        geotransform,
+                        ncols,
                         nrows,
                         field_to_burn=None,
                         no_data=0
@@ -293,8 +277,8 @@ class TaModifyTopoBathy(QThread):
                     x[r_masks == 1] = modFormula(in_array, feat_formula, feat_min_value, feat_max_value)
 
                     # Send progress feedback
-                    progress_count += 70 / feats_count
-                    self.progress.emit(progress_count)
+                    self.set_progress += 70 / feats_count
+
 
             else:
                 # Get the final minimum and maximum values either from a
@@ -313,8 +297,8 @@ class TaModifyTopoBathy(QThread):
                     fmax_pos = field_names.index(fmax_field)
 
                     # Send progress feedback
-                    progress_count += 5
-                    self.progress.emit(progress_count)
+                    self.set_progress += 5
+
 
                     mask_number = 0
                     for feat in features:
@@ -356,9 +340,9 @@ class TaModifyTopoBathy(QThread):
                         # Rasterize extracted masks
                         v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
                         r_masks = vectorToRaster(
-                            v_layer, 
-                            geotransform, 
-                            ncols, 
+                            v_layer,
+                            geotransform,
+                            ncols,
                             nrows,
                             field_to_burn=None,
                             no_data=0
@@ -371,8 +355,8 @@ class TaModifyTopoBathy(QThread):
                         x[r_masks == 1] = modRescale(in_array, fmin, fmax)
 
                         # Send progress feedback
-                        progress_count += 75 / feats_count
-                        self.progress.emit(progress_count)
+                        self.set_progress += 75 / feats_count
+
                 else:
                     if not self.killed:
                         fmin = self.dlg.minSpin.value()
@@ -384,8 +368,8 @@ class TaModifyTopoBathy(QThread):
                         temp_dp.addFeatures(features)
 
                         # Send progress feedback
-                        progress_count += 10
-                        self.progress.emit(progress_count)
+                        self.set_progress += 10
+
 
                         # Create a temporary shapefile to store extracted masks before rasterizing them
                         out_file = os.path.join(path, 'masks_for_topo_modification.shp')
@@ -405,16 +389,16 @@ class TaModifyTopoBathy(QThread):
                                                                                        error[1]))
 
                         # Send progress feedback
-                        progress_count += 10
-                        self.progress.emit(progress_count)
+                        self.set_progress += 10
+
 
                     if not self.killed:
                         # Rasterize extracted masks
                         v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
                         r_masks = vectorToRaster(
-                            v_layer, 
-                            geotransform, 
-                            ncols, 
+                            v_layer,
+                            geotransform,
+                            ncols,
                             nrows,
                             field_to_burn=None,
                             no_data=0
@@ -422,8 +406,8 @@ class TaModifyTopoBathy(QThread):
                         v_layer = None
 
                         # Send progress feedback
-                        progress_count += 30
-                        self.progress.emit(progress_count)
+                        self.set_progress += 30
+
 
                     if not self.killed:
                         # Modify the topography
@@ -432,8 +416,8 @@ class TaModifyTopoBathy(QThread):
                         x[r_masks == 1] = modRescale(in_array, fmin, fmax)
 
                         # Send progress feedback
-                        progress_count += 30
-                        self.progress.emit(progress_count)
+                        self.set_progress += 30
+
 
         # Delete temporary files and folders
         self.log.emit('Trying to delete the temporary files and folders.')
@@ -455,33 +439,30 @@ class TaModifyTopoBathy(QThread):
                 self.log.emit("The directory {} is successfully deleted".format(path))
 
         # Send progress feedback
-        progress_count += 5
-        self.progress.emit(progress_count)
+        self.set_progress += 5
+
 
         if not self.killed:
             # Check if raster was modified. If the x matrix was assigned.
             if 'x' in locals():
                 # Write the resulting raster array to a raster file
                 driver = gdal.GetDriverByName('GTiff')
-                if os.path.exists(out_file_path):
-                    driver.Delete(out_file_path)
+                if os.path.exists(self.out_file_path):
+                    driver.Delete(self.out_file_path)
 
-                raster = driver.Create(out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                raster = driver.Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
                 raster.SetGeoTransform(geotransform)
                 crs = osr.SpatialReference()
                 crs.ImportFromEPSG(4326)
                 raster.SetProjection(crs.ExportToWkt())
                 raster.GetRasterBand(1).WriteArray(x)
                 raster = None
-                self.finished.emit(True, out_file_path)
-                progress_count = 100
-                self.progress.emit(progress_count)
+                self.finished.emit(True, self.out_file_path)
+                self.set_progress = 100
+
             else:
                 self.log.emit("The plugin did not succeed because one or more parameters were set incorrectly.")
                 self.log.emit("Please, check the log above.")
                 self.finished.emit(False, "")
         else:
             self.finished.emit(False, "")
-
-    def kill(self):
-        self.killed = True

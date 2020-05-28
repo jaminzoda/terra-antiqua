@@ -10,7 +10,6 @@ try:
 except Exception:
     import processing
 
-
 from qgis.core import (
     QgsVectorFileWriter,
     QgsVectorLayer,
@@ -30,25 +29,16 @@ from.utils import (
     fillNoDataInPolygon
     )
 from .smoothing import rasterSmoothing
+from .base_algorithm import TaBaseAlgorithm
 
 
-
-class TaStandardProcessing(QThread):
-    progress = pyqtSignal(int)
-    finished = pyqtSignal(bool, object)
-    log = pyqtSignal(object)
+class TaStandardProcessing(TaBaseAlgorithm):
 
     def __init__(self, dlg):
-        super().__init__()
-        self.dlg = dlg
-        self.killed = False
-        self.progress_count = 0
-        
+        super().__init__(dlg)
 
     def run(self):
-
         self.log.emit("Starting the processing...")
-        self.set_progress += 3
         processing_type = self.dlg.fillingTypeBox.currentIndex()
 
         # Getting the ouput path
@@ -69,8 +59,8 @@ class TaStandardProcessing(QThread):
 
         else:
             out_file_path = self.dlg.outputPath.filePath()
-        self.set_progress += 5
         if processing_type == 0:
+
             if not self.killed:
                 self.log.emit("Getting the raster layer for the interpolation.")
                 base_raster_layer = self.dlg.baseTopoBox.currentLayer()
@@ -106,7 +96,6 @@ class TaStandardProcessing(QThread):
 
                     self.log.emit("Smoothing has finished.")
 
-                    # progress_count += 40
 
                     self.log.emit("The gaps in the raster were filled and it was smoothed successfully.")
                     self.log.emit("The resulting layer is saved at: "
@@ -132,7 +121,7 @@ class TaStandardProcessing(QThread):
                 from_raster_layer = self.dlg.copyFromRasterBox.currentLayer()
                 from_raster = gdal.Open(from_raster_layer.dataProvider().dataSourceUri())
                 from_array = from_raster.GetRasterBand(1).ReadAsArray()
-                self.rogress_count += 10
+                self.set_progress += 10
             if not self.killed:
                 # Get a raster layer to copy the elevation values TO
                 self.log.emit("Getting the raster to copy the elevation values to.")
@@ -365,20 +354,5 @@ class TaStandardProcessing(QThread):
                 self.finished.emit(True, out_file_path)
             else:
                 self.finished.emit(False, "")
-
-    @property
-    def set_progress(self):
-        return self.progress_count
-
-    @set_progress.setter
-    def set_progress(self, value):
-        self.progress_count = value
-        self.emit_progress(self.progress_count)
-
-    def emit_progress(self, progress_count):
-        self.progress.emit(progress_count)
-
-    def kill(self):
-        self.killed = True
 
 
