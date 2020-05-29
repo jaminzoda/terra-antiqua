@@ -96,8 +96,8 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-237</y>
-            <width>556</width>
+            <y>0</y>
+            <width>558</width>
             <height>971</height>
            </rect>
           </property>
@@ -655,7 +655,7 @@
    <sender>closeButton</sender>
    <signal>clicked()</signal>
    <receiver>TopoModifierDialogBase</receiver>
-   <slot>hide()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>648</x>

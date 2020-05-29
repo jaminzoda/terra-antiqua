@@ -69,7 +69,7 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-210</y>
+            <y>0</y>
             <width>498</width>
             <height>573</height>
            </rect>
@@ -438,7 +438,7 @@
    <sender>closeButton</sender>
    <signal>clicked()</signal>
    <receiver>FillSmoothDialogBase</receiver>
-   <slot>hide()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>648</x>

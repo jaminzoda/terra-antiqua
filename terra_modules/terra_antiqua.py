@@ -549,3 +549,5 @@ class TaRemoveArtefactsAlgProvider:
             pass
 
         self.settings.removeArtefactsChecked = False
+        self.dlg.close()
+

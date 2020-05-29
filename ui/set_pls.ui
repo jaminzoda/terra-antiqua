@@ -372,7 +372,7 @@
    <sender>closeButton</sender>
    <signal>clicked()</signal>
    <receiver>PaleocoastlinesDialogBase</receiver>
-   <slot>hide()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>648</x>
