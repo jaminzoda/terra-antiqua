@@ -324,6 +324,7 @@ class TaAlgorithmProvider:
         self.dlg = dlg()
         self.thread = thread(self.dlg)
         self.iface = iface
+        self.dlg.closeButton.clicked.connect(self.closeDlg)
 
 
     def load(self):
@@ -400,6 +401,9 @@ class TaAlgorithmProvider:
             self.finish()
         else:
             self.stop()
+
+    def closeDlg(self):
+        self.dlg.close()
 
 class TaRemoveArtefactsAlgProvider:
 
