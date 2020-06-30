@@ -1,6 +1,18 @@
-<RCC>
-    <qresource prefix="/plugins/dem_builder" >
-        <file>icon.png</file>
-        <file>help_text/help_DEMCompiler.html</file>
-    </qresource>
+<!DOCTYPE RCC>
+<RCC version="1.0">
+	<qresource>
+		<file alias="icon.png">resources/icon.png</file>
+		<file alias="artefact_rem.png">resources/artefact_rem.png</file>
+		<file alias="arrow_right.png">resources/arrow_right.png</file>
+		<file alias="mask.png">resources/mask.png</file>
+		<file alias="arrow_left.png">resources/arrow_left.png</file>
+		<file alias="fill_smooth.png">resources/fill_smooth.png</file>
+		<file alias="TerraAntiqua_color_ramp.cpt">resources/TerraAntiqua_color_ramp.cpt</file>
+		<file alias="colour ramp TopoBathym_DRuiz.txt">resources/colour ramp TopoBathym_DRuiz.txt</file>
+		<file alias="topomod.png">resources/topomod.png</file>
+		<file alias="paleocoastlines.png">resources/paleocoastlines.png</file>
+		<file alias="feat_create.png">resources/feat_create.png</file>
+		<file alias="settings.txt">resources/settings.txt</file>
+		<file alias="naming_conventions.xls">resources/naming_conventions.xls</file>
+	</qresource>
 </RCC>

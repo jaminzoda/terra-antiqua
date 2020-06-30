@@ -21,9 +21,9 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
         super().__init__(dlg)
 
     def run(self):
-        self.log.emit('Starting')
+        self.feedback.info('Starting')
 
-        self.log.emit('Getting the raster layer')
+        self.feedback.info('Getting the raster layer')
         topo_layer = self.dlg.baseTopoBox.currentLayer()
         topo_extent = topo_layer.extent()
         topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
@@ -38,22 +38,22 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
         self.set_progress += 10
 
         if topo is not None:
-            self.log.emit(('Size of the Topography raster: {}'.format(topo.shape)))
+            self.feedback.info(('Size of the Topography raster: {}'.format(topo.shape)))
         else:
-            self.log.emit('There is a problem with reading the Topography raster')
+            self.feedback.info('There is a problem with reading the Topography raster')
             self.kill()
 
         # Get the vector masks
-        self.log.emit('Getting the vector layer')
+        self.feedback.info('Getting the vector layer')
         vlayer = self.dlg.masksBox.currentLayer()
 
         if vlayer.isValid() and vlayer.featureCount()>0:
-            self.log.emit('The mask layer is loaded properly')
+            self.feedback.info('The mask layer is loaded properly')
         elif vlayer.isValid() and vlayer.featureCount()==0:
-            self.log.emit("Error: The mask layer has no features. Please add polygon features to it and try again.")
+            self.feedback.error("The mask layer has no features. Please add polygon features to it and try again.")
             self.kill()
         else:
-            self.log.emit('There is a problem with the mask layer - not loaded properly')
+            self.feedback.error('There is a problem with the mask layer - not loaded properly')
             self.kill()
 
         self.set_progress += 10
@@ -62,22 +62,32 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
         if self.dlg.interpolateCheckBox.isChecked():
             if not self.killed:
-                self.log.emit('The interpolation mode is selected.')
-                self.log.emit('In this mode the areas to emerge or submerge')
-                self.log.emit('will be set to NAN values, after which the values of these cells will be interpolated from adjacent cells.')
+                self.feedback.info('The interpolation mode is selected.')
+                self.feedback.info('In this mode the areas to emerge or submerge')
+                self.feedback.info('will be set to NAN values, after which the values of these cells will be interpolated from adjacent cells.')
 
             if not self.killed:
                 # Converting polygons to polylines in order to set the shoreline values to 0
                 path_to_polylines = os.path.join(os.path.dirname(vlayer.source()), "polylines_from_polygons.shp")
-                pshoreline = polygonsToPolylines(vlayer, path_to_polylines)
-                pshoreline_rmask = vectorToRaster(
-                    pshoreline,
-                    geotransform,
-                    ncols,
-                    nrows,
-                    field_to_burn=None,
-                    no_data=0
-                    )
+                try:
+                    pshoreline = polygonsToPolylines(vlayer, path_to_polylines)
+                except Exception as e:
+                    self.feedback.error(e)
+                    self.kill()
+            if not self.killed:
+                try:
+                    pshoreline_rmask = vectorToRaster(
+                        pshoreline,
+                        geotransform,
+                        ncols,
+                        nrows,
+                        field_to_burn=None,
+                        no_data=0
+                        )
+                except Exception as e:
+                    self.feedback.error(e)
+                    self.kill()
+            if not self.killed:
                 # Setting shorelines to 0 m
                 topo[pshoreline_rmask == 1] = 0
 
@@ -85,14 +95,18 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
             if not self.killed:
                 # Getting the raster masks of the land and sea area
-                r_masks = vectorToRaster(
-                    vlayer,
-                    geotransform,
-                    ncols,
-                    nrows,
-                    field_to_burn=None,
-                    no_data=0
-                    )
+                try:
+                    r_masks = vectorToRaster(
+                        vlayer,
+                        geotransform,
+                        ncols,
+                        nrows,
+                        field_to_burn=None,
+                        no_data=0
+                        )
+                except Exception as e:
+                    self.feedback.error(e)
+                    self.kill()
 
 
             if not self.killed:
@@ -188,7 +202,7 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
                     self.set_progress += 5
 
-                    self.log.emit(
+                    self.feedback.info(
                         "The raster was modified successfully and saved at: <a href='file://{}'>{}</a>.".format(
                             os.path.dirname(raster_layer_interpolated), raster_layer_interpolated))
 
@@ -197,8 +211,8 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
                     self.set_progress = 100
 
                 else:
-                    self.log.emit("The plugin did not succeed because one or more parameters were set incorrectly.")
-                    self.log.emit("Please, check the log above.")
+                    self.feedback.info("The plugin did not succeed because one or more parameters were set incorrectly.")
+                    self.feedback.info("Please, check the log above.")
                     self.finished.emit(False, "")
             else:
                 self.finished.emit(False, "")
@@ -207,14 +221,18 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
         elif self.dlg.rescaleCheckBox.isChecked():
             if not self.killed:
-                r_masks = vectorToRaster(
-                    vlayer,
-                    geotransform,
-                    ncols,
-                    nrows,
-                    field_to_burn=None,
-                    no_data=0
-                    )
+                try:
+                    r_masks = vectorToRaster(
+                        vlayer,
+                        geotransform,
+                        ncols,
+                        nrows,
+                        field_to_burn=None,
+                        no_data=0
+                        )
+                except Exception as e:
+                    self.feedback.error(e)
+                    self.kill()
                 # The bathymetry values that are above sea level are taken down below sea level
                 in_array = topo[(r_masks == 0) * (topo > 0) == 1]
                 topo[(r_masks == 0) * (topo > 0) == 1] = modRescale(in_array, max_depth, -0.1)
@@ -246,8 +264,9 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
                     self.set_progress += 10
 
-                    self.log.emit(
-                        "The raster was modified successfully and saved at: <a href='file://{}'>{}</a>.".format(
+                    self.feedback.info(
+                        "The raster was modified successfully and saved at: <a\
+                        href='file://{}/'>{}</a>.".format(
                             os.path.dirname(self.out_file_path), self.out_file_path))
 
                     self.finished.emit(True, self.out_file_path)
@@ -255,8 +274,8 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
                     self.set_progress = 100
 
                 else:
-                    self.log.emit("The plugin did not succeed because one or more parameters were set incorrectly.")
-                    self.log.emit("Please, check the log above.")
+                    self.feedback.info("The plugin did not succeed because one or more parameters were set incorrectly.")
+                    self.feedback.info("Please, check the log above.")
                     self.finished.emit(False, "")
             else:
                 self.finished.emit(False, "")

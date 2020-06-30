@@ -26,7 +26,8 @@ from PyQt5.QtCore import (
                             QSettings,
                             QTranslator,
                             qVersion,
-                            QCoreApplication
+                            QCoreApplication,
+                            QObject
                         )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
@@ -59,6 +60,8 @@ from .remove_arts import TaPolygonCreator, TaRemoveArtefacts, TaFeatureSink
 from .remove_arts_dlg import TaRemoveArtefactsDlg
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
+from ..resources import *
+from .algorithm_provider import TaAlgorithmProviderNew
 
 
 class TerraAntiqua:
@@ -206,14 +209,13 @@ class TerraAntiqua:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icons_path = os.path.join(self.plugin_dir, "../resources")
-        dem_builder_icon = os.path.join(icons_path, 'icon.png')
-        mask_prep_icon = os.path.join(icons_path, 'mask.png')
-        topo_modifier_icon = os.path.join(icons_path, 'topomod.png')
-        p_coastline_icon = os.path.join(icons_path, 'paleocoastlines.png')
-        std_proc_icon = os.path.join(icons_path, 'fill_smooth.png')
-        feat_create_icon = os.path.join(icons_path, 'feat_create.png')
-        artefact_remover_icon = os.path.join(icons_path, 'artefact_rem.png')
+        dem_builder_icon = ':/icon.png' #os.path.join(icons_path, 'icon.png')
+        mask_prep_icon = ':/mask.png'
+        topo_modifier_icon =':/topomod.png'
+        p_coastline_icon = ':/paleocoastlines.png'
+        std_proc_icon = ':/fill_smooth.png'
+        feat_create_icon = ':/feat_create.png'
+        artefact_remover_icon = ':/artefact_rem.png'
 
         self.add_action(
             dem_builder_icon,
@@ -274,7 +276,7 @@ class TerraAntiqua:
 
     def initCompileTopoBathy(self):
         """Initializes the Compile Topo/Bathymetry algotithm and loads it"""
-        self.compileTopoBathy = TaAlgorithmProvider(TaCompileTopoBathyDlg, TaCompileTopoBathy, self.iface)
+        self.compileTopoBathy = TaAlgorithmProviderNew(TaCompileTopoBathyDlg, TaCompileTopoBathy, self.iface)
         self.compileTopoBathy.load()
 
     def initPrepareMasks(self):
@@ -290,7 +292,7 @@ class TerraAntiqua:
 
     def initSetPaleoShorelines(self):
         """Initializes the Set Paleoshorelines algorithm and loads it"""
-        self.setPaleoshorelines = TaAlgorithmProvider(TaSetPaleoshorelinesDlg, TaSetPaleoshorelines, self.iface)
+        self.setPaleoshorelines = TaAlgorithmProviderNew(TaSetPaleoshorelinesDlg, TaSetPaleoshorelines, self.iface)
         self.setPaleoshorelines.load()
 
     def initStandardProcessing(self):
@@ -341,7 +343,13 @@ class TaAlgorithmProvider:
             self.dlg.Tabs.setCurrentIndex(1)
         except Exception:
             pass
-        self.dlg.cancelButton.setEnabled(True)
+
+
+        try:
+            self.dlg.warningLabel.setText('')
+        except:
+            self.dlg.warnLabel.setText('')
+        self.dlg.resetProgressValue()
         self.dlg.runButton.setEnabled(False)
         self.thread.progress.connect(self.dlg.setProgressValue)
         self.thread.log.connect(self.log)
@@ -349,20 +357,34 @@ class TaAlgorithmProvider:
         self.thread.finished.connect(self.add_result)
 
     def stop(self):
-        self.thread.kill()
-        self.dlg.resetProgressValue()
-        self.dlg.cancelButton.setEnabled(False)
-        self.dlg.runButton.setEnabled(True)
-        self.log("Error: The algorithm did not finish successfully, because the user canceled processing.")
-        self.log("Error: Or something went wrong. Please, refer to the log above for more details.")
-        self.dlg.warningLabel.setText('Error!')
-        self.dlg.warningLabel.setStyleSheet('color:red')
+        if self.thread.isRunning():
+            self.thread.kill()
+            self.dlg.resetProgressValue()
+            self.dlg.runButton.setEnabled(True)
+            try:
+                self.log("Error: The algorithm did not finish successfully, because the user canceled processing.")
+                self.log("Error: Or something went wrong. Please, refer to the log above for more details.")
+            except:
+                self.thread.feedback.error("The algorithm did not finish successfully, because the user canceled processing.")
+                self.thread.feedback.error("Or something went wrong. Please, refer to the log above for more details.")
+
+            try:
+                self.dlg.warningLabel.setText('Error!')
+                self.dlg.warningLabel.setStyleSheet('color:red')
+            except:
+                self.dlg.warnLabel.setText('Error!')
+                self.dlg.warnLabel.setStyleSheet('color:red')
 
     def finish(self):
         self.dlg.cancelButton.setEnabled(False)
         self.dlg.runButton.setEnabled(True)
-        self.dlg.warningLabel.setText('Done!')
-        self.dlg.warningLabel.setStyleSheet('color:green')
+        try:
+            self.dlg.warningLabel.setText('Done!')
+            self.dlg.warningLabel.setStyleSheet('color:green')
+        except:
+            self.dlg.warnLabel.setText('Done!')
+            self.dlg.warnLabel.setStyleSheet('color:green')
+
 
     def log(self, msg):
         # get the current time
@@ -373,7 +395,10 @@ class TaAlgorithmProvider:
         elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
             msg = '<span style="color: blue;">{} </span>'.format(msg)
 
-        self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+        try:
+            self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+        except Exception:
+            self.thread.feedback.info(msg)
 
     def add_result(self, finished, output_path):
         if finished is True:
@@ -398,12 +423,17 @@ class TaAlgorithmProvider:
             else:
                 self.log("The algorithm finished successfully,")
                 self.log("however the resulting layer did not load. You may need to load it manually.")
+
             self.finish()
         else:
             self.stop()
 
     def closeDlg(self):
         self.dlg.close()
+        self.dlg.deleteLater()
+        self.dlg = None
+        self.thread.deleteLater()
+        self.thread =None
 
 class TaRemoveArtefactsAlgProvider:
 
@@ -516,7 +546,11 @@ class TaRemoveArtefactsAlgProvider:
 
         #msg=msg.replace("<", "&lt;")
         #msg=msg.replace(">", "&gt;")
-        self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+        try:
+            self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+        except Exception:
+            self.dlg.logBrowser.textCursor().insertHtml("{} - {} <br>".format(time, msg))
+
 
     def addResult(self, finished, output_path):
         if finished is True:

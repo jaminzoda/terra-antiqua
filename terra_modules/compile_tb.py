@@ -36,26 +36,27 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
         self.shelf_depth = None
         self.remove_overlap = None
 
+
     def getParameters(self):
 
         if not self.killed:
             # Get the general masks layer from the dialog
             self.masks_layer = self.dlg.selectMasks.currentLayer()
             if self.masks_layer.isValid() and self.masks_layer.featureCount()>0:
-                self.log.emit("The layer with continental blocks is loaded properly.")
+                self.feedback.info("The layer with continental blocks is loaded properly.")
             elif self.masks_layer.isValid() and self.masks_layer.featureCount()==0:
-                self.log.emit("Error: The continental blocks' layer is empty. Please, add polygon features in it and try again.")
+                self.feedback.info("Error: The continental blocks' layer is empty. Please, add polygon features in it and try again.")
                 self.kill()
             else:
-                self.log.emit("Error: The masks layer is not valid. Please, select a valid layer.")
+                self.feedback.info("Error: The masks layer is not valid. Please, select a valid layer.")
 
         if not self.killed:
             # Read the Bedrock topography from the dialog
             self.topo_layer = self.dlg.selectBrTopo.currentLayer()
             if self.topo_layer.isValid():
-                self.log.emit("The topography raster layer is loaded properly.")
+                self.feedback.info("The topography raster layer is loaded properly.")
             else:
-                self.log.emit("Error: The topography raster layer is not valid. Please select a valid raster layer.")
+                self.feedback.info("Error: The topography raster layer is not valid. Please select a valid raster layer.")
                 self.kill()
 
         if not self.killed:
@@ -63,9 +64,9 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
             self.bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
             if self.bathy_layer.isValid():
-                self.log.emit("The bathymetry raster layer is loaded properly.")
+                self.feedback.info("The bathymetry raster layer is loaded properly.")
             else:
-                self.log.emit("Error: The bathymetry raster layer is not valid. Please select a valid raster layer.")
+                self.feedback.info("Error: The bathymetry raster layer is not valid. Please select a valid raster layer.")
                 self.kill()
 
         if not self.killed:
@@ -74,9 +75,9 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
                 self.ocean_age_layer = self.dlg.selectOceanAge.currentLayer()
                 if self.ocean_age_layer.isValid():
-                    self.log.emit("The ocean age layer is loaded properly.")
+                    self.feedback.info("The ocean age layer is loaded properly.")
                 else:
-                    self.log.emit("Warning: The ocean age layer is not valid. Please, select a valid layer." )
+                    self.feedback.info("Warning: The ocean age layer is not valid. Please, select a valid layer." )
 
         if not self.killed:
             # getting the shallow sea bathymetry
@@ -84,9 +85,9 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
                 self.s_bathy_layer = self.dlg.selectSbathy.currentLayer()
                 if self.s_bathy_layer.isValid():
-                    self.log.emit("The shallow sea bathymetry layer is loaded properly.")
+                    self.feedback.info("The shallow sea bathymetry layer is loaded properly.")
                 else:
-                    self.log.emit("Warning: The shallow sea bathymetry  layer is not valid. Please, select a valid layer." )
+                    self.feedback.info("Warning: The shallow sea bathymetry  layer is not valid. Please, select a valid layer." )
 
         if not self.killed:
             #getting the topography layer coordinate reference system (crs)
@@ -106,7 +107,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
 
     def run(self):
-        self.log.emit("Reading the input data and parameters...")
+        self.feedback.info("Reading the input data and parameters...")
         self.getParameters()
 
         if not self.killed:
@@ -226,14 +227,14 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                             if deleted:
                                 pass
                             else:
-                                self.log.emit("{} is not deleted.".format(out_file))
+                                self.feedback.info("{} is not deleted.".format(out_file))
 
                         error = QgsVectorFileWriter.writeAsVectorFormat(layer, out_file, "UTF-8", layer.crs(), "ESRI Shapefile")
                         if error[0] == QgsVectorFileWriter.NoError:
-                            self.log.emit(
+                            self.feedback.info(
                                 "The  shape file {} has been created and saved successfully".format(os.path.basename(out_file)))
                         else:
-                            self.log.emit(
+                            self.feedback.info(
                                 "The {} shapefile is not created because {}".format(os.path.basename(out_file), error[1]))
                         if name == "ShallowSea":
                             ss_temp = QgsVectorLayer(out_file, "Shallow sea masks", "ogr")
@@ -360,9 +361,9 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                         if os.path.exists(os.path.join(out_path, "vector_masks")):
                             shutil.rmtree(os.path.join(out_path, "vector_masks"))
                         else:
-                            self.log.emit(
+                            self.feedback.info(
                                 'I created a temporary folder with some shapefiles: ' + os.path.join(out_path, "vector_masks"))
-                            self.log.emit('And could not delete it. You may delete it manually.')
+                            self.feedback.info('And could not delete it. You may delete it manually.')
 
                         self.set_progress += 5
 
@@ -441,14 +442,13 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
             raster.GetRasterBand(1).SetNoDataValue(np.nan)
             raster = None
 
-            self.progress.emit(100)
-            self.log.emit(
+            self.set_progress = 100
+            self.feedback.info(
                 "The resulting raster is saved at: <a href='file://{}'>{}<a/>".format(os.path.dirname(self.out_file_path),
                                                                                       self.out_file_path))
             self.finished.emit(True, self.out_file_path)
         else:
             self.finished.emit(False, "")
-
 
 
 

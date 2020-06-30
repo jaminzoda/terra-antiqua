@@ -333,7 +333,7 @@ def setRasterSymbology(in_layer):
     in_layer.triggerRepaint()
 
 
-def vectorToRaster(in_layer, geotransform, width, height, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
+def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
     """
     Rasterizes a vector layer and returns a numpy array.
 
@@ -389,7 +389,15 @@ def vectorToRaster(in_layer, geotransform, width, height, field_to_burn=None, no
         'INVERT': False,
         'OUTPUT': output
     }
-    points_raster = processing.run("gdal:rasterize", r_params)["OUTPUT"]
+    try:
+        points_raster = processing.run("gdal:rasterize", r_params)["OUTPUT"]
+    except QgsProcessingException as e:
+        if feedback:
+            feedback.Error(e)
+        else:
+            raise e
+
+
     points_raster_ds = gdal.Open(points_raster)
     points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
 
@@ -448,10 +456,18 @@ def polygonsToPolylines(in_layer, out_layer_path: str):
     :return: QgsVectorLayer.
     """
     polygons_layer = in_layer
-    fixed_polygons = processing.run('native:fixgeometries',
-                                    {'INPUT': polygons_layer, 'OUTPUT': 'memory:' + "fixed_pshoreline_polygons"})[
-        'OUTPUT']
-    processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': out_layer_path})
+    try:
+        fixed_polygons = processing.run('native:fixgeometries',
+                                    {'INPUT': polygons_layer,
+                                     'OUTPUT': 'memory:' + "fixed_pshoreline_polygons"
+                                     })['OUTPUT']
+    except Exception as e:
+        raise e
+    try:
+        processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': out_layer_path})
+    except Exception as e:
+        raise e
+
     polylines_layer = QgsVectorLayer(out_layer_path, "Polylines_from_polygons", "ogr")
 
     return polylines_layer
