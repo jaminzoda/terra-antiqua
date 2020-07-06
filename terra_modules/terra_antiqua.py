@@ -286,7 +286,7 @@ class TerraAntiqua:
 
     def initModifyTopoBathy(self):
         """Initializes the Modify Topo/Bathymetry algorithm and loads it"""
-        self.modifyTopoBathy = TaAlgorithmProvider(TaModifyTopoBathyDlg, TaModifyTopoBathy, self.iface)
+        self.modifyTopoBathy = TaAlgorithmProviderNew(TaModifyTopoBathyDlg, TaModifyTopoBathy, self.iface)
         self.modifyTopoBathy.load()
 
 

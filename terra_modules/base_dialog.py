@@ -5,7 +5,7 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QDialog, QPushButton, QLabel
 import logging
 from qgis.gui import QgsFileWidget
-from .logger import TaLogHandler, TaLogStream
+from .logger import TaLogHandler, TaLogStream, TaFeedback
 from .template_dialog import TaTemplateDialog
 
 class TaBaseDialog(TaTemplateDialog):
@@ -18,12 +18,11 @@ class TaBaseDialog(TaTemplateDialog):
         self.alg_name = self.getAlgName()
         self.parameters = []
         self.mandatory_parameters = []
+        self.variant_parameters = []
         self.runButton.clicked.connect(self.runEvent)
         self.closeButton.clicked.connect(self.close)
         self.cancelButton.clicked.connect(self.cancelEvent)
 
-        TaLogStream.stdout().messageWritten.connect( self.logBrowser.textCursor().insertHtml )
-        #TaLogStream.stderr().messageWritten.connect( self.logText.insertPlainText )
         self.setDialogTitle()
         self.loadHelp()
 
@@ -32,16 +31,7 @@ class TaBaseDialog(TaTemplateDialog):
 
 
     def createFeedback(self):
-        feedback = logging.getLogger(self.alg_name)
-        if len(feedback.handlers):
-            for handler in feedback.handlers:
-                feedback.removeHandler(handler)
-
-        handler = TaLogHandler()
-        handler.setLevel(logging.DEBUG)
-        handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt='%Y-%m-%d %I:%M:%S'))
-        feedback.addHandler(handler)
-        feedback.setLevel(logging.DEBUG)
+        feedback = TaFeedback(self)
         return feedback
 
 
@@ -58,32 +48,36 @@ class TaBaseDialog(TaTemplateDialog):
         return mandatory_param
 
     def addParameter(self, param, label=None, widget_type=None):
-        if widget_type == 'TaMapLayerComboBox':
-            if label:
-                self.param = param(label)
-            else:
-                self.param = param()
-        elif widget_type == 'CheckBox':
+        if label:
             try:
-                self.param = param(label)
-            except:
-                self.param()
-        elif widget_type == "GroupLabel":
-            self.param = param(label)
-        else:
-            if label:
+                param = param(label)
+            except Exception:
                 label = QLabel(label)
                 self.parameters.append(label)
-                self.param = param()
-            else:
-                self.param = param()
-        self.parameters.append(self.param)
-        if widget_type == 'TaMapLayerComboBox':
-            return self.param.getMainWidget()
+                param = param()
         else:
-            return self.param
+            param = param()
+        self.parameters.append(param)
+        if widget_type == 'TaMapLayerComboBox':
+            return param.getMainWidget()
+        else:
+            return param
 
-
+    def addVariantParameter(self, param, variant_index, label = None, widget_type = None):
+        if label:
+            try:
+                param = param(label)
+            except Exception:
+                label = QLabel(label)
+                self.variant_parameters.append((label, variant_index))
+                param = param()
+        else:
+            param = param()
+        self.variant_parameters.append((param,variant_index))
+        if widget_type == 'TaMapLayerComboBox':
+            return param.getMainWidget()
+        else:
+            return param
     def getParameters(self):
         pass
 
@@ -91,17 +85,32 @@ class TaBaseDialog(TaTemplateDialog):
         for parameter in self.parameters:
             self.paramsLayout.addWidget(parameter)
 
+        if len(self.variant_parameters)>0:
+            self.appendVariantWidgets()
+
         if add_output_path:
             self.outputPath = QgsFileWidget()
             self.outputPath.setStorageMode(self.outputPath.SaveFile)
             self.outputPath.setFilter('*.tif;;*.tiff')
+            self.outputPath.lineEdit().setPlaceholderText("[Create temporary layer]")
             self.paramsLayout.addWidget(QLabel('Output file path'))
             self.paramsLayout.addWidget(self.outputPath)
         self.paramsLayout.addStretch()
 
+
         for parameter in self.mandatory_parameters:
             if type(parameter).__name__ == 'QgsMapLayerComboBox':
                 parameter.layerChanged.connect(self.checkMandatoryParameters)
+    def appendVariantWidgets(self):
+        for param, variant_index in self.variant_parameters:
+            self.paramsLayout.addWidget(param)
+    def showVariantWidgets(self, index):
+        for param, variant_index in self.variant_parameters:
+            if variant_index != index:
+                param.hide()
+            else:
+                param.show()
+
 
     def checkMandatoryParameters(self):
         param_checks = []

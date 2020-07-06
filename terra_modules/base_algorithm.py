@@ -133,9 +133,12 @@ class TaBaseAlgorithm(QThread):
 
     def kill(self):
         self.killed = True
+        self.feedback.setCanceled(True)
+        self.progress_count = 0
 
     def startOver(self):
         self.killed = False
+        self.feedback.setCanceled(False)
 
     def onRun(self):
         self.out_file_path = self.getOutFilePath()

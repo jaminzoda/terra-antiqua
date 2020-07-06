@@ -3,7 +3,7 @@ import numpy as np
 import os
 from qgis.core import QgsRasterLayer
 
-from .utils import TaProgressImitation, TaFeedback, install_package, fillNoData
+from .utils import TaProgressImitation, TaFeedbackOld, install_package, fillNoData
 try:
     from scipy.ndimage.filters import gaussian_filter, uniform_filter
 except Exception:
@@ -47,7 +47,7 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
     else:
         total = 100
     total_time = (in_array.size * 0.32 / 6485401) * factor
-    fdbck = TaFeedback()
+    fdbck = TaFeedbackOld()
     imit_progress = TaProgressImitation(total, total_time, fdbck, feedback)
     imit_progress.start()
 

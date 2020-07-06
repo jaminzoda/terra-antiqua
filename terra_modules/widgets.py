@@ -1,7 +1,16 @@
 import os
 from PyQt5 import QtWidgets, QtCore
-from qgis.gui import QgsMapLayerComboBox
-from qgis.core import QgsMapLayerProxyModel, QgsRasterLayer, QgsProject, QgsVectorLayer
+from qgis.gui import QgsMapLayerComboBox, QgsPropertyOverrideButton, QgsSpinBox
+from qgis.core import (
+    QgsMapLayerProxyModel,
+    QgsRasterLayer,
+    QgsProject,
+    QgsVectorLayer,
+    QgsExpressionContext,
+    QgsExpressionContextUtils,
+    QgsPropertyDefinition,
+    QgsProperty
+)
 
 class TaHelpBrowser(QtWidgets.QTextBrowser):
     visibilityChanged = QtCore.pyqtSignal(bool)
@@ -95,4 +104,126 @@ class TaVectorLayerComboBox(TaMapLayerComboBox):
             else:
                 layer_type = QgsMapLayerProxyModel.VectorLayer
         self.cmb.setFilters(layer_type)
+
+class TaSpinBox(QtWidgets.QWidget):
+    def __init__(self):
+        super(TaSpinBox, self).__init__()
+        self.layout = QtWidgets.QHBoxLayout()
+        self.spinBox = QgsSpinBox()
+        self.spinBox.setMinimum(-12000)
+        self.spinBox.setMaximum(12000)
+        self.spinBox.setClearValue(0)
+        self.overrideButton = QgsPropertyOverrideButton(self)
+        self.overrideButton.registerEnabledWidget(self.spinBox, False)
+        self.layout.addWidget(self.spinBox)
+        self.layout.addWidget(self.overrideButton)
+        self.layout.setSpacing(6)
+        self.layout.setContentsMargins(QtCore.QMargins(0,0,0,0))
+        self.setLayout(self.layout)
+        self.dataType =None
+
+    def initOverrideButton(self, property_name, property_descr, layer):
+        if self.dataType:
+            if  self.dataType.lower() == 'integer':
+                definition = QgsPropertyDefinition(property_name, property_descr,
+                                               QgsPropertyDefinition.Integer)
+            elif self.dataType.lower() == 'double':
+                definition = QgsPropertyDefinition(property_name, property_descr,
+                                               QgsPropertyDefinition.Double)
+            else:
+                raise Exception("Wrong data type: {}".format(self.dataType))
+        else:
+            definition = QgsPropertyDefinition(property_name, property_descr,
+                                               QgsPropertyDefinition.Integer)
+
+        self.overrideButton.registerExpressionContextGenerator(layer)
+        self.overrideButton.init(0, QgsProperty(), definition, layer, False)
+
+    def setDataType(self, dataType:str):
+        """Sets the type of data set in SpinBox. Must be called before
+        initOverrideButton. Accepts Integer and Double."""
+        self.dataType = dataType
+
+
+class TaCheckBox(QtWidgets.QCheckBox):
+    def __init__(self, label):
+        super(TaCheckBox, self).__init__(label)
+        self.enabled_widgets = []
+        self.linked_widgets = []
+        self.natural_behavior = None
+
+
+
+
+    def registerEnabledWidgets(self, widgets:list, natural:bool = False):
+        """Registers widgets that get disabled when the checkbox is checked.
+        If natural is True, the widgets get enabled, when the checkbox is
+        checked."""
+
+        for widget in widgets:
+            self.enabled_widgets.append(widget)
+        self.stateChanged.connect(self.setWidgetsEnabled)
+        self.natural_behavior = natural
+        self.setWidgetsEnabled(self.isChecked())
+
+    def setWidgetsEnabled(self, state):
+        for widget in self.enabled_widgets:
+            if state:
+                widget.setEnabled(not self.natural_behavior)
+            else:
+                widget.setEnabled(self.natural_behavior)
+
+
+    def enabledWidgets(self):
+        return self.enabled_widgets
+
+    def registerLinkedWidget(self, widget:QtWidgets.QWidget):
+        self.linked_widgets.append(widget)
+        try:
+            widget.layerChanged.connect(self.setSelfEnabled)
+        except Exception as e:
+            raise e
+
+
+        try:
+            for widget in self.linked_widgets:
+                if widget.currentLayer():
+                    self.setSelfEnabled(widget.currentLayer())
+                else:
+                    self.setSelfEnabled(None)
+        except Exception:
+            pass
+
+
+    def setSelfEnabled(self, layer):
+        if layer and layer.selectedFeatureCount()>0:
+            self.setEnabled(True)
+        else:
+            self.setEnabled(False)
+    def linkedWidgets(self):
+        return self.linked_widgets
+
+
+
+
+class TaExpressionWidget(QtWidgets.QWidget):
+    def __init__(self, parent = None):
+        super(TaExpressionWidget, self).__init__(parent)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.lineEdit = QtWidgets.QLineEdit(self)
+        self.overrideButton = QgsPropertyOverrideButton(self)
+        self.overrideButton.registerEnabledWidget(self.lineEdit, False)
+        self.overrideButton.registerExpressionWidget(self.lineEdit)
+        self.layout.addWidget(self.lineEdit)
+        self.layout.addWidget(self.overrideButton)
+        self.layout.setSpacing(6)
+        self.layout.setContentsMargins(QtCore.QMargins(0,0,0,0))
+        self.setLayout(self.layout)
+
+    def initOverrideButton(self, property_name, property_descr, layer):
+        definition = QgsPropertyDefinition(property_name, property_descr,
+                                               QgsPropertyDefinition.String)
+
+        self.overrideButton.registerExpressionContextGenerator(layer)
+        self.overrideButton.init(0, QgsProperty(), definition, layer, False)
 

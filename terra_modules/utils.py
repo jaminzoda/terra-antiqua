@@ -818,6 +818,38 @@ def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_p
     out_layer = processing.run("native:difference", params)['OUTPUT']
     return out_layer
 
+def polygonOverlapCheck(vlayer, selected_only=False, feedback=None,
+                        run_time=None):
+
+    if selected_only:
+        features = vlayer.getSelectedFeatures()
+    else:
+        features = vlayer.getFeatures()
+    features = list(features)
+    if run_time:
+        total = run_time
+    else:
+        total = 100
+    overlaps_number = 0
+    for i in range(0, len(features)):
+        if feedback and feedback.canceled:
+            break
+        for j in range(0, len(features)):
+            if feedback and feedback.canceled:
+                break
+            if i ==j:
+                continue
+            if features[i].geometry().overlaps(features[j].geometry()):
+                overlaps_number+=1
+        if feedback:
+            feedback.progress += total/len(features)
+
+    return overlaps_number
+
+
+
+
+
 def loadHelp(dlg):
     #set the help text in the  help box (QTextBrowser)
     files = [
@@ -868,7 +900,7 @@ class TaProgressImitation(QThread):
 
 
 
-class TaFeedback(QObject):
+class TaFeedbackOld(QObject):
     finished = pyqtSignal(bool)
 
     def __init__(self):
