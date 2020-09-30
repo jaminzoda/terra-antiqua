@@ -23,7 +23,8 @@ from qgis.core import (
     QgsPointXY,
     QgsSpatialIndex,
     QgsFeature,
-    QgsFields
+    QgsFields,
+    NULL
     )
 import tempfile
 import os
@@ -699,6 +700,7 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
     :param feedback: a feedback object to provide progress and other info to user. For now a Qthread object is passed to use its pyqtsignals, functions and attributes for feedback purposes.
     :param runtime_percentage: time that this part of the algorithm will take (this function is run inside an algorithm e.g. Feature Creator) in percent (e.g. 10%)
     """
+    progress_count = feedback.progress
 
     context = QgsProcessingContext()
     context.setProject(QgsProject.instance())
@@ -720,14 +722,12 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
     pointId = 0
     created_features = []
     for current, f in enumerate(source.getFeatures()):
-        if feedback.killed:
+        if feedback.canceled:
             break
 
         if not f.hasGeometry():
             continue
 
-        feedback.progress_count += total * current
-        feedback.progress.emit(feedback.progress_count)
 
         fGeom = f.geometry()
         engine = QgsGeometry.createGeometryEngine(fGeom.constGet())
@@ -741,7 +741,7 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
         pointCount = int(round(point_density* area))
 
         if pointCount == 0:
-            feedback.log.emit("Warning: Skip feature {} while creating random points as number of points for it is 0.".format(f.id()))
+            feedback.warning("Warning: Skip feature {} while creating random points as number of points for it is 0.".format(f.id()))
             continue
 
         index = None
@@ -755,9 +755,18 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
         feature_total = total / pointCount if pointCount else 1
 
         random.seed()
-        feedback.log.emit("{0} random points being created inside feature ID {1}.".format(pointCount, f.id()))
+        try:
+            feedback.info(
+                "{0} random points being created inside feature <b>{1}</b>.".format(
+                    pointCount,
+                    f['name'] if f['name']!=NULL else "NoName"
+                )
+            )
+        except KeyError:
+            feedback.info("{0} random points being created inside feature ID {1}.".format(pointCount, f.id()))
+
         while nIterations < maxIterations and nPoints < pointCount:
-            if feedback.killed:
+            if feedback.canceled:
                 break
 
             rx = bbox.xMinimum() + bbox.width() * random.random()
@@ -778,15 +787,18 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
                 points[nPoints] = p
                 nPoints += 1
                 pointId += 1
-                feedback.progress.emit(feedback.progress_count + int(nPoints * feature_total))
+                if int(progress_count)<int(nPoints*feature_total):
+                    progress_count +=int(nPoints*feature_total)
+                    feedback.progress=progress_count
             nIterations += 1
 
         if nPoints < pointCount:
-            feedback.log.emit('Could not generate requested number of random points. Maximum number of attempts exceeded.')
+            feedback.info('Could not generate requested number of random points. Maximum number of attempts exceeded.')
+
     points_layer_dp.addFeatures(created_features)
     points_layer_dp = None
     nPolygons = source.featureCount()
-    feedback.log.emit("Created random points inside {} polygons.".format(nPolygons))
+    feedback.info("Created random points inside {} polygons.".format(nPolygons))
 
     return points_layer
 

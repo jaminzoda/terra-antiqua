@@ -15,7 +15,8 @@ from qgis.core import (
     QgsProcessingException,
     QgsExpressionContext,
     QgsExpressionContextUtils,
-    QgsVectorFileWriter
+    QgsVectorFileWriter,
+    NULL
 )
 
 
@@ -143,9 +144,15 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 break
             self.context.setFeature(feature)
             try:
-                self.feedback.info("<b><i>Creating {} sea".format(feature.attribute('name')))
-            except:
+                self.feedback.info(
+                    "<b><i>Creating {} sea".format(
+                        feature.attribute('name')
+                        if feature.attribute('name')!=NULL else "NoName"
+                    )
+                )
+            except Exception as e:
                 self.feedback.info("Processing feature {}".format(feature.attribute('id')))
+                self.feedback.debug(e)
             #Reading parameters for creating feature from the dialog or attributes
             shelf_width, ok = self.dlg.shelfWidth.overrideButton.toProperty().value(self.context)
             if not ok:
@@ -200,7 +207,8 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 # Creating random points inside feature outline polygons
                 # # Parameters for random points algoriithm
                 try:
-                    random_points_layer = randomPointsInPolygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
+                    random_points_layer = randomPointsInPolygon(mask_layer_densified, point_density,
+                                          pixel_size_avrg, self.feedback, 10)
                 except Exception as e:
                     self.feedback.error("Failed to create random points inside feature polygons with the following exception: {}".format(e))
                     self.kill()
@@ -423,7 +431,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     modified_area_array[pol_array==1]=pol_array[pol_array==1]
 
                 progress_count += progress_unit*0.1
-                if not int(self.feedback.progress)==int(progress_count):
+                if not int(self.feedback.progress_count)==int(progress_count):
                     self.feedback.progress = int(progress_count)
 
 
@@ -608,7 +616,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
             self.feedback.info("Creating elevation points inside feature polygons...")
             # Creating random points inside feature outline polygons
             try:
-                random_points_layer = randomPointsInPolygon(mask_layer_densified, point_density, pixel_size_avrg, self, 10)
+                random_points_layer = randomPointsInPolygon(mask_layer_densified, point_density, pixel_size_avrg, self.feedback, 10)
             except Exception as e:
                 self.feedback.error("Failed to create random points inside polygon features. The error is: {}".format(e))
                 self.kill()
