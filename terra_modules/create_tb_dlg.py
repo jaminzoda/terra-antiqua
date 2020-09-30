@@ -4,143 +4,104 @@ import os
 
 from PyQt5 import QtWidgets
 from PyQt5 import uic
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QComboBox
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 from .utils import loadHelp
+from .base_dialog import TaBaseDialog
+from .widgets import (
+                        TaRasterLayerComboBox,
+                        TaVectorLayerComboBox,
+                        TaCheckBox,
+                        TaSpinBox
+                    )
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), '../ui/create_tb.ui'))
-
-
-class TaCreateTopoBathyDlg(QtWidgets.QDialog, FORM_CLASS):
+class TaCreateTopoBathyDlg(TaBaseDialog):
     def __init__(self, parent=None):
-        """Constructor."""
         super(TaCreateTopoBathyDlg, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS2.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
-        self.setupUi(self)
-        
-        # Define the list of geographic features can be created
-        geo_features_list = ["Sea", "Mountain range"]
-        self.featureTypeBox.addItems(geo_features_list)
-        
-        #Connect feature type combobox with function that change the dialog according to feature type.
-        self.featureTypeBox.currentIndexChanged.connect(self.selectFeatureType)
-        
-        # Set the mode of QgsFileWidget to directory mode
-        self.outputPath.setStorageMode(self.outputPath.SaveFile)
-        self.outputPath.setFilter('*.tif;;*.tiff')
-        # Base topography layer
-        self.baseTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
-        self.baseTopoBox.setLayer(None)
-        # Connect the tool buttons to the file dialog that opens raster layers from disk
-        self.selectTopoBaseButton.clicked.connect(self.addLayerToBaseTopo)
+        self.defineParameters()
+        self.masksBox.layerChanged.connect(self.setFieldsInLayer)
 
-        # Input masks layer
-        self.masksBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.masksBox.setLayer(None)
-        # Connect the tool buttons to the file dialog that opens vector layers from disk
-        self.selectMasksButton.clicked.connect(self.addLayerToMasks)
+    def defineParameters(self):
+        self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox, "Raster to be modified", "TaMapLayerComboBox")
+        self.masksBox = self.addMandatoryParameter(TaVectorLayerComboBox, "Layer with feature polygons", "TaMapLayerComboBox")
+        self.selectedFeaturesBox = self.addParameter(TaCheckBox, "Selected features only")
+        self.selectedFeaturesBox.registerLinkedWidget(self.masksBox)
+        self.featureTypeBox = self.addParameter(QComboBox, "Geographic feature type")
+        self.featureTypeBox.addItems(["Sea", "Mountain range"])
 
-        self.logText.clear()
-        self.logText.setReadOnly(True)
+        #Parameters for sea creation
+        self.maxDepth= self.addVariantParameter(TaSpinBox, "Sea",
+                                                "Maximum sea depth (in m)")
+        self.maxDepth.spinBox.setValue(-5750)
+        self.minDepth= self.addVariantParameter(TaSpinBox, "Sea",
+                                                    "Minimum sea depth (in m)")
+        self.minDepth.spinBox.setValue(-4000)
+        self.shelfDepth= self.addVariantParameter(TaSpinBox, "Sea",
+                                                "Maximum shelf depth (in m)")
+        self.shelfDepth.spinBox.setValue(-200)
+        self.shelfWidth= self.addVariantParameter(TaSpinBox, "Sea",
+                                                "Shelf width (in km)")
+        self.shelfWidth.spinBox.setValue(150)
+        self.shelfWidth.setAllowedValueRange(0, 1000)
+        self.contSlopeWidth= self.addVariantParameter(TaSpinBox, "Sea",
+                                        "Width of continental slope (in km)")
+        self.contSlopeWidth.spinBox.setValue(100)
+        self.contSlopeWidth.setAllowedValueRange(0, 1000)
 
-        # Set the run button enabled only when the user selected input layers.
-        self.runButton.setEnabled(False)
-        self.masksBox.layerChanged.connect(self.enableRunButton)
-        self.baseTopoBox.layerChanged.connect(self.enableRunButton)
-        loadHelp(self)    
-    def selectFeatureType(self):
-        if self.featureTypeBox.currentText() == "Sea":
-            self.maxElevSpinBox.setMaximum(0)
-            self.maxElevSpinBox.setMinimum(-9999)
-            self.maxElevSpinBox.setValue(-5750)
-            self.maxElevLabel.setText("Maximum sea depth (in m):")
-            
-            self.minElevSpinBox.setMaximum(0)
-            self.minElevSpinBox.setMinimum(-9999)
-            self.minElevSpinBox.setValue(-4000)
-            self.minElevLabel.setText("Minimum sea depth (in m):")
-            
-            self.shelfDepthSpinBox.show()
-            self.shelfWidthSpinBox.show()
-            self.shelfDepthSpinBox.setMaximum(0)
-            self.shelfDepthSpinBox.setMinimum(-1000)
-            self.shelfDepthSpinBox.setValue(-200)
-            self.shelfDepthLabel.show()
-            self.shelfDepthLabel.setText("Maximum shelf depth (in m):")
-            self.shelfWidthLabel.show()
-            
-            self.slopeWidthSpinBox.setValue(100)
-            self.slopeWidthLabel.setText("Width of continental slope (in km):")
-            
-        elif self.featureTypeBox.currentText() == "Mountain range":
-            self.maxElevSpinBox.setMaximum(9999)
-            self.maxElevSpinBox.setMinimum(0)
-            self.maxElevSpinBox.setValue(5000)
-            self.maxElevLabel.setText("Maximum ridge elevation (in m):")
-            
-            self.minElevSpinBox.setMaximum(9999)
-            self.minElevSpinBox.setMinimum(0)
-            self.minElevSpinBox.setValue(3000)
-            self.minElevLabel.setText("Minimum ridge elevation (in m):")
-            
-            self.shelfDepthSpinBox.show()
-            self.shelfDepthSpinBox.setMaximum(100)
-            self.shelfDepthSpinBox.setMinimum(0)
-            self.shelfDepthSpinBox.setValue(30)
-            self.shelfDepthLabel.show()
-            self.shelfDepthLabel.setText("Ruggedness of the mountains (in %):")
-            self.shelfWidthSpinBox.hide()
-            self.shelfWidthLabel.hide()
-            
-            self.slopeWidthSpinBox.setValue(5)
-            self.slopeWidthLabel.setText("Width of mountain slope (in km):")
-            
-            
-            
-            
+        #Parameters for mountain range creation
+        self.maxElev = self.addVariantParameter(TaSpinBox,
+                                                "Mountain range",
+                                                "Maximum ridge elevation (in m)")
+        self.maxElev.spinBox.setValue(5000)
+        self.minElev = self.addVariantParameter(TaSpinBox,
+                                                "Mountain range",
+                                                "Minimum ridge elevation (in m)")
+        self.minElev.spinBox.setValue(3000)
 
-    def enableRunButton(self):
-        if self.baseTopoBox.currentLayer() != None and self.masksBox.currentLayer() != None:
-            self.runButton.setEnabled(True)
-            self.warningLabel.setText('')
-        else:
-            self.warningLabel.setText('Please, select all the mandatory fields.')
-            self.warningLabel.setStyleSheet('color:red')
+        self.mountRugged = self.addVariantParameter(TaSpinBox,
+                                                "Mountain range",
+                                                "Ruggedness of the mountains (in %)")
+        self.mountRugged.spinBox.setValue(30)
+        self.mountRugged.setAllowedValueRange(0, 100)
+        self.mountSlope = self.addVariantParameter(TaSpinBox,
+                                                   "Mountain range",
+                                                   "Width of mountain slope (in km)")
+        self.mountSlope.spinBox.setValue(5)
+        self.mountSlope.setAllowedValueRange(0, 500)
 
-    def addLayerToBaseTopo(self):
-        self.openRasterFromDisk(self.baseTopoBox)
+        self.fillDialog()
+        self.showVariantWidgets(self.featureTypeBox.currentText())
+        self.featureTypeBox.currentTextChanged.connect(self.showVariantWidgets)
 
-    def addLayerToMasks(self):
-        self.openVectorFromDisk(self.masksBox)
 
-    def openVectorFromDisk(self, box):
-        fd = QFileDialog()
-        filter = "Vector files (*.shp)"
-        fname, _ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
+    def setFieldsInLayer(self):
+        self.maxDepth.initOverrideButton("maxDepthValue",
+                                                "Maximum sea depth",
+                                                self.masksBox.currentLayer())
+        self.minDepth.initOverrideButton("minDepthValue",
+                                                "Minimum sea depth",
+                                                self.masksBox.currentLayer())
+        self.shelfDepth.initOverrideButton("shelfDepthValue",
+                                                "The shelf depth",
+                                                self.masksBox.currentLayer())
+        self.shelfWidth.initOverrideButton("shelfWidthValue",
+                                                "The shelf width",
+                                                self.masksBox.currentLayer())
 
-        if fname:
-            name, _ = os.path.splitext(os.path.basename(fname))
-            vlayer = QgsVectorLayer(fname, name, 'ogr')
-            QgsProject.instance().addMapLayer(vlayer)
-            box.setLayer(vlayer)
+        self.contSlopeWidth.initOverrideButton("slopeWidthValue",
+                                                "The width of continental slope",
+                                                self.masksBox.currentLayer())
+        self.maxElev.initOverrideButton("maxElevValue",
+                                        "Maximum elevation of mountain",
+                                        self.masksBox.currentLayer())
+        self.minElev.initOverrideButton("minElevValue",
+                                        "Minimum elevation of mountain",
+                                        self.masksBox.currentLayer())
+        self.mountRugged.initOverrideButton("mountRuggedValue",
+                                            "Ruggedness of mountain",
+                                            self.masksBox.currentLayer())
+        self.mountSlope.initOverrideButton("mountSlopeValue",
+                                           "Width of mountain slope",
+                                           self.masksBox.currentLayer())
 
-    def openRasterFromDisk(self, box):
-        fd = QFileDialog()
-        filter = "Raster files (*.jpg *.tif *.grd *.nc *.png *.tiff)"
-        fname, _ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
 
-        if fname:
-            name, _ = os.path.splitext(os.path.basename(fname))
-            rlayer = QgsRasterLayer(fname, name, 'gdal')
-            QgsProject.instance().addMapLayer(rlayer)
-            box.setLayer(rlayer)
-
-    def setProgressValue(self, value):
-        self.progressBar.setValue(value)
-
-    def resetProgressValue(self):
-        self.progressBar.setValue(0)

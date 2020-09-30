@@ -9,7 +9,8 @@ from PyQt5.QtWidgets import QMessageBox
 from qgis.core import (QgsExpressionContext,
                        QgsCoordinateReferenceSystem,
                        QgsProject,
-                       QgsExpressionContextUtils)
+                       QgsExpressionContextUtils,
+                       QgsVectorLayer)
 
 from .utils import isPathValid
 
@@ -39,7 +40,7 @@ class TaBaseAlgorithm(QThread):
         self.checkCrs()
     def checkCrs(self):
         if not self.crs.isValid():
-            msg = 'Your project does not have a Coordinate Refernce System.\n Do you want to set WGS84 Coordinate Refernce System to your project?'
+            msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Refernce System to your project?'
             msg_box = QMessageBox()
             msg_box.setIcon(QMessageBox.Warning)
             msg_box.setText(msg)
@@ -50,11 +51,14 @@ class TaBaseAlgorithm(QThread):
                 self.crs = self.setProjectCrs()
             else:
                 self.dlg.reject()
-    def setProjectCrs(self):
-        crs = QgsCoordinateReferenceSystem('EPSG:4326')
+    def setProjectCrs(self,crs:QgsCoordinateReferenceSystem=None)->QgsCoordinateReferenceSystem:
+        if not crs:
+            crs = QgsCoordinateReferenceSystem('EPSG:4326')
         project = QgsProject.instance()
         project.setCrs(crs)
         return crs
+    def getProjectCrs(self):
+        return self.crs
 
     def getOutFilePath(self):
         file_type = None
@@ -113,10 +117,12 @@ class TaBaseAlgorithm(QThread):
 
         return processing_output
 
-    @staticmethod
-    def getExpressionContext():
+    def getExpressionContext(self,layer:QgsVectorLayer=None):
         context = QgsExpressionContext()
-        context.appendScope(QgsExpressionContextUtils.globalScope())
+        if not layer:
+            context.appendScope(QgsExpressionContextUtils.globalScope())
+        else:
+            context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(layer))
         return context
 
     @property

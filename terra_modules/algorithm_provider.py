@@ -25,6 +25,7 @@ class TaAlgorithmProviderNew:
         if not self.thread.isRunning():
             self.thread.startOver()
             self.thread.progress.connect(self.dlg.setProgressValue)
+            self.thread.progress.connect(lambda:print("Legacy progress"))
             self.thread.start()
             self.thread.finished.connect(self.add_result)
 

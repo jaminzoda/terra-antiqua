@@ -846,6 +846,51 @@ def polygonOverlapCheck(vlayer, selected_only=False, feedback=None,
 
     return overlaps_number
 
+def assignUniqueIds(vlayer, feedback, run_time):
+    progress_count = feedback.progress
+    id_found  = False
+    fields = vlayer.fields().toList()
+    if run_time:
+        total = run_time
+    else:
+        total = 100
+    for field in fields:
+        if feedback and feedback.canceled:
+            break
+        if field.name().lower() == "id":
+            id_found = True
+            id_field = field
+            break
+        progress_count += total*0.3/len(fields)
+        if not int(feedback.progress)==int(progress_count):
+            feedback.progress = int(progress_count)
+
+    if  not id_found:
+        id_field = QgsField("id", QVariant.Int, "integer")
+        vlayer.startEditing()
+        vlayer.addAttribute(id_field)
+        vlayer.commitChanges()
+
+
+    features = vlayer.getFeatures()
+    vlayer.startEditing()
+    for current, feature in enumerate(features):
+        if feedback and feedback.canceled:
+            break
+        feature[id_field.name()]=current
+        vlayer.updateFeature(feature)
+        progress_count += total*0.7/vlayer.featureCount()
+        if not int(feedback.progress)==int(progress_count):
+            feedback.progress = int(progress_count)
+
+
+    ret_code = vlayer.commitChanges()
+
+    if ret_code:
+        return (vlayer, True)
+    else:
+        return (None, False)
+
 
 
 

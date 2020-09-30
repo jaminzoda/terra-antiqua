@@ -104,6 +104,9 @@ class TaFeedback(QtCore.QObject):
         self.progress_count = progress_value
         if progress_value:
             TaLogStream.progress().emitProgress(self.progress_count)
+            with open("log.txt", "a") as log_file:
+                log_file.write("progress: {}\n".format(self.progress_count))
+
     def setCanceled(self, value:bool):
         self.canceled =value
         self.progress_count = 0

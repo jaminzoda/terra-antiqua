@@ -121,6 +121,7 @@ class TaSpinBox(QtWidgets.QWidget):
         self.layout.setContentsMargins(QtCore.QMargins(0,0,0,0))
         self.setLayout(self.layout)
         self.dataType =None
+        self.spinBox.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def initOverrideButton(self, property_name, property_descr, layer):
         if self.dataType:
@@ -143,6 +144,9 @@ class TaSpinBox(QtWidgets.QWidget):
         """Sets the type of data set in SpinBox. Must be called before
         initOverrideButton. Accepts Integer and Double."""
         self.dataType = dataType
+    def setAllowedValueRange(self, min, max):
+        self.spinBox.setMinimum(min)
+        self.spinBox.setMaximum(max)
 
 
 class TaCheckBox(QtWidgets.QCheckBox):

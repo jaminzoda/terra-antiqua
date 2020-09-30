@@ -130,6 +130,8 @@ class TaBaseDialog(TaTemplateDialog):
 
     def setProgressValue(self, value):
         self.progressBar.setValue(value)
+        with open("log.txt", "a") as log_file:
+            log_file.write("On ProgressBar: {}\n".format(value))
 
     def resetProgressValue(self):
         self.progressBar.setValue(0)
