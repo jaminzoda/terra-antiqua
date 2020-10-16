@@ -122,8 +122,9 @@ class TaSpinBox(QtWidgets.QWidget):
         self.setLayout(self.layout)
         self.dataType =None
         self.spinBox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.initOverrideButton("generalProperty", "Blank property")
 
-    def initOverrideButton(self, property_name, property_descr, layer):
+    def initOverrideButton(self, property_name, property_descr, layer=None):
         if self.dataType:
             if  self.dataType.lower() == 'integer':
                 definition = QgsPropertyDefinition(property_name, property_descr,
@@ -137,14 +138,27 @@ class TaSpinBox(QtWidgets.QWidget):
             definition = QgsPropertyDefinition(property_name, property_descr,
                                                QgsPropertyDefinition.Integer)
 
-        self.overrideButton.registerExpressionContextGenerator(layer)
-        self.overrideButton.init(0, QgsProperty(), definition, layer, False)
+        if layer:
+            self.overrideButton.registerExpressionContextGenerator(layer)
+            self.overrideButton.init(0, QgsProperty(), definition, layer, False)
+        else:
+            self.overrideButton.init(0, QgsProperty(), definition)
+
 
     def setDataType(self, dataType:str):
         """Sets the type of data set in SpinBox. Must be called before
-        initOverrideButton. Accepts Integer and Double."""
+        initOverrideButton. Accepts Integer and Double.
+        :param dataType: A string defining the data type for the spinbox. Can be
+        integer or double.
+        """
         self.dataType = dataType
+
     def setAllowedValueRange(self, min, max):
+        """ Sets allowed value range for the spinbox to bound the maximum and
+        minimum values that the spinbox can receive.
+        :param min: minimum value.
+        :param nax: maximum value.
+        """
         self.spinBox.setMinimum(min)
         self.spinBox.setMaximum(max)
 

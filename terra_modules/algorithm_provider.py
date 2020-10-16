@@ -10,16 +10,20 @@ from . utils import setRasterSymbology
 
 class TaAlgorithmProviderNew:
 
-    def __init__(self, dlg, thread, iface):
+    def __init__(self, dlg, thread, iface, settings):
         self.dlg = dlg()
         self.thread = thread(self.dlg)
         self.iface = iface
+        self.settings = settings
         self.dlg.is_run.connect(self.start)
         self.dlg.cancelled.connect(self.stop)
 
 
     def load(self):
         self.dlg.show()
+        if self.settings.temporarySettings.get("first_start") != False:
+            self.settings.setTempValue("first_start", False)
+
 
     def start(self):
         if not self.thread.isRunning():

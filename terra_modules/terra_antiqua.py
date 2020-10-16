@@ -27,7 +27,8 @@ from PyQt5.QtCore import (
                             QTranslator,
                             qVersion,
                             QCoreApplication,
-                            QObject
+                            QObject,
+                            pyqtSlot
                         )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
@@ -106,10 +107,11 @@ class TerraAntiqua:
 
         # Load the settings object. Read settings and passes them to the plugin
         self.settings = TaSettings()
+        self.settings.tempValueChanged.connect(self.updatePluginSettings)
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
-        self.first_start = None
+        self.first_start =None
 
 
     # Create the tool dialog
@@ -274,9 +276,18 @@ class TerraAntiqua:
             self.iface.removeToolBarIcon(action)
             self.ta_toolBar.removeAction(action)
 
+    def updatePluginSettings(self, key, value):
+        if key == "first_start":
+            self.first_start = False
+
+
     def initCompileTopoBathy(self):
         """Initializes the Compile Topo/Bathymetry algotithm and loads it"""
-        self.compileTopoBathy = TaAlgorithmProviderNew(TaCompileTopoBathyDlg, TaCompileTopoBathy, self.iface)
+        self.compileTopoBathy = TaAlgorithmProviderNew(
+                                                        TaCompileTopoBathyDlg,
+                                                        TaCompileTopoBathy,
+                                                        self.iface,
+                                                        self.settings)
         self.compileTopoBathy.load()
 
     def initPrepareMasks(self):
@@ -286,13 +297,20 @@ class TerraAntiqua:
 
     def initModifyTopoBathy(self):
         """Initializes the Modify Topo/Bathymetry algorithm and loads it"""
-        self.modifyTopoBathy = TaAlgorithmProviderNew(TaModifyTopoBathyDlg, TaModifyTopoBathy, self.iface)
+        self.modifyTopoBathy = TaAlgorithmProviderNew(TaModifyTopoBathyDlg,
+                                                      TaModifyTopoBathy,
+                                                      self.iface,
+                                                      self.settings)
         self.modifyTopoBathy.load()
 
 
     def initSetPaleoShorelines(self):
         """Initializes the Set Paleoshorelines algorithm and loads it"""
-        self.setPaleoshorelines = TaAlgorithmProviderNew(TaSetPaleoshorelinesDlg, TaSetPaleoshorelines, self.iface)
+        self.setPaleoshorelines = TaAlgorithmProviderNew(
+                                                        TaSetPaleoshorelinesDlg,
+                                                        TaSetPaleoshorelines,
+                                                        self.iface,
+                                                        self.settings)
         self.setPaleoshorelines.load()
 
     def initStandardProcessing(self):
@@ -302,7 +320,10 @@ class TerraAntiqua:
 
     def initCreateTopoBathy(self):
         """Initializes the Create Topography/Bathymetry algorithm and loads it"""
-        self.createTopoBathy = TaAlgorithmProviderNew(TaCreateTopoBathyDlg, TaCreateTopoBathy, self.iface)
+        self.createTopoBathy = TaAlgorithmProviderNew(TaCreateTopoBathyDlg,
+                                                      TaCreateTopoBathy,
+                                                      self.iface,
+                                                      self.settings)
         self.createTopoBathy.load()
 
     def initRemoveArtefacts(self):
