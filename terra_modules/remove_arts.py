@@ -3,6 +3,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QGraphicsItem
 import os
 from osgeo import gdal
+from random import randrange
 from qgis.core import (
     QgsVectorLayer,
     QgsField,
@@ -31,7 +32,8 @@ import numpy as np
 
 from .utils import (
     vectorToRaster,
-    fillNoDataInPolygon)
+    fillNoDataInPolygon,
+    setVectorSymbology)
 from qgis._core import QgsRasterLayer
 from psycopg2.errorcodes import NO_DATA
 from .base_algorithm import TaBaseAlgorithm
@@ -46,8 +48,8 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
         self.iface = iface
         QgsMapToolEmitPoint.__init__(self, self.canvas)
         self.rubberband = QgsRubberBand(self.canvas, QgsWkbTypes.PolygonGeometry)
-        self.rubberband.setColor(Qt.red)
-        self.rubberband.setOpacity(50)
+        self.rubberband.setFillColor(Qt.red)
+        self.rubberband.setOpacity(0.5)
         self.rubberband.setWidth(1)
         self.point = None
         self.points = []
@@ -286,6 +288,7 @@ class TaFeatureSink(QObject):
         fields.append(expr_field)
         self.vl.dataProvider().addAttributes(fields)
         self.vl.updateFields()
+
 
     def createFeature(self, geom, expr):
         feature = QgsFeature()

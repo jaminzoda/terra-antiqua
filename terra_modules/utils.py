@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import subprocess
+from random import randrange
 
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
@@ -24,7 +25,12 @@ from qgis.core import (
     QgsSpatialIndex,
     QgsFeature,
     QgsFields,
-    NULL
+    NULL,
+    QgsMapLayerType,
+    QgsCategorizedSymbolRenderer,
+    QgsSymbol,
+    QgsRendererCategory
+
     )
 import tempfile
 import os
@@ -333,6 +339,51 @@ def setRasterSymbology(in_layer):
     in_layer.setRenderer(renderer)
     in_layer.triggerRepaint()
 
+
+def setVectorSymbology(in_layer):
+    """
+    Renders symbology for the input vector layer.
+    :param in_layer: input vector layer for rendering symbology.
+    :type in_layer: QgsVectorLayer.
+    """
+    # provide file name index and field's unique values
+
+    layer = in_layer
+    assert layer.type() == QgsMapLayerType.VectorLayer, "The input layer must be of type QgsVectorLayer."
+    if not layer.isValid():
+        raise Exception("The input vector layer is not valid.")
+    fni = layer.fields().indexFromName('id')
+    unique_values = layer.uniqueValues(fni)
+
+    # fill categories
+    categories = []
+    for unique_value in unique_values:
+        # initialize the default symbol for this geometry type
+        symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+
+        # configure a symbol layer
+        layer_style = {}
+        layer_style['color'] = '%d, %d, %d' % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+        layer_style['outline'] = '#000000'
+        symbol_layer = QgsSimpleFillSymbolLayer.create(layer_style)
+
+        # replace default symbol layer with the configured one
+        if symbol_layer is not None:
+            symbol.changeSymbolLayer(0, symbol_layer)
+
+        # create renderer object
+        category = QgsRendererCategory(unique_value, symbol, str(unique_value))
+        # entry for the list of category items
+        categories.append(category)
+
+    # create renderer object
+    renderer = QgsCategorizedSymbolRenderer('id', categories)
+
+    # assign the created renderer to the layer
+    if renderer is not None:
+        layer.setRenderer(renderer)
+
+    layer.triggerRepaint()
 
 def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
     """

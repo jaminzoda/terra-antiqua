@@ -168,7 +168,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             self.context.setFeature(feat)
             formula, ok = self.dlg.formulaField.overrideButton.toProperty().value(self.context)
             if not ok:
-                formula = self.dlg.formulaField.lineEdit.text()
+                formula = self.dlg.formulaField.lineEdit.value()
 
             # Check if the formula field contains the formula
             if formula == NULL or ('x' in formula) is False:

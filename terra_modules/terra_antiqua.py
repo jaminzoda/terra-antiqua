@@ -470,8 +470,8 @@ class TaRemoveArtefactsAlgProvider:
         self.pointCollection = None
         self.vertexCollection = None
 
-        self.dlg.runButton.clicked.connect(self.start)
-        self.dlg.cancelButton.clicked.connect(self.stop)
+        self.dlg.is_run.connect(self.start)
+        self.dlg.cancelled.connect(self.stop)
         self.dlg.addButton.clicked.connect(self.createPolygon)
         self.dlg.closeButton.clicked.connect(self.clean)
 
@@ -508,7 +508,7 @@ class TaRemoveArtefactsAlgProvider:
 
     def createPolygon(self):
         self.nFeatures+=1
-        expr = self.dlg.exprLineEdit.value()
+        expr = self.dlg.exprLineEdit.lineEdit.value()
         geom = self.toolPoly.geometry
         self.feature_sink.createFeature(geom, expr)
         self.dlg.hide()
@@ -516,13 +516,10 @@ class TaRemoveArtefactsAlgProvider:
 
 
     def start(self):
-        expr = self.dlg.exprLineEdit.value()
+        expr = self.dlg.exprLineEdit.lineEdit.value()
         geom = self.toolPoly.geometry
         self.feature_sink.createFeature(geom, expr)
         self.vl = self.feature_sink.getVectorLayer()
-        self.dlg.Tabs.setCurrentIndex(1)  # switch to the log tab.
-        self.dlg.cancelButton.setEnabled(True)
-        self.dlg.runButton.setEnabled(False)
         self.thread = TaRemoveArtefacts(self.vl, self.dlg, self.iface)
         self.thread.progress.connect(self.dlg.setProgressValue)
         self.thread.log.connect(self.log)
@@ -532,14 +529,10 @@ class TaRemoveArtefactsAlgProvider:
 
 
     def stop(self):
-        self.thread.kill()
-        self.dlg.resetProgressValue()
-        self.dlg.cancelButton.setEnabled(False)
-        self.dlg.runButton.setEnabled(True)
+        if 'thread' in  self.__dict__:
+            self.thread.kill()
         self.log("The algorithm did not finish successfully, because the user canceled processing.")
         self.log("Or something went wrong. Please, refer to the log above for more details.")
-        self.dlg.warningLabel.setText('Error!')
-        self.dlg.warningLabel.setStyleSheet('color:red')
         self.nFeatures = 0
         self.clean()
 
@@ -590,11 +583,8 @@ class TaRemoveArtefactsAlgProvider:
         else:
             self.stop()
     def finish(self):
-            self.dlg.cancelButton.setEnabled(False)
-            self.dlg.runButton.setEnabled(True)
-            self.dlg.warningLabel.setText('Done!')
-            self.dlg.warningLabel.setStyleSheet('color:green')
-            self.clean()
+        self.dlg.finishEvent()
+        self.clean()
     def clean(self):
         self.iface.actionPan().trigger()
         try:
@@ -604,5 +594,5 @@ class TaRemoveArtefactsAlgProvider:
             pass
 
         self.settings.removeArtefactsChecked = False
-        self.dlg.close()
+#        self.dlg.close()
 

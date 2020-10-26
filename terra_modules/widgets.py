@@ -1,6 +1,11 @@
 import os
 from PyQt5 import QtWidgets, QtCore
-from qgis.gui import QgsMapLayerComboBox, QgsPropertyOverrideButton, QgsSpinBox
+from qgis.gui import (
+    QgsMapLayerComboBox,
+    QgsPropertyOverrideButton,
+    QgsSpinBox,
+    QgsFilterLineEdit
+)
 from qgis.core import (
     QgsMapLayerProxyModel,
     QgsRasterLayer,
@@ -228,7 +233,7 @@ class TaExpressionWidget(QtWidgets.QWidget):
     def __init__(self, parent = None):
         super(TaExpressionWidget, self).__init__(parent)
         self.layout = QtWidgets.QHBoxLayout()
-        self.lineEdit = QtWidgets.QLineEdit(self)
+        self.lineEdit = QgsFilterLineEdit(self)
         self.overrideButton = QgsPropertyOverrideButton(self)
         self.overrideButton.registerEnabledWidget(self.lineEdit, False)
         self.overrideButton.registerExpressionWidget(self.lineEdit)
@@ -237,11 +242,15 @@ class TaExpressionWidget(QtWidgets.QWidget):
         self.layout.setSpacing(6)
         self.layout.setContentsMargins(QtCore.QMargins(0,0,0,0))
         self.setLayout(self.layout)
+        self.initOverrideButton("general Property", "Blank Property")
 
-    def initOverrideButton(self, property_name, property_descr, layer):
+    def initOverrideButton(self, property_name, property_descr, layer=None):
         definition = QgsPropertyDefinition(property_name, property_descr,
                                                QgsPropertyDefinition.String)
 
-        self.overrideButton.registerExpressionContextGenerator(layer)
-        self.overrideButton.init(0, QgsProperty(), definition, layer, False)
+        if layer:
+            self.overrideButton.registerExpressionContextGenerator(layer)
+            self.overrideButton.init(0, QgsProperty(), definition, layer, False)
+        else:
+            self.overrideButton.init(0, QgsProperty(), definition)
 

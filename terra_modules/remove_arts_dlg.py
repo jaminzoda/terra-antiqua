@@ -3,27 +3,74 @@ import os
 
 from PyQt5 import QtWidgets
 from PyQt5 import uic
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QComboBox, QPushButton
 from qgis.core import (
-    QgsMapLayerProxyModel, 
-    QgsProject, 
-    QgsVectorLayer, 
+    QgsMapLayerProxyModel,
+    QgsProject,
+    QgsVectorLayer,
     QgsRasterLayer
     )
 
 from .utils import loadHelp
+from .base_dialog import TaBaseDialog
+from .widgets import TaExpressionWidget, TaCheckBox
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), '../ui/remove_arts.ui'))
 
-class TaRemoveArtefactsDlg(QtWidgets.QDialog, FORM_CLASS):
+class TaRemoveArtefactsDlg(TaBaseDialog):
     def __init__(self, parent=None):
         """Constructor."""
         super(TaRemoveArtefactsDlg, self).__init__(parent)
-        self.setupUi(self)
+        self.defineParameters()
+
+    def defineParameters(self):
+        self.comparisonTypeBox = self.addParameter(QComboBox,
+                                                   "Choose a comparison operator")
+        # List comparison operators
+
+        options = ['More than', 'Less than', 'Equal','Between']
+        self.comparisonTypeBox.addItems(options)
+        self.comparisonTypeBox.setCurrentIndex(0)
+
+
+        self.exprLineEdit = self.addMandatoryParameter(TaExpressionWidget,
+                                                       "Enter your expression:")
+        self.interpolateCheckBox = self.addParameter(TaCheckBox,
+                                                     "Interpolate values for removed cells")
+        self.addButton = self.addParameter(QPushButton, "Add more polygons")
+        # Elements of dialog are changed appropriately, when a filling type is selected
+        self.comparisonTypeBox.currentIndexChanged.connect(self.typeOfComparison)
+        self.typeOfComparison()
+        self.fillDialog()
+
+
+    def typeOfComparison(self):
+        current_index = self.comparisonTypeBox.currentIndex()
+        if current_index == 0:
+            self.exprLineEdit.lineEdit.setValue("H>")
+        elif current_index == 1:
+            self.exprLineEdit.lineEdit.setValue("H<")
+
+        elif current_index==2:
+            self.exprLineEdit.lineEdit.setValue("H==")
+
+        elif current_index==3:
+            self.exprLineEdit.lineEdit.setValue("(H> )&(H< )")
+
+
+
+
+
+
+
+""""
+
+
+
+
+
 
         # List comparison operators.TypeBox
-       
+
         options = ['More than', 'Less than', 'Equal','Between']
         self.comparisonTypeBox.addItems(options)
         self.comparisonTypeBox.setCurrentIndex(0)
@@ -39,25 +86,25 @@ class TaRemoveArtefactsDlg(QtWidgets.QDialog, FORM_CLASS):
         self.runButton.setEnabled(False)
         self.addButton.setEnabled(False)
         self.exprLineEdit.valueChanged.connect(self.enableRunButton)
-        
-        
-        
+
+
+
         loadHelp(self)
 
 
     def typeOfComparison(self):
         current_index = self.comparisonTypeBox.currentIndex()
         if current_index == 0:
-            self.exprLineEdit.setValue("H>")      
+            self.exprLineEdit.setValue("H>")
         elif current_index == 1:
-            self.exprLineEdit.setValue("H<") 
-           
+            self.exprLineEdit.setValue("H<")
+
         elif current_index==2:
-            self.exprLineEdit.setValue("H==") 
+            self.exprLineEdit.setValue("H==")
 
         elif current_index==3:
-            self.exprLineEdit.setValue("(H> )&(H< )") 
- 
+            self.exprLineEdit.setValue("(H> )&(H< )")
+
     def enableRunButton(self):
         val = self.exprLineEdit.value()
         if  val and "H" in val and (">" in val or "<" in val or "==" in val) and any(char.isdigit() for char in val) or val.lower()=="nodata" or val.lower()=="no data":
@@ -68,7 +115,7 @@ class TaRemoveArtefactsDlg(QtWidgets.QDialog, FORM_CLASS):
             self.warningLabel.setText('Please, provide a valid expression.')
             self.warningLabel.setStyleSheet('color:red')
 
-   
+
 
     def setProgressValue(self, value):
         self.progressBar.setValue(value)
@@ -80,4 +127,4 @@ class TaRemoveArtefactsDlg(QtWidgets.QDialog, FORM_CLASS):
 
 
 
-
+"""
