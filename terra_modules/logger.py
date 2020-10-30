@@ -11,7 +11,7 @@ class TaLogHandler(logging.Handler):
         self.COLORS = {
             logging.DEBUG: 'blue',
             logging.INFO: 'black',
-            logging.WARNING: 'orange',
+            logging.WARNING: 'brown',
             logging.ERROR: 'red',
             logging.CRITICAL: 'purple',
             }
@@ -61,6 +61,7 @@ class TaLogStream(QtCore.QObject):
 class TaFeedback(QtCore.QObject):
     finished = QtCore.pyqtSignal(bool)
     def __init__(self, dlg):
+        super(TaFeedback).__init__()
         self.canceled = False
         self.logger= logging.getLogger(dlg.alg_name)
         if len(self.logger.handlers):

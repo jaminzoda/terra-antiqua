@@ -97,24 +97,26 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
 
 class TaRemoveArtefacts(TaBaseAlgorithm):
 
-    def __init__(self, vl, dlg, iface):
+    def __init__(self, dlg, iface):
         super().__init__(dlg)
         self.iface = iface
-        self.vl = vl
+        self.vl = None
 
+    def setInputLayer(self, vl):
+        self.vl = vl
 
     def run(self):
         if not self.killed:
             try:
                 topo_layer = self.getTopoLayer()
             except Exception as e:
-                self.log.emit("Error: {}".format(e))
+                self.feedback.Error("{}".format(e))
                 self.kill()
 
         if not self.killed:
-            self.log.emit("Removing artefacts from the {} raster".format(topo_layer.name()))
+            self.feedback.info("Removing artefacts from the {} raster".format(topo_layer.name()))
 
-            self.log.emit("{} polygons are found in the input layer.".format(self.vl.featureCount()))
+            self.feedback.info("{} polygons are found in the input layer.".format(self.vl.featureCount()))
 
 
         if not self.killed:
@@ -140,23 +142,23 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                     temp_layer = None
 
                     expr = feature["Expression"]
-                    self.log.emit("The expression for feature ID {0} is: {1}.".format(feature.id(), expr))
+                    self.feedback.info("The expression for feature ID {0} is: {1}.".format(feature.id(), expr))
                     try:
                         expr = self.prepareExpression(H, expr)
                     except Exception as e:
-                        self.log.emit("Warning: Expression evaluation failed for feature ID {}.".format(feature.id()))
-                        self.log.emit("Warning: Please use a valid python expression (e.g. H&gt;500 or H&gt;=500 or (H&gt;500)&(H&lt;700))")
+                        self.feedback.Warning("Expression evaluation failed for feature ID {}.".format(feature.id()))
+                        self.feedback.Warning("Please use a valid python expression (e.g. H&gt;500 or H&gt;=500 or (H&gt;500)&(H&lt;700))")
                         continue
                     else:
                         try:
                             H[expr*mask_array==1] = np.nan
                         except Exception as e:
-                            self.log.emit("Warning: Although the expression seems to be ok, during topography modification an exception was raised for feature id {}".format(feature.id()))
+                            self.feedback.Warning("Although the expression seems to be ok, during topography modification an exception was raised for feature id {}".format(feature.id()))
                             continue
                 else:
-                    self.log.emit("The polygon of feature ID {} is invalid.".format(feature.id()))
+                    self.feedback.info("The polygon of feature ID {} is invalid.".format(feature.id()))
 
-                self.set_progress += total
+                self.feedback.progress += total
 
 
 
@@ -180,7 +182,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                 H = None
                 topo_raster = None
 
-                self.set_progress+=10
+                self.feedback.progress+=10
 
 
                 if not self.killed:
@@ -188,10 +190,10 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                     try:
                         interpolated_raster = fillNoDataInPolygon(rlayer, self.vl, self.out_file_path)
                     except Exception as e:
-                        self.log.emit("Error: An error occured wile interpolating values for the artefact pixels: {}".format(e))
+                        self.feedback.Error("An error occured wile interpolating values for the artefact pixels: {}".format(e))
                         self.kill()
 
-                    self.set_progress=100
+                    self.feedback.progress =100
 
 
                     self.finished.emit(True, interpolated_raster)
@@ -217,7 +219,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                 H = None
                 topo_raster = None
 
-                self.set_progress=100
+                self.feedback.progress=100
 
 
                 self.finished.emit(True, self.out_file_path)
@@ -251,7 +253,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
             try:
                 topo_layer = self.getTopoLayer()
             except Exception as e:
-                self.log.emit(e)
+                self.feedback.Error(e)
                 self.kill()
             topo_raster = gdal.Open(topo_layer.source())
             no_data_value = topo_raster.GetRasterBand(1).GetNoDataValue()
@@ -281,13 +283,17 @@ class TaFeatureSink(QObject):
 
     def __init__(self, crs):
         super().__init__()
+        self.crs = crs
+        self.vl = self.createVectorLayer()
 
-        self.vl = QgsVectorLayer("Polygon?crs={}".format(crs), "Polygons created", "memory")
+    def createVectorLayer(self):
+        vl = QgsVectorLayer("Polygon?crs={}".format(self.crs), "Polygons created", "memory")
         expr_field = QgsField("Expression", QVariant.String, "text")
         fields=QgsFields()
         fields.append(expr_field)
-        self.vl.dataProvider().addAttributes(fields)
-        self.vl.updateFields()
+        vl.dataProvider().addAttributes(fields)
+        vl.updateFields()
+        return vl
 
 
     def createFeature(self, geom, expr):
@@ -303,3 +309,7 @@ class TaFeatureSink(QObject):
 
     def getVectorLayer(self):
         return self.vl
+
+    def cleanFeatureSink(self):
+        self.vl = self.createVectorLayer()
+

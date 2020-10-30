@@ -2,7 +2,12 @@ import sys
 import os
 from PyQt5 import uic
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QDialog, QPushButton, QLabel
+from PyQt5.QtWidgets import (
+    QDialog,
+    QPushButton,
+    QLabel,
+    QShortcut
+)
 import logging
 from qgis.gui import QgsFileWidget
 from .logger import TaLogHandler, TaLogStream, TaFeedback
@@ -22,6 +27,7 @@ class TaBaseDialog(TaTemplateDialog):
         self.runButton.clicked.connect(self.runEvent)
         self.closeButton.clicked.connect(self.close)
         self.cancelButton.clicked.connect(self.cancelEvent)
+        self.setKeyboardShortcuts()
 
         self.setDialogTitle()
         self.loadHelp()
@@ -178,6 +184,7 @@ class TaBaseDialog(TaTemplateDialog):
 
     def runEvent(self):
         if self.checkMandatoryParameters() and not self.RUNNING:
+            self.RUNNING = True
             self.logBrowser.clear()
             self.is_run.emit(True)
             self.warnLabel.setText('')
@@ -187,7 +194,6 @@ class TaBaseDialog(TaTemplateDialog):
                 self.tabWidget.setCurrentIndex(1)
             except Exception:
                 pass
-            self.RUNNING = True
         elif not self.RUNNING and not self.checkMandatoryParameters():
             self.warnLabel.setText('Please, select all the mandatory fields.')
             self.warnLabel.setStyleSheet('color:red')
@@ -216,5 +222,13 @@ class TaBaseDialog(TaTemplateDialog):
         self.warnLabel.setText('Done!')
         self.warnLabel.setStyleSheet('color:green')
         self.RUNNING = False
+
     def isCanceled(self):
         return self.CANCELED
+
+    def setKeyboardShortcuts(self):
+        self.shortcuts = {}
+        self.shortcuts["Run"] = QShortcut(self)
+        self.shortcuts["Run"].setContext(QtCore.Qt.ApplicationShortcut)
+        self.shortcuts["Run"].setKey(QtCore.Qt.Key_Enter)
+        self.shortcuts["Run"].activated.connect(self.runButton.click)

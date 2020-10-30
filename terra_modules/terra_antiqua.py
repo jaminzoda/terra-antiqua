@@ -22,6 +22,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+import time
 from PyQt5.QtCore import (
                             QSettings,
                             QTranslator,
@@ -62,7 +63,8 @@ from .remove_arts_dlg import TaRemoveArtefactsDlg
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
 from ..resources import *
-from .algorithm_provider import TaAlgorithmProviderNew
+from .algorithm_provider import TaAlgorithmProviderNew, TaRemoveArtefactsAlgProvider
+
 
 
 class TerraAntiqua:
@@ -455,144 +457,4 @@ class TaAlgorithmProvider:
         self.dlg = None
         self.thread.deleteLater()
         self.thread =None
-
-class TaRemoveArtefactsAlgProvider:
-
-    def __init__(self, dlg1, dlg, iface, actions, settings):
-        self.dlg = dlg()
-        self.tooltip = dlg1()
-        self.actions = actions
-        self.settings = settings
-        self.iface = iface
-        self.canvas = self.iface.mapCanvas()
-        self.nFeatures = None
-        self.rbCollection = None
-        self.pointCollection = None
-        self.vertexCollection = None
-
-        self.dlg.is_run.connect(self.start)
-        self.dlg.cancelled.connect(self.stop)
-        self.dlg.addButton.clicked.connect(self.createPolygon)
-        self.dlg.closeButton.clicked.connect(self.clean)
-
-    def initiate(self):
-        if self.tooltip.showAgain:
-            self.tooltip.show()
-            self.tooltip.accepted.connect(self.drawPolygon)
-        else:
-            self.drawPolygon()
-    def drawPolygon(self):
-        if self.tooltip.showAgain:
-            if self.tooltip.showAgainCheckBox.isChecked():
-                self.tooltip.setShowable(False)
-        if not self.nFeatures:
-            self.nFeatures = 0
-        self.toolPoly = TaPolygonCreator(self.canvas, self.iface)
-        self.toolPoly.finished.connect(self.load)
-        self.canvas.setMapTool(self.toolPoly)
-        for action in self.actions:
-            if action.text() == "Remove Artefacts":
-                self.toolPoly.setAction(action)
-
-
-    def load(self):
-        self.storeRubberbands(self.toolPoly.rubberband, self.toolPoly.vertices, self.toolPoly.points)
-        self.dlg.show()
-        if self.nFeatures==0:
-            context = QgsExpressionContext()
-            context.appendScope(QgsExpressionContextUtils.projectScope(QgsProject.instance()))
-            crs = context.variable("project_crs")
-            self.feature_sink = TaFeatureSink(crs)
-
-
-
-    def createPolygon(self):
-        self.nFeatures+=1
-        expr = self.dlg.exprLineEdit.lineEdit.value()
-        geom = self.toolPoly.geometry
-        self.feature_sink.createFeature(geom, expr)
-        self.dlg.hide()
-        self.drawPolygon()
-
-
-    def start(self):
-        expr = self.dlg.exprLineEdit.lineEdit.value()
-        geom = self.toolPoly.geometry
-        self.feature_sink.createFeature(geom, expr)
-        self.vl = self.feature_sink.getVectorLayer()
-        self.thread = TaRemoveArtefacts(self.vl, self.dlg, self.iface)
-        self.thread.progress.connect(self.dlg.setProgressValue)
-        self.thread.log.connect(self.log)
-        self.thread.start()
-        self.thread.finished.connect(self.addResult)
-        self.nFeatures = 0
-
-
-    def stop(self):
-        if 'thread' in  self.__dict__:
-            self.thread.kill()
-        self.log("The algorithm did not finish successfully, because the user canceled processing.")
-        self.log("Or something went wrong. Please, refer to the log above for more details.")
-        self.nFeatures = 0
-        self.clean()
-
-    def storeRubberbands(self, rb, vrtx, pnt):
-        if not self.rbCollection:
-            self.rbCollection = []
-        if not self.pointCollection:
-            self.pointCollection = []
-        if not self.vertexCollection:
-            self.vertexCollection = []
-
-        self.rbCollection.append(rb)
-        self.pointCollection.append(pnt)
-        self.vertexCollection.append(vrtx)
-
-
-    def log(self, msg):
-        # get the current time
-        time = datetime.datetime.now()
-        time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-        if msg.split(' ')[0].lower() == 'error:' or msg.split(':')[0].lower() == 'error':
-            msg = '<span style="color: red;">{} </span>'.format(msg)
-        elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
-            msg = '<span style="color: blue;">{} </span>'.format(msg)
-
-        #msg=msg.replace("<", "&lt;")
-        #msg=msg.replace(">", "&gt;")
-        try:
-            self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-        except Exception:
-            self.dlg.logBrowser.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-
-
-    def addResult(self, finished, output_path):
-        if finished is True:
-            file_name = os.path.splitext(os.path.basename(output_path))[0]
-            rlayer = self.iface.addRasterLayer(output_path, file_name, "gdal")
-            if rlayer:
-                setRasterSymbology(rlayer)
-                self.log("The artefacts were removed successfully,")
-                self.log(
-                    "and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))
-            else:
-                self.log("The algorithm has removed artefacts successfully,")
-                self.log("however the resulting layer did not load. You may need to load it manually.")
-                self.log("The modified raster is saved at: {}".format(output_path))
-            self.finish()
-        else:
-            self.stop()
-    def finish(self):
-        self.dlg.finishEvent()
-        self.clean()
-    def clean(self):
-        self.iface.actionPan().trigger()
-        try:
-            self.toolPoly.removePolygons(self.rbCollection, self.pointCollection, self.vertexCollection)
-            self.nFeatures = 0
-        except Exception:
-            pass
-
-        self.settings.removeArtefactsChecked = False
-#        self.dlg.close()
 
