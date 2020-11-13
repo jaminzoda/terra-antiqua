@@ -21,9 +21,11 @@ class TaBaseDialog(TaTemplateDialog):
     def __init__(self, parent=None):
         super(TaBaseDialog, self).__init__(parent)
         self.alg_name = self.getAlgName()
+        self.dlg_name = self.__class__.__name__
         self.parameters = []
         self.mandatory_parameters = []
         self.variant_parameters = []
+        self.var_index = None
         self.runButton.clicked.connect(self.runEvent)
         self.closeButton.clicked.connect(self.close)
         self.cancelButton.clicked.connect(self.cancelEvent)
@@ -34,6 +36,9 @@ class TaBaseDialog(TaTemplateDialog):
 
     def setDialogTitle(self):
         self.setWindowTitle("Terra Antiqua - {}".format(self.alg_name))
+
+    def setDialogName(self, name):
+        self.dlg_name = name
 
 
     def createFeedback(self):
@@ -69,17 +74,28 @@ class TaBaseDialog(TaTemplateDialog):
         else:
             return param
 
-    def addVariantParameter(self, param, variant_index, label = None, widget_type = None):
+    def addVariantParameter(self, param, variant_index, label = None,
+                            widget_type = None, mandatory = False):
+        if label and mandatory:
+            label = f"{label} *"
         if label:
             try:
                 param = param(label)
             except Exception:
                 label = QLabel(label)
-                self.variant_parameters.append((label, variant_index))
+                self.variant_parameters.append((label, variant_index, False))
                 param = param()
         else:
             param = param()
-        self.variant_parameters.append((param,variant_index))
+        if mandatory:
+            self.variant_parameters.append((param,variant_index,True))
+            try:
+                param.getMainWidget().setAllowEmptyLayer(False)
+            except Exception:
+                pass
+        else:
+            self.variant_parameters.append((param,variant_index, False))
+
         if widget_type == 'TaMapLayerComboBox':
             return param.getMainWidget()
         else:
@@ -105,13 +121,14 @@ class TaBaseDialog(TaTemplateDialog):
 
 
         for parameter in self.mandatory_parameters:
-            if type(parameter).__name__ == 'QgsMapLayerComboBox':
+            if type(parameter).__name__ == 'TaAbstractMapLayerComboBox':
                 parameter.layerChanged.connect(self.checkMandatoryParameters)
     def appendVariantWidgets(self):
-        for param, variant_index in self.variant_parameters:
+        for param, variant_index, mandatory in self.variant_parameters:
             self.paramsLayout.addWidget(param)
     def showVariantWidgets(self, index):
-        for param, variant_index in self.variant_parameters:
+        self.var_index = index
+        for param, variant_index, mandatory in self.variant_parameters:
             if variant_index != index:
                 param.hide()
             else:
@@ -123,21 +140,21 @@ class TaBaseDialog(TaTemplateDialog):
         for parameter in self.mandatory_parameters:
             #TODO if other widget types are added as mandatory parameter
             # a new elif checks should be added
-            if type(parameter).__name__ == 'QgsMapLayerComboBox':
+            if type(parameter).__name__ == 'TaAbstractMapLayerComboBox':
                 param_checks.append(bool(parameter.currentLayer()))
 
+        for parameter, variant_index, mandatory in self.variant_parameters:
+            if variant_index == self.var_index and mandatory:
+                if type(parameter.getMainWidget()).__name__ == 'TaAbstractMapLayerComboBox':
+                    param_checks.append(bool(parameter.getMainWidget().currentLayer()))
+
         if all(param_checks):
-            self.warnLabel.setText('')
             return True
         else:
-            self.warnLabel.setText('Please, select all the mandatory fields.')
-            self.warnLabel.setStyleSheet('color:red')
             return False
 
     def setProgressValue(self, value):
         self.progressBar.setValue(value)
-        with open("log.txt", "a") as log_file:
-            log_file.write("On ProgressBar: {}\n".format(value))
 
     def resetProgressValue(self):
         self.progressBar.setValue(0)
@@ -172,10 +189,15 @@ class TaBaseDialog(TaTemplateDialog):
                 ('TaCreateTopoBathyDlg', 'create_tb'),
                 ('TaRemoveArtefactsDlg', 'remove_arts'),
                 ('TaPrepareMasksDlg', 'prepare_masks'),
-                ('TaRemoveArtefactsTooltip', 'remove_arts_tooltip')
+                ('TaRemoveArtefactsTooltip', 'remove_arts_tooltip'),
+                ('TaStandardProcessingDlg', 'fill_gaps'),
+                ('TaFillGaps', 'fill_gaps'),
+                ('TaCopyPasteRaster', 'copy_paste'),
+                ('TaSmoothRaster', 'smoothing'),
+                ('TaIsostaticCompensation', 'isostat_cp')
                 ]
         for class_name, file_name in files:
-            if class_name    == type(self).__name__:
+            if class_name    == self.dlg_name:
                 path_to_file = os.path.join(os.path.dirname(__file__),'../help_text/{}.html'.format(file_name))
 
         with open(path_to_file, 'r', encoding='utf-8') as help_file:

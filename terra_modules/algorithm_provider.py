@@ -24,6 +24,8 @@ class TaAlgorithmProviderNew:
         self.settings = settings
         self.dlg.is_run.connect(self.start)
         self.dlg.cancelled.connect(self.stop)
+        self.thread.finished.connect(self.add_result)
+        self.thread.progress.connect(self.dlg.setProgressValue)
 
 
     def load(self):
@@ -35,10 +37,8 @@ class TaAlgorithmProviderNew:
     def start(self):
         if not self.thread.isRunning():
             self.thread.startOver()
-            self.thread.progress.connect(self.dlg.setProgressValue)
-            self.thread.progress.connect(lambda:print("Legacy progress"))
             self.thread.start()
-            self.thread.finished.connect(self.add_result)
+
 
     def stop(self):
         if self.thread.isRunning():
@@ -49,6 +49,7 @@ class TaAlgorithmProviderNew:
 
     def finish(self):
         self.dlg.finishEvent()
+
 
 
     def add_result(self, finished, output_path):
@@ -195,7 +196,7 @@ class TaRemoveArtefactsAlgProvider:
                 self.thread.feedback.info("The modified raster is saved at: {}".format(output_path))
             self.finish()
         else:
-            self.stop()
+            self.dlg.cancelEvent()
 
     def finish(self):
         self.dlg.finishEvent()

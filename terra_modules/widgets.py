@@ -29,10 +29,19 @@ class TaHelpBrowser(QtWidgets.QTextBrowser):
         if event.type() == event.Show:
             self.visibilityChanged.emit(True)
 
+class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
+    enabled = QtCore.pyqtSignal(bool)
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def changeEvent(self, event):
+        if event.type() == QtCore.QEvent.EnabledChange:
+            self.enabled.emit(self.isEnabled())
+
 class TaMapLayerComboBox(QtWidgets.QWidget):
     def __init__(self, label = None):
         super(TaMapLayerComboBox, self).__init__()
-        self.cmb = QgsMapLayerComboBox(self)
+        self.cmb = TaAbstractMapLayerComboBox(self)
         self.cmb.setLayer(None)
         self.cmb.setAllowEmptyLayer(True)
         self.openButton = QtWidgets.QToolButton(self)
@@ -52,12 +61,26 @@ class TaMapLayerComboBox(QtWidgets.QWidget):
         self.vlayout.setContentsMargins(QtCore.QMargins(0,0,0,0))
         self.setLayout(self.vlayout)
         self.setLayerType()
+        self.associatedWidgets = []
+        self.associatedWidgets.append(self.openButton)
+        self.cmb.enabled.connect(self.setAssociatedWidgetsEnabled)
 
     def setLabel(self, label):
         self.label.setText(label)
 
     def getMainWidget(self):
         return self.cmb
+
+    def currentLayer(self):
+        return self.cmb.currentLayer()
+
+    def setAssociatedWidgetsEnabled(self, state):
+        for widget in self.associatedWidgets:
+            widget.setEnabled(state)
+
+    def setAssociatedWidget(self, widget:QtWidgets.QWidget):
+        self.associatedWidgets.append(widget)
+
 
 class TaRasterLayerComboBox(TaMapLayerComboBox):
     def __init__(self, label=None):
@@ -167,6 +190,12 @@ class TaSpinBox(QtWidgets.QWidget):
         self.spinBox.setMinimum(min)
         self.spinBox.setMaximum(max)
 
+    def setValue(self, value):
+        """Sets value for the spinbox.
+        param value: value to be set.
+        type value: int. """
+        self.spinBox.setValue(value)
+
 
 class TaCheckBox(QtWidgets.QCheckBox):
     def __init__(self, label):
@@ -180,7 +209,7 @@ class TaCheckBox(QtWidgets.QCheckBox):
 
     def registerEnabledWidgets(self, widgets:list, natural:bool = False):
         """Registers widgets that get disabled when the checkbox is checked.
-        If natural is True, the widgets get enabled, when the checkbox is
+        If natural is True, the widgets get disabled, when the checkbox is
         checked."""
 
         for widget in widgets:

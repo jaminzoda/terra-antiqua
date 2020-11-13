@@ -22,6 +22,7 @@ class TaBaseAlgorithm(QThread):
 
     def __init__(self, dlg):
         super().__init__()
+        self.__name__ = self.__class__.__name__
         self.killed = False
         self.progress_count = 0
         self.started.connect(self.onRun)
@@ -38,6 +39,10 @@ class TaBaseAlgorithm(QThread):
         except Exception as e:
             pass
         self.checkCrs()
+
+    def setName(self, name):
+        self.__name__ = name
+
     def checkCrs(self):
         if not self.crs.isValid():
             msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Refernce System to your project?'
@@ -68,12 +73,16 @@ class TaBaseAlgorithm(QThread):
             ('TaModifyTopoBathy', 'PaleoDEM_modified_topography.tif', 'raster'),
             ('TaPrepareMasks', 'Extracted_general_masks.shp', 'vector'),
             ('TaRemoveArtefacts', 'PaleoDEM_withArtefactsRemoved.tif', 'raster'),
-            ('TaSetPaleoshorelines', 'PaleoDEM_Paleoshorelines_set.tif', 'raster')
+            ('TaSetPaleoshorelines', 'PaleoDEM_Paleoshorelines_set.tif', 'raster'),
+            ('TaFillGaps', 'PaleoDEM_interpolated.tif', 'raster'),
+            ('TaCopyPasteRaster', 'PaleoDEM_with_copied_values.tif', 'raster'),
+            ('TaSmoothRaster', 'PaleoDEM_smoothed.tif', 'raster'),
+            ('TaIsostaticCompensation','PaleoDEM_isostat_compensated.tif', 'raster' )
         ]
 
         temp_file_name = None
         for i in algs:
-            if self.__class__.__name__ == i[0]:
+            if self.__name__ == i[0]:
                 temp_file_name = i[1]
                 file_type = i[2]
         if not temp_file_name:

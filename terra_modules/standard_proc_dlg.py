@@ -4,295 +4,129 @@ import os
 
 from PyQt5 import QtWidgets
 from PyQt5 import uic
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import (
+    QFileDialog,
+    QComboBox
+)
 from qgis.core import (
     QgsMapLayerProxyModel,
     QgsProject,
     QgsVectorLayer,
     QgsRasterLayer
     )
+from qgis.gui import QgsSpinBox
 
-from .utils import loadHelp
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), '../ui/standard_proc.ui'))
+from .base_dialog import TaBaseDialog
+from .widgets import (
+    TaRasterLayerComboBox,
+    TaCheckBox,
+    TaMapLayerComboBox,
+    TaVectorLayerComboBox
+)
 
-class TaStandardProcessingDlg(QtWidgets.QDialog, FORM_CLASS):
+class TaStandardProcessingDlg(TaBaseDialog):
     def __init__(self, parent=None):
         """Constructor."""
         super(TaStandardProcessingDlg, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS2.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
-        self.setupUi(self)
-
-        # Specify the type for filling the gaps.
-        # list of options
-        options = ['Fill gaps', 'Copy/Paste raster', 'Smoothing','Isostatic compensation']
-        self.fillingTypeBox.addItems(options)
-        # Elements of dialog are changed appropriately, when a filling type is selected
-        self.fillingTypeBox.currentIndexChanged.connect(self.typeOfFilling)
-        self.interpInsidePolygonCheckBox.stateChanged.connect(self.showMasksWidget)
-
-        #Set the default appearance of the dialog
-        self.copyFromRasterBox.hide()
-        self.copyFromRasterLabel.hide()
-        self.selectCopyFromRasterButton.hide()
-        self.masksBox.hide()
-        self.selectMasksButton.hide()
-        self.masksBoxLabel.hide()
-        self.selectIceTopoBox.hide()
-        self.selectIceTopoButton.hide()
-        self.iceTopoLabel.hide()
-
-        self.smoothingTypeBox.hide()
-        self.smoothingTypeLabel.hide()
-        self.iceAmountLabel.hide()
-        self.iceAmountSpinBox.hide()
-        self.masksFromCoastCheckBox.hide()
-
-        #Populate the smoothingTypeBox with smoothing options
-        smoothing_options = ['Gaussian filter', 'Uniform filter']
-        self.smoothingTypeBox.addItems(smoothing_options)
-        self.smoothingBox.stateChanged.connect(self.showSmoothingTypeBox)
-
-        #Set the mode of QgsFileWidget to directory mode
-        self.outputPath.setStorageMode(self.outputPath.SaveFile)
-        self.outputPath.setFilter('*.tif;;*.tiff')
-
-        #Base topography layer
-        self.baseTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
-        self.baseTopoBox.setLayer(None)
-        # Connect the tool buttons to the file dialog that opens raster layers from disk
-        self.selectTopoBaseButton.clicked.connect(self.addLayerToBaseTopo)
-
-        # Ice topography layer
-        self.selectIceTopoBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
-        self.selectIceTopoBox.setLayer(None)
-        # Connect the tool buttons to the file dialog that opens raster layers from disk
-        self.selectIceTopoButton.clicked.connect(self.addLayerToBaseTopo)
-
-        #Raster to copy elevation data from  for filling the gaps
-        self.copyFromRasterBox.setFilters(QgsMapLayerProxyModel.RasterLayer)
-        self.copyFromRasterBox.setLayer(None)
-        self.selectCopyFromRasterButton.clicked.connect(self.addLayerToBaseTopo)
-
-        #Input masks layer
-        self.masksBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.masksBox.setLayer(None)
-        # Connect the tool buttons to the file dialog that opens vector layers from disk
-        self.selectMasksButton.clicked.connect(self.addLayerToMasks)
-
-        self.logText.clear()
-        self.logText.setReadOnly(True)
-
-
-       #Set the run button enabled only when the user selected input layers.
-        self.runButton.setEnabled(False)
-        self.masksBox.layerChanged.connect(self.enableRunButton)
-        self.baseTopoBox.layerChanged.connect(self.enableRunButton)
-
-        #set the help text in the  help box (QTextBrowser)
-
-        path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/fill_gaps.html")
-
-        help_file = open(path_to_file, 'r', encoding='utf-8')
-        help_text = help_file.read()
-        self.helpBox.setHtml(help_text)
-
-
-    def typeOfFilling(self):
-        current_index = self.fillingTypeBox.currentIndex()
-        if current_index == 0:
-            self.copyFromRasterBox.hide()
-            self.copyFromRasterLabel.hide()
-            self.selectCopyFromRasterButton.hide()
-
-            self.masksBox.hide()
-            self.selectMasksButton.hide()
-            self.masksBoxLabel.hide()
-            self.smoothingBox.show()
-            self.smoothingLabel.show()
-            self.smoothingTypeBox.hide()
-            self.smoothingTypeLabel.hide()
-            self.smFactorSpinBox.show()
-
-            self.selectIceTopoBox.hide()
-            self.selectIceTopoButton.hide()
-            self.iceTopoLabel.hide()
-
-            self.iceAmountLabel.hide()
-            self.iceAmountSpinBox.hide()
-            self.masksFromCoastCheckBox.hide()
-            self.interpInsidePolygonCheckBox.show()
-
-            #set the help text in the  help box (QTextBrowser)
-
-            path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/fill_gaps.html")
-
-            help_file = open(path_to_file, 'r', encoding='utf-8')
-            help_text = help_file.read()
-            self.helpBox.setHtml(help_text)
-
-        elif current_index == 1:
-            self.copyFromRasterBox.show()
-            self.copyFromRasterLabel.show()
-            self.selectCopyFromRasterButton.show()
-            self.masksBox.show()
-            self.selectMasksButton.show()
-            self.masksBoxLabel.show()
-            self.smoothingBox.hide()
-            self.smoothingLabel.hide()
-            self.smoothingTypeBox.hide()
-            self.smoothingTypeLabel.hide()
-            self.smFactorSpinBox.hide()
-
-            self.selectIceTopoBox.hide()
-            self.selectIceTopoButton.hide()
-            self.iceTopoLabel.hide()
-
-            self.iceAmountLabel.hide()
-            self.iceAmountSpinBox.hide()
-            self.masksFromCoastCheckBox.hide()
-            self.interpInsidePolygonCheckBox.hide()
-
-            #set the help text in the  help box (QTextBrowser)
-            path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/copy_paste.html")
-            help_file = open(path_to_file, 'r', encoding='utf-8')
-            help_text = help_file.read()
-            self.helpBox.setHtml(help_text)
-
-        elif current_index==2:
-            self.copyFromRasterBox.hide()
-            self.copyFromRasterLabel.hide()
-            self.selectCopyFromRasterButton.hide()
-
-            self.masksBox.hide()
-            self.selectMasksButton.hide()
-            self.masksBoxLabel.hide()
-            self.smoothingBox.hide()
-            self.smoothingLabel.show()
-            self.smoothingTypeBox.show()
-            self.smoothingTypeLabel.show()
-            self.smFactorSpinBox.show()
-
-            self.selectIceTopoBox.hide()
-            self.selectIceTopoButton.hide()
-            self.iceTopoLabel.hide()
-
-
-            self.iceAmountLabel.hide()
-            self.iceAmountSpinBox.hide()
-            self.masksFromCoastCheckBox.hide()
-            self.interpInsidePolygonCheckBox.hide()
-
-            #set the help text in the  help box (QTextBrowser)
-
-            path_to_file = os.path.join(os.path.dirname(__file__), "../help_text/smoothing.html")
-
-            help_file = open(path_to_file, 'r', encoding='utf-8')
-            help_text = help_file.read()
-            self.helpBox.setHtml(help_text)
-
-        elif current_index==3:
-            self.copyFromRasterBox.hide()
-            self.copyFromRasterLabel.hide()
-            self.selectCopyFromRasterButton.hide()
-
-            self.masksBox.show()
-            self.selectMasksButton.show()
-            self.masksBoxLabel.show()
-            self.smoothingBox.hide()
-            self.smoothingLabel.hide()
-            self.smoothingTypeBox.hide()
-            self.smoothingTypeLabel.hide()
-            self.smFactorSpinBox.hide()
-
-            self.selectIceTopoBox.show()
-            self.selectIceTopoButton.show()
-            self.iceTopoLabel.show()
-
-            self.iceAmountLabel.show()
-            self.iceAmountSpinBox.show()
-            self.masksFromCoastCheckBox.show()
-            self.interpInsidePolygonCheckBox.hide()
-
-
-            #set the help text in the  help box (QTextBrowser)
-            path_to_file = os.path.join(os.path.dirname(__file__),"../help_text/isostat_cp.html")
-            help_file = open(path_to_file, 'r', encoding='utf-8')
-            help_text = help_file.read()
-            self.helpBox.setHtml(help_text)
-
-
-
-
-
-    def showMasksWidget(self, state):
-
-        if state ==2: #checked
-            self.masksBox.show()
-            self.selectMasksButton.show()
-            self.masksBoxLabel.show()
-        else:
-            self.masksBox.hide()
-            self.selectMasksButton.hide()
-            self.masksBoxLabel.hide()
-
-    def showSmoothingTypeBox(self, state):
-        if state ==2:
-            self.smoothingTypeLabel.show()
-            self.smoothingTypeBox.show()
-        else:
-            self.smoothingTypeLabel.hide()
-            self.smoothingTypeBox.hide()
-
-    def enableRunButton(self):
-        if  self.baseTopoBox.currentLayer()!=None:
-            self.runButton.setEnabled(True)
-            self.warningLabel.setText('')
-        else:
-            self.warningLabel.setText('Please, select all the base raster file.')
-            self.warningLabel.setStyleSheet('color:red')
-
-    def addLayerToBaseTopo(self):
-        self.openRasterFromDisk(self.baseTopoBox)
-
-    def addLayerToMasks(self):
-        self.openVectorFromDisk(self.masksBox)
-
-    def openVectorFromDisk(self, box):
-        fd = QFileDialog()
-        filter = "Vector files (*.shp)"
-        fname, _ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
-
-        if fname:
-            name, _ = os.path.splitext(os.path.basename(fname))
-            vlayer = QgsVectorLayer(fname, name, 'ogr')
-            QgsProject.instance().addMapLayer(vlayer)
-            box.setLayer(vlayer)
-
-    def openRasterFromDisk(self, box):
-        fd = QFileDialog()
-        filter = "Raster files (*.jpg *.tif *.grd *.nc *.png *.tiff)"
-        fname, _ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
-
-        if fname:
-            name, _ = os.path.splitext(os.path.basename(fname))
-            rlayer = QgsRasterLayer(fname, name, 'gdal')
-            QgsProject.instance().addMapLayer(rlayer)
-            box.setLayer(rlayer)
-
-    def setProgressValue(self, value):
-        self.progressBar.setValue(value)
-
-    def resetProgressValue(self):
-        self.progressBar.setValue(0)
-
-
-
-
-
-
-
+        self.defineParameters()
+        self.fillingTypeBox.currentTextChanged.connect(self.reloadHelp)
+
+    def defineParameters(self):
+        self.fillingTypeBox = self.addParameter(QComboBox, "How would you like to process the input DEM?")
+        self.fillingTypeBox.addItems(["Fill gaps",
+                                      "Copy/Paste raster",
+                                      "Smooth raster",
+                                      "Isostatic compensation"])
+        self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox,
+                                                      "Raster to be modified:",
+                                                      "TaMapLayerComboBox")
+        #Parameters for filling the gaps
+        self.interpInsidePolygonCheckBox = self.addVariantParameter(TaCheckBox,
+                                                                    "Fill gaps",
+                                                                    "Interpolate inside polygon(s) only.")
+        self.masksBox = self.addVariantParameter(TaVectorLayerComboBox,
+                                                 "Fill gaps",
+                                                 "Mask layer:",
+                                                 "TaMapLayerComboBox")
+        self.interpInsidePolygonCheckBox.registerEnabledWidgets([self.masksBox])
+        self.smoothingBox = self.addVariantParameter(TaCheckBox, "Fill gaps",
+                                                     "Smooth the resulting raster")
+        self.smoothingTypeBox = self.addVariantParameter(QComboBox,
+                                                         "Fill gaps",
+                                                         "Smoothing type:")
+        self.smoothingTypeBox.addItems(["Gaussian filter",
+                                        "Uniform filter"])
+        self.smFactorSpinBox = self.addVariantParameter(QgsSpinBox,
+                                                        "Fill gaps",
+                                                        "Smoothing factor (in grid cells):")
+        self.smFactorSpinBox.setMinimum(1)
+        self.smFactorSpinBox.setMaximum(5)
+        self.smoothingBox.registerEnabledWidgets([self.smoothingTypeBox,
+                                                  self.smFactorSpinBox])
+
+        #Parameters for Copying and pasting raster data
+        self.copyFromRasterBox = self.addVariantParameter(TaRasterLayerComboBox,
+                                                          "Copy/Paste raster",
+                                                          "Raster to copy values from:",
+                                                          "TaMapLayerComboBox",
+                                                          mandatory = True)
+        self.copyFromMaskBox = self.addVariantParameter(TaVectorLayerComboBox,
+                                                        "Copy/Paste raster",
+                                                        "Mask layer:",
+                                                        "TaMapLayerComboBox",
+                                                        mandatory = True)
+
+        #Parameters for smothing rasters
+        self.smoothingTypeBox2 = self.addVariantParameter(QComboBox,
+                                                          "Smooth raster",
+                                                          "Smoothing type:")
+        self.smFactorSpinBox2 = self.addVariantParameter(QgsSpinBox,
+                                                         "Smooth raster",
+                                                         "Smoothing factor (in grid cells):")
+        self.smoothingTypeBox2.addItems(["Gaussian filter",
+                                         "Uniform filter"])
+        self.smFactorSpinBox2.setMinimum(1)
+        self.smFactorSpinBox2.setMaximum(5)
+
+        #Parameters for Isostatic compensation
+        self.selectIceTopoBox = self.addVariantParameter(TaRasterLayerComboBox,
+                                                         "Isostatic compensation",
+                                                         "Ice topography raster:",
+                                                         mandatory = True)
+        self.isostatMaskBox = self.addVariantParameter(TaVectorLayerComboBox,
+                                                       "Isostatic compensation",
+                                                       "Mask layer:",
+                                                       mandatory = True)
+        self.masksFromCoastCheckBox = self.addVariantParameter(
+                                        TaCheckBox,
+                                        "Isostatic compensation",
+                                        "Get polar regions automatically.")
+        self.iceAmountSpinBox = self.addVariantParameter(
+                                        QgsSpinBox,
+                                        "Isostatic compensation",
+                                        "Amount of the ice to be removed (in %)"
+                                        )
+        self.iceAmountSpinBox.setMinimum(0)
+        self.iceAmountSpinBox.setMaximum(100)
+        self.iceAmountSpinBox.setValue(30)
+
+
+
+
+
+        self.fillDialog()
+        self.showVariantWidgets(self.fillingTypeBox.currentText())
+        self.fillingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
+
+    def reloadHelp(self):
+        """
+        Sets the name of the chosen processing algorithm (e.g. Smooth raster) to the dialog so that it can load the help
+        file properly."""
+        processing_alg_names = [("Fill gaps", "TaFillGaps"),
+                                ("Copy/Paste raster", "TaCopyPasteRaster"),
+                                ("Smooth raster", "TaSmoothRaster"),
+                                ("Isostatic compensation", "TaIsostaticCompensation")]
+        for alg, name in processing_alg_names:
+            if self.fillingTypeBox.currentText() == alg:
+                self.setDialogName(name)
+        self.loadHelp()

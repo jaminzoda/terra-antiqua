@@ -29,6 +29,10 @@ class TaTemplateDialog(QtWidgets.QDialog):
         self.tabWidget.addTab(self.logBrowser, 'Log')
         self.helpTextBox = TaHelpBrowser(self)
         self.helpTextBox.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        try:
+            self.helpTextBox.placeholderText = "Your log will be shown here."
+        except:
+            pass
         self.iconRight = QtGui.QIcon(':/arrow_right.png')
         self.iconLeft = QtGui.QIcon(':/arrow_left.png')
         self.collapseButton = QtWidgets.QToolButton(self)

@@ -317,7 +317,10 @@ class TerraAntiqua:
 
     def initStandardProcessing(self):
         """Initializes the Standard processing algorithm set and loads it"""
-        self.standardProcessing = TaAlgorithmProvider(TaStandardProcessingDlg, TaStandardProcessing, self.iface)
+        self.standardProcessing = TaAlgorithmProviderNew(TaStandardProcessingDlg,
+                                                         TaStandardProcessing,
+                                                         self.iface,
+                                                         self.settings)
         self.standardProcessing.load()
 
     def initCreateTopoBathy(self):

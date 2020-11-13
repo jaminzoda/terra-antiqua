@@ -70,19 +70,26 @@ class TaFeedback(QtCore.QObject):
 
         handler = TaLogHandler()
         handler.setLevel(logging.DEBUG)
-        handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt='%Y-%m-%d %I:%M:%S'))
+        handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt='%I:%M:%S'))
+        #handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt='%Y-%m-%d %I:%M:%S'))
         self.logger.addHandler(handler)
         self.logger.setLevel(logging.DEBUG)
         self.progress_count = 0
         TaLogStream.stdout().messageWritten.connect( dlg.logBrowser.textCursor().insertHtml )
         #TaLogStream.stderr().messageWritten.connect( self.logText.insertPlainText )
         TaLogStream.progress().progressSet.connect(dlg.setProgressValue)
+        self.Critical = self.critical
+        self.Error = self.error
+        self.Warning = self.warning
+        self.Info = self.info
+        self.Debug = self.debug
 
     def debug(self, record):
         self.logger.debug(record)
 
     def info(self, record):
-       self.logger.info(record)
+        if not self.canceled:
+           self.logger.info(record)
 
     def warning(self, record):
         self.logger.warning(record)

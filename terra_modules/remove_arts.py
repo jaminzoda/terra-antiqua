@@ -125,6 +125,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
         if not self.killed:
             total = 75 / self.vl.featureCount() if self.vl.featureCount() else 0
             features= self.vl.getFeatures()
+            processed_successfuly = 0
             for feature in features:
                 if self.killed:
                     break
@@ -146,8 +147,8 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                     try:
                         expr = self.prepareExpression(H, expr)
                     except Exception as e:
-                        self.feedback.Warning("Expression evaluation failed for feature ID {}.".format(feature.id()))
-                        self.feedback.Warning("Please use a valid python expression (e.g. H&gt;500 or H&gt;=500 or (H&gt;500)&(H&lt;700))")
+                        self.feedback.warning("Expression evaluation failed for feature ID {}.".format(feature.id()))
+                        self.feedback.warning("Please use a valid python expression (e.g. H&gt;500 or H&gt;=500 or (H&gt;500)&(H&lt;700))")
                         continue
                     else:
                         try:
@@ -155,10 +156,14 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                         except Exception as e:
                             self.feedback.Warning("Although the expression seems to be ok, during topography modification an exception was raised for feature id {}".format(feature.id()))
                             continue
+                    processed_successfuly +=1
                 else:
                     self.feedback.info("The polygon of feature ID {} is invalid.".format(feature.id()))
 
                 self.feedback.progress += total
+            if processed_successfuly ==0:
+                self.kill()
+
 
 
 

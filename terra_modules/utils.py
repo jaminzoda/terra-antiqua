@@ -263,7 +263,7 @@ def rasterSmoothing(in_layer, factor, out_file=None, feedback=None, runtime_perc
             y_vector = y_vector.reshape(len(y_vector), 1)
             out_array[i, j] = np.mean(in_array[y_vector, x_vector])
         if feedback:
-            feedback.progress.emit(feedback.progress_count + (i * total))
+            feedback.progress += i * total
     # Write the smoothed raster
     # If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
     if out_file != None:
@@ -997,9 +997,9 @@ class TaProgressImitation(QThread):
         for i in range(round(self.total)):
             if self.finished:
                 break
-            self.feedback.progress.emit(self.feedback.progress_count+i)
+            self.feedback.progress = self.feedback.progress+i
             time.sleep(self.unit_time)
-        self.feedback.progress.emit(self.feedback.progress_count+self.total)
+        self.feedback.progress = self.feedback.progress+self.total
 
 
 
