@@ -1,5 +1,5 @@
 import os
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from qgis.gui import (
     QgsMapLayerComboBox,
     QgsPropertyOverrideButton,
@@ -16,6 +16,57 @@ from qgis.core import (
     QgsPropertyDefinition,
     QgsProperty
 )
+
+class TaButtonGroup(QtWidgets.QWidget):
+    def __init__(self):
+        super(TaButtonGroup, self).__init__()
+        self.add = QtWidgets.QToolButton()
+        self.add.setAutoRaise(True)
+        self.add.setIcon(QtGui.QIcon(':/addButton.png'))
+        self.remove = QtWidgets.QToolButton()
+        self.remove.setIcon(QtGui.QIcon(':/removeButton.png'))
+        self.remove.setAutoRaise(True)
+        self.up = QtWidgets.QToolButton()
+        self.up.setIcon(QtGui.QIcon(':/arrow_up.png'))
+        self.up.setAutoRaise(True)
+        self.down= QtWidgets.QToolButton()
+        self.down.setIcon(QtGui.QIcon(':/arrow_down.png'))
+        self.down.setAutoRaise(True)
+        self.hLayout = QtWidgets.QHBoxLayout(self)
+        self.hLayout.setContentsMargins(QtCore.QMargins(0,0,0,0))
+        self.hLayout.addStretch()
+        self.hLayout.addWidget(self.up)
+        self.hLayout.addWidget(self.down)
+        self.hLayout.addWidget(self.add)
+        self.hLayout.addWidget(self.remove)
+        self.setLayout(self.hLayout)
+
+
+
+class TaTableWidget(QtWidgets.QTableWidget):
+    def __init__(self, parent = None):
+        super(TaTableWidget, self).__init__(parent)
+        self.layerItems = []
+
+    def moveRowDown(self):
+        row = self.currentRow()
+        column = self.currentColumn()
+        if row < self.rowCount()-1:
+            self.insertRow(row+2)
+            for i in range(self.columnCount()):
+               self.setCellWidget(row+2,i,self.cellWidget(row,i))
+               self.setCurrentCell(row+2,column)
+            self.removeRow(row)
+
+    def moveRowUp(self):
+        row = self.currentRow()
+        column = self.currentColumn()
+        if row > 0 :
+            self.insertRow(row-1)
+            for i in range(self.columnCount()):
+                self.setCellWidget(row-1,i,self.cellWidget(row+1,i))
+                self.setCurrentCell(row-1,column)
+            self.removeRow(row+1)
 
 class TaHelpBrowser(QtWidgets.QTextBrowser):
     visibilityChanged = QtCore.pyqtSignal(bool)
@@ -73,6 +124,8 @@ class TaMapLayerComboBox(QtWidgets.QWidget):
 
     def currentLayer(self):
         return self.cmb.currentLayer()
+    def setCurrentLayer(self, layer):
+        self.cmb.setLayer(layer)
 
     def setAssociatedWidgetsEnabled(self, state):
         for widget in self.associatedWidgets:

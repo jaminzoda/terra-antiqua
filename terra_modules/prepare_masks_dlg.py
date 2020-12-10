@@ -1,112 +1,84 @@
 
 import os
 
-from PyQt5 import uic
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5 import QtWidgets, QtCore, uic, QtGui
+from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
+from qgis.gui import QgsMapLayerComboBox, QgsMessageBar
 import os
 from .utils import loadHelp
+from .base_dialog import TaBaseDialog
+from .widgets import (
+    TaVectorLayerComboBox,
+    TaTableWidget,
+    TaButtonGroup
+)
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), '../ui/prepare_masks.ui'))
 
-class TaPrepareMasksDlg(QtWidgets.QDialog, FORM_CLASS):
+class TaPrepareMasksDlg(TaBaseDialog):
+
     def __init__(self, parent=None):
         """Constructor."""
         super(TaPrepareMasksDlg, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS2.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
-        self.setupUi(self)
-        self.selectCoastlineMask.clear()
-        self.selectCoastlineMask.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.selectCoastlineMask.setLayer(None)
-        self.selectCoastlineMaskLine.setFilters(QgsMapLayerProxyModel.LineLayer)
-        self.selectCoastlineMaskLine.setLayer(None)
+        self.defineParameters()
+        self.fillDialog()
 
-        # Continental shelves polygon and poliline layers
-        self.selectCshMask.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.selectCshMask.setLayer(None)
-        self.selectCshMaskLine.setFilters(QgsMapLayerProxyModel.LineLayer)
-        self.selectCshMaskLine.setLayer(None)
-        # Shallow sea
-        self.selectSsMask.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.selectSsMask.setLayer(None)
-        self.selectSsMaskLine.setFilters(QgsMapLayerProxyModel.LineLayer)
-        self.selectSsMaskLine.setLayer(None)
-        self.outputPath.setStorageMode(self.outputPath.SaveFile)
-        self.outputPath.setFilter('*.shp')
-        self.selectCoastButton.clicked.connect(self.addLayerToCoastPolygon)
-        self.selectCoastLineButton.clicked.connect(self.addLayerToCoastPolyline)
-        self.selectCsButton.clicked.connect(self.addLayerToCshPolygon)
-        self.selectCsLineButton.clicked.connect(self.addLayerToCshPolyline)
-        self.selectSsButton.clicked.connect(self.addLayerToSsPolygon)
-        self.selectSsLineButton.clicked.connect(self.addLayerToSsPolyline)
+    def defineParameters(self):
+#        self.addLayerComboBox = self.addParameter(TaVectorLayerComboBox, "Input mask layer:", "TaMapLayerCombobox")
+        self.tableWidget = self.addParameter(TaTableWidget)
+        self.buttonGroup = self.addParameter(TaButtonGroup)
+        self.buttonGroup.add.clicked.connect(self.addRow)
+        self.buttonGroup.remove.clicked.connect(self.removeRow)
+        self.buttonGroup.down.clicked.connect(self.tableWidget.moveRowDown)
+        self.buttonGroup.up.clicked.connect(self.tableWidget.moveRowUp)
+        self.tableWidget.insertColumn(0)
+        self.tableWidget.insertColumn(1)
+        self.tableWidget.setHorizontalHeaderLabels(["Input layer", "Mask category"])
+        header = self.tableWidget.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        self.tableWidget.setMinimumHeight(250)
+        self.addRow(0)
 
-        #Check the mandatory fields
-        self.runButton.setEnabled(False)
-        self.cancelButton.setEnabled(False)
-        mandatory_fields = [self.selectCoastlineMask.layerChanged,
-                            self.selectCshMask.layerChanged,
-                            self.selectSsMask.layerChanged,
-                            self.selectCoastlineMaskLine.layerChanged,
-                            self.selectCshMaskLine.layerChanged,
-                            self.selectSsMaskLine.layerChanged
-                            ]
-        for i in mandatory_fields:
-            i.connect(self.enableRunButton)
+    def addRow(self, row):
+        if not row:
+            row = self.tableWidget.rowCount()
+        self.tableWidget.insertRow(row)
+        self.tableWidget.setCellWidget(row, 0, QgsMapLayerComboBox(self))
+        self.tableWidget.setCellWidget(row,1, QtWidgets.QComboBox(self))
+        self.tableWidget.cellWidget(row, 1).setEditable(True)
+        filter_model= QgsMapLayerProxyModel()
+        filter_model.setFilters(QgsMapLayerProxyModel.PolygonLayer|QgsMapLayerProxyModel.LineLayer)
+        self.tableWidget.cellWidget(row, 0).setFilters(filter_model.filters())
+        self.tableWidget.cellWidget(row,1).addItems(["Coastline", "Continental Shelf", "Shallow Sea"])
+        self.tableWidget.cellWidget(row, 1).currentIndexChanged.connect(self.updateItemsInMaskCategories)
+        self.tableWidget.cellWidget(row,1).repaint()
 
-        loadHelp(self)
-
-    def addLayerToCoastPolygon(self):
-        self.openVectorFromDisk(self.selectCoastlineMask)
-    def addLayerToCoastPolyline(self):
-        self.openVectorFromDisk(self.selectCoastlineMaskLine)
-    def addLayerToCshPolygon(self):
-        self.openVectorFromDisk(self.selectCshMask)
-    def addLayerToCshPolyline(self):
-        self.openVectorFromDisk(self.selectCshMaskLine)
-    def addLayerToSsPolygon(self):
-        self.openVectorFromDisk(self.selectSsMask)
-    def addLayerToSsPolyline(self):
-        self.openVectorFromDisk(self.selectSsMaskLine)
-
-
-    def openVectorFromDisk(self,box):
-        fd = QFileDialog()
-        filter = "Vector files (*.shp)"
-        fname=fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)[0]
-
-        if fname:
-            name = os.path.splitext(os.path.basename(fname))[0]
-            vlayer = QgsVectorLayer(fname, name, 'ogr')
-            QgsProject.instance().addMapLayer(vlayer)
-            box.setLayer(vlayer)
-
-    def setProgressValue(self, value):
-        self.progressBar.setValue(value)
-
-    def resetProgressValue(self):
-        self.progressBar.setValue(0)
-
-    def enableRunButton(self):
-        mandatory_fields = [self.selectCoastlineMask.currentLayer(),
-                            self.selectCshMask.currentLayer(),
-                            self.selectSsMask.currentLayer(),
-                            self.selectCoastlineMaskLine.currentLayer(),
-                            self.selectCshMaskLine.currentLayer(),
-                            self.selectSsMaskLine.currentLayer()
-                            ]
-        if any(mandatory_fields):
-            self.runButton.setEnabled(True)
-            self.warningLabel.setText('')
+    def removeRow(self):
+        selected_rows = self.tableWidget.selectionModel().selectedRows()
+        rows_selected = [i.row() for i in selected_rows]
+        if not len(rows_selected)>0:
+            self.msgBar.pushWarning("Warning:", "No row is selected. Click on the row number to select it.")
         else:
-            self.warningLabel.setText('Please, select at least one layer to process.')
-            self.warningLabel.setStyleSheet('color:red')
-            self.runButton.setEnabled(False)
+            for index in selected_rows:
+                self.tableWidget.removeRow(index.row())
+
+
+
+    def updateItemsInMaskCategories(self, index):
+        sender = QtCore.QObject().sender()
+        setItem = sender.itemText(index)
+
+        for i in range(self.tableWidget.rowCount()):
+            widget = self.tableWidget.cellWidget(i, 1)
+            if id(widget)==id(sender):
+                continue
+            items = [widget.itemText(i) for i in range(widget.count())]
+            if not any([i==setItem for i in items]):
+                widget.addItem(setItem)
+
+
 
 
 

@@ -14,5 +14,9 @@
 		<file alias="feat_create.png">resources/feat_create.png</file>
 		<file alias="settings.txt">resources/settings.txt</file>
 		<file alias="naming_conventions.xls">resources/naming_conventions.xls</file>
+		<file alias="addButton.png">resources/addButton.png</file>
+		<file alias="removeButton.png">resources/removeButton.png</file>
+		<file alias="arrow_up.png">resources/arrow_up.png</file>
+		<file alias="arrow_down.png">resources/arrow_down.png</file>
 	</qresource>
 </RCC>

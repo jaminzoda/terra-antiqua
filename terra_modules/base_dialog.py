@@ -6,10 +6,11 @@ from PyQt5.QtWidgets import (
     QDialog,
     QPushButton,
     QLabel,
-    QShortcut
+    QShortcut,
+    QSizePolicy
 )
 import logging
-from qgis.gui import QgsFileWidget
+from qgis.gui import QgsFileWidget, QgsMessageBar
 from .logger import TaLogHandler, TaLogStream, TaFeedback
 from .template_dialog import TaTemplateDialog
 
@@ -29,6 +30,9 @@ class TaBaseDialog(TaTemplateDialog):
         self.runButton.clicked.connect(self.runEvent)
         self.closeButton.clicked.connect(self.close)
         self.cancelButton.clicked.connect(self.cancelEvent)
+        self.msgBar = QgsMessageBar(self)
+        self.msgBar.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.layout().insertWidget(0,self.msgBar)
         self.setKeyboardShortcuts()
 
         self.setDialogTitle()

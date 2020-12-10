@@ -1,20 +1,21 @@
 
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QVariant
 import os
 from qgis.core import (
     QgsVectorLayer,
     QgsWkbTypes,
-    QgsGeometry,
-    QgsFeature,
-    QgsVectorFileWriter
+    QgsField
     )
-import tempfile
 try:
     from plugins import processing
 except Exception:
     import processing
 
-from .utils import refactorFields
+from .utils import (
+    refactorFields,
+    polylinesToPolygons,
+    TaVectorFileWriter
+)
 from .base_algorithm import TaBaseAlgorithm
 
 class TaPrepareMasks(TaBaseAlgorithm):
@@ -22,271 +23,190 @@ class TaPrepareMasks(TaBaseAlgorithm):
     def __init__(self, dlg):
         super().__init__(dlg)
 
+    def getParameters(self):
+        items=[]
+        for i in range(self.dlg.tableWidget.rowCount()):
+            category = self.dlg.tableWidget.cellWidget(i, 1).currentText()
+            layer = self.dlg.tableWidget.cellWidget(i,0).currentLayer()
+            items.append((i, category, layer))
+        rowsAdded = []
+        self.items = []
+        order =1
+        for rowNumber, category, layer in items:
+            if rowNumber in rowsAdded:
+                continue
+            catDict = {
+                        "Order":order,
+                        "Category": category,
+                        "Layers":[layer]
+                        }
+            for row, cat, layer in items:
+                if row == rowNumber: continue
+                if cat == category:
+                    catDict.get("Layers").append(layer)
+                    rowsAdded.append(row)
+            rowsAdded.append(rowNumber)
+            self.items.append(catDict)
+            order+=1
+        del items
+
+
+
+
     def run(self):
-        if not self.killed:
-            self.log.emit("The processing  has started")
-        # Get the path of the output file
-
-        # Combining polygons and polylines
-
-        # Get all the input layers
-        # a) Coastline masks
-        if not self.killed:
-            if self.dlg.selectCoastlineMask.currentLayer():
-                coast_mask_layer = self.dlg.selectCoastlineMask.currentLayer()
-            else:
-                coast_mask_layer = None
-            if self.dlg.selectCoastlineMaskLine.currentLayer():
-                coast_mask_line_layer = self.dlg.selectCoastlineMaskLine.currentLayer()
-            else:
-                coast_mask_line_layer = None
-
-            # b) Continental Shelves masks
-            if self.dlg.selectCshMask.currentLayer():
-                cs_mask_layer = self.dlg.selectCshMask.currentLayer()
-            else:
-                cs_mask_layer = None
-
-            if self.dlg.selectCshMaskLine.currentLayer():
-                cs_mask_line_layer = self.dlg.selectCshMaskLine.currentLayer()
-            else:
-                cs_mask_line_layer = None
-
-        if not self.killed:
-            # c) Shallow sea masks
-
-            if self.dlg.selectSsMask.currentLayer():
-                ss_mask_layer = self.dlg.selectSsMask.currentLayer()
-            else:
-                ss_mask_layer = None
-            if self.dlg.selectSsMaskLine.currentLayer():
-                ss_mask_line_layer = self.dlg.selectSsMaskLine.currentLayer()
-            else:
-                ss_mask_line_layer = None
-
-        if not self.killed:
-            # Create a list of input layers
-            layers = [(ss_mask_layer, ss_mask_line_layer, "Shallow sea"),
-                      (cs_mask_layer, cs_mask_line_layer, "Continental Shelves"),
-                      (coast_mask_layer, coast_mask_line_layer, "Continents")]
-
-            # Polygonize polylines and combine them with their polygon counterparts in one temp file
-
-            # Send progress feedback
-            self.set_progress += 5
-
-
-        if not self.killed:
-            # Temporary layers assigned
-            ss_temp = None
-            cs_temp = None
-            coast_temp = None
-            for poly, line, name in layers:
-
+        self.getParameters()
+        merged_layers = 0
+        item_progress = 70/len(self.items)
+        for item in self.items:
+            if self.killed:
+                break
+            layers_to_merge = []
+            for layer in item.get("Layers"):
                 if self.killed:
                     break
+                self.feedback.progress+=item_progress/len(item.get('Layers'))
+                if layer.geometryType() == QgsWkbTypes.LineGeometry:
+                    try:
+                        self.feedback.info("Layer {} contains {} polyline features.".format(layer.name(),
+                                                                                                layer.featureCount()))
+                        layer = polylinesToPolygons(layer, self.feedback)
+                        assert type(layer)==QgsVectorLayer, "Something went wrong while converting polylines to polygons"
+                        self.feedback.info("Converted line geometries in layer {} to polygons.".format(layer.name()))
+                    except Exception as e:
+                        self.feedback.warning("Failed to convert line geometries to polygons in layer\
+                                              {}.".format(layer.name()))
+                        self.feedback.warning("This layer will be ignored.")
+                        self.feedback.debug(e)
+                        continue
 
-                if line is not None:
-                    # Creating a temporary layer to store features
-                    temp = QgsVectorLayer("Polygon?crs=epsg:4326", "shallow sea temp", "memory")
-                    temp_provider = temp.dataProvider()
-                    line_features = line.getFeatures()  # getting features from the polyline layer
-                    attr_line = line.dataProvider().fields().toList()
-                    temp_provider.addAttributes(attr_line)
-                    temp.updateFields()
-                    poly_features = []
-                    # this loop reads the geometries of all the polyline features and creates polygon features from the geometries
-                    for geom in line_features:
-                        if self.killed:
-                            break
-                        # Get the geometry oof features
-                        line_geometry = geom.geometry()
-
-                        # checking if the geometry is polyline or multipolyline
-                        if line_geometry.wkbType() == QgsWkbTypes.LineString:
-                            line_coords = line_geometry.asPolyline()
-                        elif line_geometry.wkbType() == QgsWkbTypes.MultiLineString:
-                            line_coords = line_geometry.asMultiPolyline()
-                        else:
-                            self.log.emit("The geometry is neither polyline nor multipolyline")
-                        poly_geometry = QgsGeometry.fromPolygonXY(line_coords)
-                        feature = QgsFeature()
-                        feature.setGeometry(poly_geometry)
-                        feature.setAttributes(geom.attributes())
-                        poly_features.append(feature)
-
-                    if not self.killed:
-                        temp_provider.addFeatures(poly_features)
-                        poly_features = None
-                        fixed_line = processing.run('native:fixgeometries', {'INPUT': temp, 'OUTPUT': 'memory:' + name})[
-                            'OUTPUT']
-                        self.log.emit("Invalid geometries in {}  have been fixed.".format(line.name()))
-
-                        self.log.emit("polylines in {} have been polygonized.".format(line.name()))
                 else:
-                    pass
-                if not self.killed:
-                    # parameters for layer merging
-                    if poly is not None:
-                        fixed_poly = processing.run('native:fixgeometries', {'INPUT': poly, 'OUTPUT': 'memory:' + name})[
-                            'OUTPUT']
-                        self.log.emit("Invalid geometries in {} have been fixed.".format(poly.name()))
+                    try:
+                        self.feedback.info("Layer {} contains {} polygon features.".format(layer.name(),
+                                                                                           layer.featureCount()))
+                        layer = processing.run('native:fixgeometries', {'INPUT': layer, 'OUTPUT': 'memory:'+layer.name()})['OUTPUT']
+                        self.feedback.info("Fixed invalid geometries in layer {}.".format(layer.name()))
+                    except Exception as e:
+                        self.feedback.warning("Failed to fix invalid geometries in layer {}.".format(layer.name))
+                        self.feedback.warning("This layer will be ignored. Try fixing invalid geometries manually.")
+                        self.feedback.debug(e)
+                        continue
 
-                    if line is not None and poly is not None:
-                        # Refactor the field types, if they are different
-                        fixed_line_refactored, fields_refactored = refactorFields(fixed_line, fixed_poly, name)
-
-                        if len(fields_refactored) == 0:
-                            layers_to_merge = [fixed_poly, fixed_line]
-                        else:
-                            self.log.emit("The fields {} in {} are refactored".format(fields_refactored, fixed_line.name()))
-                            layers_to_merge = [fixed_poly, fixed_line_refactored]
-
-                        params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:' + name}
-                        temp_layer = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
-                        fixed_poly = None
-                        fixed_line = None
-                        self.log.emit(
-                            "Polygonized polylines from {} are merged with polygons from {}.".format(line.name(), poly.name()))
-                    elif line is None and poly is not None:
-                        temp_layer = fixed_poly
-                        fixed_poly = None
-                    elif poly is None and line is not None:
-                        temp_layer = fixed_line
-                    else:
-                        temp_layer = None
-                    if temp_layer is not None:
-                        if name == "Shallow sea":
-                            ss_temp = temp_layer
-                            temp_layer = None
-
-                        elif name == "Continental Shelves":
-                            cs_temp = temp_layer
-                            temp_layer = None
-
-                        elif name == "Continents":
-                            coast_temp = temp_layer
-                            temp_layer = None
-
-                    # Send progress feedback
-                    self.set_progress += 10
+                if len(layers_to_merge)>0:
+                    try:
+                        layer, fields_refactored = refactorFields(layer,layers_to_merge[-1], layer.name())
+                        if len(fields_refactored)>0:
+                            self.feedback.info("Refactored {} fields in layer {}: {}.".format(len(fields_refactored),
+                                                                                              layer.name(),
+                                                                                              fields_refactored))
+                    except Exception as e:
+                        self.feedback.warning("Failed to refactor fields in layer {}.".format(layer.name()))
+                        self.feedback.debug(e)
 
 
-        # Check if the cancel button was pressed
+
+                layers_to_merge.append(layer)
+
+            if len(layers_to_merge)==0:
+                self.feedback.warning("There are no valid layers to merge in {} category.".format(item.get("Category")))
+                self.feedback.warning("This category will be ignored.")
+                continue
+            elif len(layers_to_merge)==1:
+                item['Merged_Layer'] = layers_to_merge[0]
+                item['Merged_Layer'].setName(item.get('Category'))
+                merged_layers +=1
+                self.feedback.info("Category {} has only 1 valid layer.".format(layers_to_merge[0].name()))
+            else:
+                self.feedback.info("Number of features in layers to merge:")
+                for l in layers_to_merge:
+                    self.feedback.info("{}:{}".format(l.name(), l.featureCount()))
+                params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:'}
+                merged_layer = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+                merged_layer.setName(item.get("Category"))
+                if merged_layer.isValid():
+                    item['Merged_Layer'] = merged_layer
+                    merged_layers +=1
+                    self.feedback.info("Merged layers in category {}: {}.".format(item.get("Category"),
+                                                                              [l.name() for l in layers_to_merge]))
+
+            if not 'Category' in item['Merged_Layer'].fields().names():
+                cat_field = QgsField('Category', QVariant.String, 'Text', 80)
+                item['Merged_Layer'].startEditing()
+                item['Merged_Layer'].addAttribute(cat_field)
+                item['Merged_Layer'].commitChanges()
+            field_index = item['Merged_Layer'].fields().indexOf('Category')
+            item['Merged_Layer'].startEditing()
+            for feat in item['Merged_Layer'].getFeatures():
+                item['Merged_Layer'].changeAttributeValue(
+                    feat.id(),
+                    field_index,
+                    item.get('Category'))
+            item['Merged_Layer'].commitChanges()
         if not self.killed:
-            # Extracting masks by running difference algorithm
-            # Parameters for difference algorithm
-            if ss_temp is not None and cs_temp is not None:
-                params = {'INPUT': ss_temp, 'OVERLAY': cs_temp, 'OUTPUT': 'memory:Shallow sea'}
-                ss_extracted = processing.run('native:difference', params)["OUTPUT"]
-                ss_temp = None  # remove shallow sea masks layer, becasue we don't need it anymore. This will release memory.
+            if merged_layers ==0:
+                self.feedback.error("No valid layers to merge.")
+                self.kill()
+            elif merged_layers==1:
+                for item in self.items:
+                    if "Merged_Layer" in item:
+                        final_layer = item.get("Merged_Layer")
             else:
-                ss_extracted = None
+                #remove any item that does not contain Merged_Layer
+                for i in range(len(self.items)):
+                    if not "Merged_Layer" in self.items[i]:
+                        del self.items[i]
+                #sort items by order
+                self.items = sorted(self.items, key=lambda k: k['Order'], reverse=True)
+                #remove overlapping parts of polygons
+                #Parts of polygons in the input layer that overlap with parts of polygons in the overlay layer will be
+                #removed.
+                i = 0
+                j=1
+                item_progress = 20/len(self.items)
+                while True:
+                    if j>len(self.items)-1:
+                        break
+                    self.feedback.progress += item_progress
 
-            # Send progress feedback
-            self.set_progress += 10
+                    if i ==0:
+                        in_lr = self.items[i].get('Merged_Layer')
 
-            self.log.emit("Shallow sea masks extracted.")
+                    ov_lr = self.items[j].get('Merged_Layer')
 
-        if not self.killed:
-            if cs_temp is not None and coast_temp is not None:
-                params = {'INPUT': cs_temp, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:Continental Shelves'}
-                cs_extracted = processing.run('native:difference', params)["OUTPUT"]
-                cs_temp = None
-            else:
-                cs_extracted = None
+                    self.feedback.debug("Number of features in layer {} before difference:\
+                                   {}".format(in_lr.name(),in_lr.featureCount()))
 
-            # Send progress feedback
-            self.set_progress += 10
+                    params = {'INPUT': in_lr, 'OVERLAY':ov_lr, 'OUTPUT': 'memory:'}
+                    intermediate_layer = processing.run('native:difference', params)["OUTPUT"]
+                    intermediate_layer.setName(in_lr.name())
 
-            self.log.emit("Continental shelf  masks extracted.")
+                    self.feedback.debug("Number of features after difference:\
+                                    {}.".format(intermediate_layer.featureCount()))
 
-        if not self.killed:
-            # Combining the extracted masks in one shape file.
-            if ss_extracted is not None and cs_extracted is not None:
-                # Refactor the field types, if they are different
-                ss_extracted_refactored, fields_refactored = refactorFields(ss_extracted, cs_extracted, 'Shallow sea')
+                    params_merge = {'LAYERS': [intermediate_layer, ov_lr], 'OUTPUT': 'memory:'}
+                    merged_layer = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
+                    merged_layer.setName(intermediate_layer.name()+ov_lr.name())
 
-                if len(fields_refactored) == 0:
-                    layers_to_merge = [ss_extracted, cs_extracted]
-                else:
-                    self.log.emit("The fields {} in {} are refactored".format(fields_refactored, ss_extracted.name()))
-                    layers_to_merge = [ss_extracted_refactored, cs_extracted]
-
-                params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:ss+cs'}
-                ss_and_cs_extracted = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
-            else:
-                ss_and_cs_extracted = None
-
-            # Send progress feedback
-            self.set_progress += 10
-
-
-        if not self.killed:
-            # Running difference algorithm to remove geometries that overlap with the coastlines
-            if ss_and_cs_extracted is not None and coast_temp is not None:
-                # Parameters for difference algorithm.
-                params = {'INPUT': ss_and_cs_extracted, 'OVERLAY': coast_temp, 'OUTPUT': 'memory:ss+cs'}
-                masks_layer = processing.run('native:difference', params)["OUTPUT"]
-            else:
-                masks_layer = None
-
-            # Send progress feedback
-            self.set_progress += 5
+                    in_lr = merged_layer
+                    i=i+1
+                    j=j+1
+                final_layer = merged_layer
 
 
-            self.log.emit("Continents masks extracted.")
-
-        if not self.killed:
-            if masks_layer is not None and coast_temp is not None:
-                # Refactor the field types, if they are different
-                masks_layer_refactored, fields_refactored = refactorFields(masks_layer, coast_temp, 'Continental Shelves+Shallow sea')
-
-                if len(fields_refactored) == 0:
-                    layers_to_merge = [masks_layer, coast_temp]
-                else:
-                    self.log.emit("The fields {} in {} are refactored".format(fields_refactored, masks_layer.name()))
-                    layers_to_merge = [masks_layer_refactored, coast_temp]
-
-                params_merge = {'LAYERS': layers_to_merge, 'OUTPUT': 'memory:Final extracted masks'}
-
-                final_masks = processing.run('native:mergevectorlayers', params_merge)['OUTPUT']
-            else:
-                final_masks = coast_temp
-
-            # Send progress feedback
-            self.set_progress += 5
-
-            self.log.emit("Masks merged in one layer.")
-
-        # TODO When the file is loaded to the current QGIS project, it can't be deleted.
-        # First check, if it is loaded to the current project, then remove it from the project before deleting.
-
-        # Check if the file is already created. Acts like overwrite
-        if os.path.exists(self.out_file_path):
-            deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file_path)
-            if deleted:
-                pass
-            else:
-                self.log.emit("The shapefile {} already exists, and I could not delete it.".format(self.out_file_path))
-                self.log.emit("In order to run this tool successfully, remove this shapefile "
-                              "from the current QGIS project or restart the QGIS.")
 
         if not self.killed:
-            # Saving the results into a shape file
-            error = QgsVectorFileWriter.writeAsVectorFormat(final_masks, self.out_file_path, "UTF-8", final_masks.crs(),
-                                                            "ESRI Shapefile")
-            if error[0] == QgsVectorFileWriter.NoError:
-                self.log.emit("The extracted general masks have been saved in a shapefile at: ")
-                self.log.emit("<a href='file://{}'>{}</a>".format(os.path.dirname(self.out_file_path), self.out_file_path))
+            error = TaVectorFileWriter.writeToShapeFile(final_layer, self.out_file_path, "UTF-8", final_layer.crs(), "ESRI Shapefile")
+            if error[0] == TaVectorFileWriter.NoError:
+                self.feedback.info("All the layers were merged. \
+                                   The resulting layer is saved at: {}".format(self.out_file_path))
             else:
-                self.log.emit(
-                    "Failed to create the {} shapefile because {}.".format(os.path.basename(self.out_file_path), error[1]))
-                self.killed = True
-
+                self.feedback.error("Failed to write the resulting layer onto the disk at\
+                                    {}.".format(self.out_file_path))
+                self.feedback.error(error[1])
+                self.kill()
         if not self.killed:
-            self.progress.emit(100)
+            self.feedback.progress =100
             self.finished.emit(True, self.out_file_path)
         else:
-            self.finished.emit(False, "")
+            self.finished.emit(False, '')
+
 

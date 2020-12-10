@@ -12,7 +12,7 @@ from qgis.core import (
 )
 
 
-from . utils import setRasterSymbology
+from . utils import setRasterSymbology, setVectorSymbology
 from .remove_arts import TaRemoveArtefacts, TaPolygonCreator, TaFeatureSink
 
 class TaAlgorithmProviderNew:
@@ -65,9 +65,13 @@ class TaAlgorithmProviderNew:
                 try:
                     if layer.type() == QgsMapLayerType.RasterLayer:
                         setRasterSymbology(layer)
+                    elif layer.type() == QgsMapLayerType.VectorLayer:
+                        setVectorSymbology(layer)
                 except Exception:
                     if layer.type() == QgsMapLayer.LayerType.RasterLayer:
                         setRasterSymbology(layer)
+                    elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
+                        setVectorSymbology(layer)
                 else:
                     pass
                 self.thread.feedback.info("The algorithm finished processing successfully,")

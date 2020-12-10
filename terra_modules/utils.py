@@ -29,7 +29,12 @@ from qgis.core import (
     QgsMapLayerType,
     QgsCategorizedSymbolRenderer,
     QgsSymbol,
-    QgsRendererCategory
+    QgsRendererCategory,
+    QgsWkbTypes,
+    QgsVectorFileWriter,
+    QgsCoordinateTransformContext,
+    QgsCoordinateReferenceSystem,
+    QgsSimpleFillSymbolLayer
 
     )
 import tempfile
@@ -45,6 +50,7 @@ except Exception:
     from processing.tools import vector
 
 import time
+from .logger import TaFeedback
 
 
 
@@ -352,7 +358,12 @@ def setVectorSymbology(in_layer):
     assert layer.type() == QgsMapLayerType.VectorLayer, "The input layer must be of type QgsVectorLayer."
     if not layer.isValid():
         raise Exception("The input vector layer is not valid.")
-    fni = layer.fields().indexFromName('id')
+    list_of_fields = ['Category', 'Id', 'ID', 'iD', 'id', 'Fid', 'FID', 'fid']
+    fni = -1
+    for  f in list_of_fields:
+        if not fni == -1:
+            break
+        fni = layer.fields().indexFromName(f)
     unique_values = layer.uniqueValues(fni)
 
     # fill categories
@@ -377,7 +388,7 @@ def setVectorSymbology(in_layer):
         categories.append(category)
 
     # create renderer object
-    renderer = QgsCategorizedSymbolRenderer('id', categories)
+    renderer = QgsCategorizedSymbolRenderer(layer.fields().field(fni).name(), categories)
 
     # assign the created renderer to the layer
     if renderer is not None:
@@ -523,6 +534,46 @@ def polygonsToPolylines(in_layer, out_layer_path: str):
     polylines_layer = QgsVectorLayer(out_layer_path, "Polylines_from_polygons", "ogr")
 
     return polylines_layer
+
+def polylinesToPolygons(in_layer:QgsVectorLayer, feedback:TaFeedback)->QgsVectorLayer:
+    """Creates polygon feature from the points of line features."""
+    features = in_layer.getFeatures()
+    assert in_layer.featureCount() >0, "The input layer is empty."
+    polygonFeatures = []
+    for feature in features:
+        if feedback.canceled:
+            break
+        #get the geometry of a feature
+        geometry = feature.geometry()
+        attributes = feature.attributes()
+
+        # checking if the geometry is polyline or multipolyline
+        if geometry.wkbType() == QgsWkbTypes.LineString:
+            coordinates = geometry.asPolyline()
+        elif geometry.wkbType() == QgsWkbTypes.MultiLineString:
+            coordinates = geometry.asMultiPolyline()
+        else:
+            feedback.info("The geometry is neither polyline nor multipolyline.")
+        polygonGeometry = QgsGeometry.fromPolygonXY(coordinates)
+        feature = QgsFeature()
+        feature.setGeometry(polygonGeometry)
+        feature.setAttributes(attributes)
+        polygonFeatures.append(feature)
+
+
+    if not feedback.canceled:
+        out_layer = QgsVectorLayer('Polygon?crs='+in_layer.crs().authid(), in_layer.name(), 'memory')
+        out_layer.dataProvider().addFeatures(polygonFeatures)
+        del polygonFeatures
+
+        #Fix invalid geometries
+        output_layer = processing.run('native:fixgeometries',
+                                      {'INPUT': out_layer, 'OUTPUT': 'memory:'})['OUTPUT']
+        output_layer.setName(in_layer.name())
+        feedback.info("Fixed invalid geometries in layer {}.".format(in_layer.name()))
+        return output_layer
+    else:
+        return None
 
 def refactorFields(in_layer, layer2, out_layer_name):
     layer1 = in_layer
@@ -1013,3 +1064,30 @@ class TaFeedbackOld(QObject):
 
     def __init__(self):
         super().__init__()
+
+class TaVectorFileWriter(QgsVectorFileWriter):
+    def __init__(self):
+        super().__init__()
+    def writeToShapeFile(layer:QgsVectorLayer,
+                         fileName:str,
+                         fileEncoding:str,
+                         destCRS:QgsCoordinateReferenceSystem,
+                         driverName:str) -> (QgsVectorFileWriter.WriterError, str):
+        """This function is used to make writing to shapefiles compatible beteen Qgis version >3.10 and <3.10."""
+
+        # Check if the file is already created. Acts like overwrite
+        if os.path.exists(fileName):
+            deleted = QgsVectorFileWriter.deleteShapeFile(fileName)
+            if not deleted:
+                raise Exception("Could not delete shapefile {}.".format(fileName))
+        try:
+            error = QgsVectorFileWriter.writeAsVectorFormat(layer, fileName, fileEncoding, destCRS, driverName)
+        except Exception:
+            context = QgsCoordinateTransformContext()
+            context.addCoordinateOperation(destCRS, destCRS, destCRS.toProj())
+            options = QgsVectorFileWriter.SaveVectorOptions()
+            options.driverName = driverName
+            error = QgsVectorFileWriter.writeAsVectorFormat2(layer, fileName, context, options)
+        return error
+
+

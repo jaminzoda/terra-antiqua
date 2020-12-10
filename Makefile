@@ -38,19 +38,19 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	dem_builder.py dem_builder_dialog.py
+	
 
-PLUGINNAME = dem_builder
+PLUGINNAME = terra_antiqua
 
 PY_FILES = \
 	__init__.py \
-	dem_builder.py dem_builder_dialog.py
 
-UI_FILES = dem_builder_dialog_base.ui
+UI_FILES = 
 
 EXTRAS = metadata.txt icon.png
 
-EXTRA_DIRS =
+EXTRA_DIRS = help_text terra_modules ui resources
+
 
 COMPILED_RESOURCE_FILES = resources.py
 
@@ -65,13 +65,13 @@ PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
 #	* Windows:
 #	  AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins'
 
-QGISDIR=/home/jon/.local/share/QGIS/QGIS3/profiles/default/python/plugins/
+QGISDIR=.local/share/QGIS/QGIS3/profiles/default
 
 #################################################
 # Normally you would not need to edit below here
 #################################################
 
-HELP = help/build/html
+#HELP = help/build/html
 
 PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
@@ -112,7 +112,19 @@ test: compile transcompile
 	@echo "e.g. source run-env-linux.sh <path to qgis install>; make test"
 	@echo "----------------------"
 
-deploy: compile doc transcompile
+deploy: compile 
+	@echo
+	@echo "------------------------------------------"
+	@echo "Deploying plugin to your .qgis2 directory."
+	@echo "------------------------------------------"
+	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(COMPILED_RESOURCE_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	# Copy extra directories if any
+	(foreach EXTRA_DIR,(EXTRA_DIRS), cp -R (EXTRA_DIR) (HOME)/(QGISDIR)/python/plugins/(PLUGINNAME)/;)
+
+deploy_old: compile doc transcompile
 	@echo
 	@echo "------------------------------------------"
 	@echo "Deploying plugin to your .qgis2 directory."

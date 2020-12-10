@@ -294,7 +294,10 @@ class TerraAntiqua:
 
     def initPrepareMasks(self):
         """Initializes the Prepare masks algorithm and loads it"""
-        self.prepareMasks = TaAlgorithmProvider(TaPrepareMasksDlg, TaPrepareMasks, self.iface)
+        self.prepareMasks = TaAlgorithmProviderNew(TaPrepareMasksDlg,
+                                                   TaPrepareMasks,
+                                                   self.iface,
+                                                   self.settings)
         self.prepareMasks.load()
 
     def initModifyTopoBathy(self):
