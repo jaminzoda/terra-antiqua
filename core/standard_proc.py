@@ -45,7 +45,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                 ("Copy/Paste raster", "TaCopyPasteRaster"),
                                 ("Smooth raster", "TaSmoothRaster"),
                                 ("Isostatic compensation", "TaIsostaticCompensation"),
-                                ("Set new sea level", "TaSetSeaLevel")]
+                                ("Set new sea level", "TaSetSeaLevel"),
+                                ("Calculate bathymetry", "TaCalculateBathymetry")]
         for alg, name in processing_alg_names:
             if alg == self.processing_type:
                 self.setName(name)
@@ -62,6 +63,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.isostaticCompensation()
         elif self.processing_type == "Set new sea level":
             self.setSeaLevel()
+        elif self.processing_type == "Calculate bathymetry":
+            self.calculateBathymetry()
 
 
 
@@ -431,4 +434,49 @@ class TaStandardProcessing(TaBaseAlgorithm):
         else:
             self.finished.emit(False, '')
 
+    def calculateBathymetry(self):
+        """Calculates ocean depth from its age."""
+        if not self.killed:
+            age_layer = self.dlg.baseTopoBox.currentLayer()
+
+            age_raster = gdal.Open(age_layer.dataProvider().dataSourceUri())
+            ocean_age = age_raster.GetRasterBand(1).ReadAsArray()
+            reconstruction_time = self.dlg.reconstructionTime.value()
+            self.feedback.info("Calculating ocean depth from its age.")
+            self.feedback.info(f"Input layer: {age_layer.name()}.")
+            self.feedback.info(f"Reconstruction time: {reconstruction_time} Ma.")
+            self.feedback.progress +=10
+
+        if not self.killed:
+            # create an empty array to store calculated ocean depth from age.
+            ocean_depth = np.empty(ocean_age.shape)
+            ocean_depth[:] = np.nan
+            # calculate ocean age
+            ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - reconstruction_time
+            ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
+            ocean_depth[ocean_age > 90] = -5750
+            self.feedback.progress +=50
+        if not self.killed:
+            nrows, ncols = ocean_depth.shape
+            geotransform = age_raster.GetGeoTransform()
+
+            try:
+                raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                raster.SetGeoTransform(geotransform)
+                raster.SetProjection(age_layer.crs().toWkt())
+                raster.GetRasterBand(1).WriteArray(ocean_depth)
+                raster.GetRasterBand(1).SetNoDataValue(np.nan)
+                raster.GetRasterBand(1).FlushCache()
+                raster = None
+                self.feedback.progress +=30
+            except Exception as e:
+                self.feedback.error("Could not write the result to the output file.")
+                self.feedback.error(f"Following error occured: {e}.")
+                self.kill()
+
+        if not self.killed:
+            self.feedback.progress = 100
+            self.finished.emit(True, self.out_file_path)
+        else:
+            self.finished.emit(False, '')
 

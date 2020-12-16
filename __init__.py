@@ -32,5 +32,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
-    from .terra_modules.terra_antiqua import TerraAntiqua
+    from .core.terra_antiqua import TerraAntiqua
     return TerraAntiqua(iface)

@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 from qgis.gui import *
-from terra_antiqua.terra_modules.widgets import TaRasterLayerComboBox, TaVectorLayerComboBox, TaHelpBrowser
+from .widgets import TaRasterLayerComboBox, TaVectorLayerComboBox, TaHelpBrowser
 
 
 class TaTemplateDialog(QtWidgets.QDialog):

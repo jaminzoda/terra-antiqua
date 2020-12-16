@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 from qgis.gui import QgsMapLayerComboBox, QgsMessageBar
 import os
-from .utils import loadHelp
 from .base_dialog import TaBaseDialog
 from .widgets import (
     TaVectorLayerComboBox,

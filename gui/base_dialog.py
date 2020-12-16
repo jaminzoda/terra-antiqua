@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
 )
 import logging
 from qgis.gui import QgsFileWidget, QgsMessageBar
-from .logger import TaLogHandler, TaLogStream, TaFeedback
+from ..core.logger import TaLogHandler, TaLogStream, TaFeedback
 from .template_dialog import TaTemplateDialog
 
 class TaBaseDialog(TaTemplateDialog):
@@ -199,7 +199,8 @@ class TaBaseDialog(TaTemplateDialog):
                 ('TaCopyPasteRaster', 'copy_paste'),
                 ('TaSmoothRaster', 'smoothing'),
                 ('TaIsostaticCompensation', 'isostat_cp'),
-                ('TaSetSeaLevel', 'set_sl')
+                ('TaSetSeaLevel', 'set_sl'),
+                ('TaCalculateBathymetry', 'calc_bathy')
                 ]
         for class_name, file_name in files:
             if class_name    == self.dlg_name:

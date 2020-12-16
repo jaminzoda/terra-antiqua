@@ -12,7 +12,6 @@ from qgis.core import (
 from qgis.gui import QgsFieldComboBox, QgsFieldExpressionWidget
 import os
 import datetime
-from .utils import loadHelp
 from .base_dialog import TaBaseDialog
 from .widgets import (
     TaRasterLayerComboBox,

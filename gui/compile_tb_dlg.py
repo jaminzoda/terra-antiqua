@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QUrl, QFile, QFileInfo
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
 from qgis.gui import QgsSpinBox
-from .utils import loadHelp
 from .base_dialog import TaBaseDialog
 from .widgets import TaRasterLayerComboBox, TaVectorLayerComboBox
 

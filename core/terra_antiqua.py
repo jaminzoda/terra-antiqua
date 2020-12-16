@@ -47,23 +47,24 @@ import os.path
 
 from .compile_tb import TaCompileTopoBathy
 from .create_tb import TaCreateTopoBathy
-from .create_tb_dlg import TaCreateTopoBathyDlg
-from .prepare_masks_dlg import TaPrepareMasksDlg
 from .prepare_masks import TaPrepareMasks
 from .set_pls import TaSetPaleoshorelines
-from .set_pls_dlg import TaSetPaleoshorelinesDlg
 from .standard_proc import TaStandardProcessing
-from .standard_proc_dlg import TaStandardProcessingDlg
-from .compile_tb_dlg import TaCompileTopoBathyDlg
 from .modify_tb import TaModifyTopoBathy
-from .modify_tb_dlg import TaModifyTopoBathyDlg
 from .utils import setRasterSymbology
 from .remove_arts import TaPolygonCreator, TaRemoveArtefacts, TaFeatureSink
-from .remove_arts_dlg import TaRemoveArtefactsDlg
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
 from ..resources import *
 from .algorithm_provider import TaAlgorithmProvider, TaRemoveArtefactsAlgProvider
+
+from ..gui.compile_tb_dlg import  TaCompileTopoBathyDlg
+from ..gui.modify_tb_dlg import  TaModifyTopoBathyDlg
+from ..gui.create_tb_dlg import  TaCreateTopoBathyDlg
+from ..gui.prepare_masks_dlg import  TaPrepareMasksDlg
+from ..gui.set_pls_dlg import  TaSetPaleoshorelinesDlg
+from ..gui.remove_arts_dlg import  TaRemoveArtefactsDlg
+from ..gui.standard_proc_dlg import  TaStandardProcessingDlg
 
 
 

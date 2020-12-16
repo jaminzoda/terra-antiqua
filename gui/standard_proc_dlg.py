@@ -37,7 +37,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                       "Copy/Paste raster",
                                       "Smooth raster",
                                       "Isostatic compensation",
-                                      "Set new sea level"])
+                                      "Set new sea level",
+                                      "Calculate bathymetry"])
         self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox,
                                                       "Raster to be modified:",
                                                       "TaMapLayerComboBox")
@@ -120,6 +121,11 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.seaLevelShiftBox.setMaximum(1000)
         self.seaLevelShiftBox.setValue(100)
 
+        #Parameters for calculating bathymetry from ocean age
+        self.reconstructionTime = self.addVariantParameter(QgsSpinBox,
+                                                          "Calculate bathymetry",
+                                                          "Reconstruction time:")
+
 
         self.fillDialog()
         self.showVariantWidgets(self.fillingTypeBox.currentText())
@@ -133,7 +139,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                 ("Copy/Paste raster", "TaCopyPasteRaster"),
                                 ("Smooth raster", "TaSmoothRaster"),
                                 ("Isostatic compensation", "TaIsostaticCompensation"),
-                                ("Set new sea level", "TaSetSeaLevel")]
+                                ("Set new sea level", "TaSetSeaLevel"),
+                                ("Calculate bathymetry", "TaCalculateBathymetry")]
         for alg, name in processing_alg_names:
             if self.fillingTypeBox.currentText() == alg:
                 self.setDialogName(name)
