@@ -15,7 +15,7 @@ from qgis.core import (
 from . utils import setRasterSymbology, setVectorSymbology
 from .remove_arts import TaRemoveArtefacts, TaPolygonCreator, TaFeatureSink
 
-class TaAlgorithmProviderNew:
+class TaAlgorithmProvider:
 
     def __init__(self, dlg, thread, iface, settings):
         self.dlg = dlg()
@@ -57,9 +57,13 @@ class TaAlgorithmProviderNew:
             file_name = os.path.splitext(os.path.basename(output_path))[0]
             ext = os.path.splitext(os.path.basename(output_path))[1]
             if ext == '.tif' or ext == '.tiff':
-                layer = self.iface.addRasterLayer(output_path, file_name, "gdal")
+                try:
+                    layer = self.iface.addRasterLayer(output_path, file_name, "gdal")
+                except Exception as e:
+                    self.thread.feedback.warning(e)
             elif ext == '.shp':
                 layer = self.iface.addVectorLayer(output_path, file_name, "ogr")
+
             if layer:
                 # Rendering a symbology style for the resulting raster layer.
                 try:
@@ -72,8 +76,6 @@ class TaAlgorithmProviderNew:
                         setRasterSymbology(layer)
                     elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
                         setVectorSymbology(layer)
-                else:
-                    pass
                 self.thread.feedback.info("The algorithm finished processing successfully,")
                 self.thread.feedback.info("and added the resulting raster/vector layer to the map canvas.")
             else:

@@ -35,13 +35,13 @@ class TaBaseAlgorithm(QThread):
         self.processing_output = self.getProcessingOutput()
         try:
             self.feedback = self.dlg.createFeedback()
-        #TODO raise e when all the algorithms are based on the unified base dialog
         except Exception as e:
-            pass
+           raise e
         self.checkCrs()
 
     def setName(self, name):
         self.__name__ = name
+        self.getOutFilePath()
 
     def checkCrs(self):
         if not self.crs.isValid():
@@ -77,14 +77,16 @@ class TaBaseAlgorithm(QThread):
             ('TaFillGaps', 'PaleoDEM_interpolated.tif', 'raster'),
             ('TaCopyPasteRaster', 'PaleoDEM_with_copied_values.tif', 'raster'),
             ('TaSmoothRaster', 'PaleoDEM_smoothed.tif', 'raster'),
-            ('TaIsostaticCompensation','PaleoDEM_isostat_compensated.tif', 'raster' )
+            ('TaIsostaticCompensation','PaleoDEM_isostat_compensated.tif', 'raster'),
+             ('TaSetSeaLevel', 'PaleoDEM_with_Sea_Level_changed.tif', 'raster')
         ]
 
         temp_file_name = None
-        for i in algs:
-            if self.__name__ == i[0]:
-                temp_file_name = i[1]
-                file_type = i[2]
+        for alg_name, out_file, f_type in algs:
+            if self.__name__ == alg_name:
+                temp_file_name = out_file
+                file_type = f_type
+
         if not temp_file_name:
             temp_file_name = 'PaleoDEM_modified.tif'
 
@@ -97,10 +99,7 @@ class TaBaseAlgorithm(QThread):
         # check if the provided path for the output path is valid
         ret = isPathValid(out_file_path, file_type if file_type else 'raster')
         if not ret[0]:
-            try:
-                self.feedback.error(ret[1])
-            except:
-                self.log.emit(ret[1])
+            self.feedback.error(ret[1])
             self.kill()
         return out_file_path
 

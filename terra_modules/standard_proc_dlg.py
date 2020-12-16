@@ -36,7 +36,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.fillingTypeBox.addItems(["Fill gaps",
                                       "Copy/Paste raster",
                                       "Smooth raster",
-                                      "Isostatic compensation"])
+                                      "Isostatic compensation",
+                                      "Set new sea level"])
         self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox,
                                                       "Raster to be modified:",
                                                       "TaMapLayerComboBox")
@@ -111,7 +112,13 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.iceAmountSpinBox.setValue(30)
 
 
-
+        #Parameters for Setting sea level
+        self.seaLevelShiftBox = self.addVariantParameter(QgsSpinBox,
+                                                         "Set new sea level",
+                                                         "Amount of sea level shift:")
+        self.seaLevelShiftBox.setMinimum(-1000)
+        self.seaLevelShiftBox.setMaximum(1000)
+        self.seaLevelShiftBox.setValue(100)
 
 
         self.fillDialog()
@@ -125,7 +132,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
         processing_alg_names = [("Fill gaps", "TaFillGaps"),
                                 ("Copy/Paste raster", "TaCopyPasteRaster"),
                                 ("Smooth raster", "TaSmoothRaster"),
-                                ("Isostatic compensation", "TaIsostaticCompensation")]
+                                ("Isostatic compensation", "TaIsostaticCompensation"),
+                                ("Set new sea level", "TaSetSeaLevel")]
         for alg, name in processing_alg_names:
             if self.fillingTypeBox.currentText() == alg:
                 self.setDialogName(name)

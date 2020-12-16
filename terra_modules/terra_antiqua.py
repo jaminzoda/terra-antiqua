@@ -63,7 +63,7 @@ from .remove_arts_dlg import TaRemoveArtefactsDlg
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
 from ..resources import *
-from .algorithm_provider import TaAlgorithmProviderNew, TaRemoveArtefactsAlgProvider
+from .algorithm_provider import TaAlgorithmProvider, TaRemoveArtefactsAlgProvider
 
 
 
@@ -285,7 +285,7 @@ class TerraAntiqua:
 
     def initCompileTopoBathy(self):
         """Initializes the Compile Topo/Bathymetry algotithm and loads it"""
-        self.compileTopoBathy = TaAlgorithmProviderNew(
+        self.compileTopoBathy = TaAlgorithmProvider(
                                                         TaCompileTopoBathyDlg,
                                                         TaCompileTopoBathy,
                                                         self.iface,
@@ -294,7 +294,7 @@ class TerraAntiqua:
 
     def initPrepareMasks(self):
         """Initializes the Prepare masks algorithm and loads it"""
-        self.prepareMasks = TaAlgorithmProviderNew(TaPrepareMasksDlg,
+        self.prepareMasks = TaAlgorithmProvider(TaPrepareMasksDlg,
                                                    TaPrepareMasks,
                                                    self.iface,
                                                    self.settings)
@@ -302,7 +302,7 @@ class TerraAntiqua:
 
     def initModifyTopoBathy(self):
         """Initializes the Modify Topo/Bathymetry algorithm and loads it"""
-        self.modifyTopoBathy = TaAlgorithmProviderNew(TaModifyTopoBathyDlg,
+        self.modifyTopoBathy = TaAlgorithmProvider(TaModifyTopoBathyDlg,
                                                       TaModifyTopoBathy,
                                                       self.iface,
                                                       self.settings)
@@ -311,7 +311,7 @@ class TerraAntiqua:
 
     def initSetPaleoShorelines(self):
         """Initializes the Set Paleoshorelines algorithm and loads it"""
-        self.setPaleoshorelines = TaAlgorithmProviderNew(
+        self.setPaleoshorelines = TaAlgorithmProvider(
                                                         TaSetPaleoshorelinesDlg,
                                                         TaSetPaleoshorelines,
                                                         self.iface,
@@ -320,7 +320,7 @@ class TerraAntiqua:
 
     def initStandardProcessing(self):
         """Initializes the Standard processing algorithm set and loads it"""
-        self.standardProcessing = TaAlgorithmProviderNew(TaStandardProcessingDlg,
+        self.standardProcessing = TaAlgorithmProvider(TaStandardProcessingDlg,
                                                          TaStandardProcessing,
                                                          self.iface,
                                                          self.settings)
@@ -328,7 +328,7 @@ class TerraAntiqua:
 
     def initCreateTopoBathy(self):
         """Initializes the Create Topography/Bathymetry algorithm and loads it"""
-        self.createTopoBathy = TaAlgorithmProviderNew(TaCreateTopoBathyDlg,
+        self.createTopoBathy = TaAlgorithmProvider(TaCreateTopoBathyDlg,
                                                       TaCreateTopoBathy,
                                                       self.iface,
                                                       self.settings)
@@ -349,118 +349,4 @@ class TerraAntiqua:
 
 
 
-class TaAlgorithmProvider:
-
-    def __init__(self, dlg, thread, iface):
-        self.dlg = dlg()
-        self.thread = thread(self.dlg)
-        self.iface = iface
-        self.dlg.closeButton.clicked.connect(self.closeDlg)
-
-
-    def load(self):
-        self.dlg.show()
-        self.dlg.runButton.clicked.connect(self.start)
-        self.dlg.cancelButton.clicked.connect(self.stop)
-        try:
-            self.dlg.Tabs.setCurrentIndex(0)
-        except Exception:
-            pass
-
-    def start(self):
-        try:
-            self.dlg.Tabs.setCurrentIndex(1)
-        except Exception:
-            pass
-
-
-        try:
-            self.dlg.warningLabel.setText('')
-        except:
-            self.dlg.warnLabel.setText('')
-        self.dlg.resetProgressValue()
-        self.dlg.runButton.setEnabled(False)
-        self.thread.progress.connect(self.dlg.setProgressValue)
-        self.thread.log.connect(self.log)
-        self.thread.start()
-        self.thread.finished.connect(self.add_result)
-
-    def stop(self):
-        if self.thread.isRunning():
-            self.thread.kill()
-            self.dlg.resetProgressValue()
-            self.dlg.runButton.setEnabled(True)
-            try:
-                self.log("Error: The algorithm did not finish successfully, because the user canceled processing.")
-                self.log("Error: Or something went wrong. Please, refer to the log above for more details.")
-            except:
-                self.thread.feedback.error("The algorithm did not finish successfully, because the user canceled processing.")
-                self.thread.feedback.error("Or something went wrong. Please, refer to the log above for more details.")
-
-            try:
-                self.dlg.warningLabel.setText('Error!')
-                self.dlg.warningLabel.setStyleSheet('color:red')
-            except:
-                self.dlg.warnLabel.setText('Error!')
-                self.dlg.warnLabel.setStyleSheet('color:red')
-
-    def finish(self):
-        self.dlg.cancelButton.setEnabled(False)
-        self.dlg.runButton.setEnabled(True)
-        try:
-            self.dlg.warningLabel.setText('Done!')
-            self.dlg.warningLabel.setStyleSheet('color:green')
-        except:
-            self.dlg.warnLabel.setText('Done!')
-            self.dlg.warnLabel.setStyleSheet('color:green')
-
-
-    def log(self, msg):
-        # get the current time
-        time = datetime.datetime.now()
-        time = "{}:{}:{}".format(time.hour, time.minute, time.second)
-        if msg.split(' ')[0].lower() == 'error:' or msg.split(':')[0].lower() == 'error':
-            msg = '<span style="color: red;">{} </span>'.format(msg)
-        elif msg.split(' ')[0].lower() == 'warning:'.lower() or msg.split(':')[0].lower() == 'warning':
-            msg = '<span style="color: blue;">{} </span>'.format(msg)
-
-        try:
-            self.dlg.logText.textCursor().insertHtml("{} - {} <br>".format(time, msg))
-        except Exception:
-            self.thread.feedback.info(msg)
-
-    def add_result(self, finished, output_path):
-        if finished is True:
-            file_name = os.path.splitext(os.path.basename(output_path))[0]
-            ext = os.path.splitext(os.path.basename(output_path))[1]
-            if ext == '.tif' or ext == '.tiff':
-                layer = self.iface.addRasterLayer(output_path, file_name, "gdal")
-            elif ext == '.shp':
-                layer = self.iface.addVectorLayer(output_path, file_name, "ogr")
-            if layer:
-                # Rendering a symbology style for the resulting raster layer.
-                try:
-                    if layer.type() == QgsMapLayerType.RasterLayer:
-                        setRasterSymbology(layer)
-                except Exception:
-                    if layer.type() == QgsMapLayer.LayerType.RasterLayer:
-                        setRasterSymbology(layer)
-                else:
-                    pass
-                self.log("The algorithm finished processing successfully,")
-                self.log("and added the resulting raster/vector layer to the map canvas.")
-            else:
-                self.log("The algorithm finished successfully,")
-                self.log("however the resulting layer did not load. You may need to load it manually.")
-
-            self.finish()
-        else:
-            self.stop()
-
-    def closeDlg(self):
-        self.dlg.close()
-        self.dlg.deleteLater()
-        self.dlg = None
-        self.thread.deleteLater()
-        self.thread =None
 

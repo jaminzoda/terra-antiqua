@@ -26,7 +26,8 @@ import numpy as np
 from.utils import (
     vectorToRaster,
     fillNoData,
-    fillNoDataInPolygon
+    fillNoDataInPolygon,
+    TaProgressImitation
     )
 from .smoothing import rasterSmoothing
 from .base_algorithm import TaBaseAlgorithm
@@ -43,7 +44,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
         processing_alg_names = [("Fill gaps", "TaFillGaps"),
                                 ("Copy/Paste raster", "TaCopyPasteRaster"),
                                 ("Smooth raster", "TaSmoothRaster"),
-                                ("Isostatic compensation", "TaIsostaticCompensation")]
+                                ("Isostatic compensation", "TaIsostaticCompensation"),
+                                ("Set new sea level", "TaSetSeaLevel")]
         for alg, name in processing_alg_names:
             if alg == self.processing_type:
                 self.setName(name)
@@ -58,6 +60,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.smoothRaster()
         elif self.processing_type == "Isostatic compensation":
             self.isostaticCompensation()
+        elif self.processing_type == "Set new sea level":
+            self.setSeaLevel()
 
 
 
@@ -381,3 +385,50 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 self.finished.emit(True, self.out_file_path)
             else:
                 self.finished.emit(False, "")
+    def setSeaLevel(self):
+        progress = TaProgressImitation(100,100, self, self.feedback)
+        progress.start()
+        if not self.killed:
+            topo_layer = self.dlg.baseTopoBox.currentLayer()
+            shiftAmount = self.dlg.seaLevelShiftBox.value()
+            self.feedback.info("Setting new sea level...")
+            self.feedback.info("The sea level will be "
+                               f"{'raised' if shiftAmount>=0 else 'lowered'}"
+                               f" by  {np.abs(shiftAmount)} meters.")
+            try:
+                topo_ds = gdal.Open(topo_layer.source())
+                input_topo_array = topo_ds.GetRasterBand(1).ReadAsArray()
+            except Exception as e:
+                self.feedback.error(f"Could not load the input raster layer {topo_layer.name()} properly.")
+                self.feedback.error(f"Following error occured: {e}.")
+                self.kill()
+        if not self.killed:
+            try:
+                modified_topo_array = np.empty(input_topo_array.shape)
+                modified_topo_array[:] = np.nan
+                modified_topo_array[np.isfinite(input_topo_array)] = input_topo_array[np.isfinite(input_topo_array)] - shiftAmount
+            except Exception as e:
+                self.feedback.warning(e)
+        if not self.killed:
+            nrows, ncols = input_topo_array.shape
+            geotransform = topo_ds.GetGeoTransform()
+
+            try:
+                raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                raster.SetGeoTransform(geotransform)
+                raster.SetProjection(topo_layer.crs().toWkt())
+                raster.GetRasterBand(1).WriteArray(modified_topo_array)
+                raster.GetRasterBand(1).SetNoDataValue(np.nan)
+                raster = None
+            except Exception as e:
+                self.feedback.error("Could not write the result to the output file.")
+                self.feedback.error(f"Following error occured: {e}.")
+                self.kill()
+
+        if not self.killed:
+            self.feedback.progress = 100
+            self.finished.emit(True, self.out_file_path)
+        else:
+            self.finished.emit(False, '')
+
+

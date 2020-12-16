@@ -198,7 +198,8 @@ class TaBaseDialog(TaTemplateDialog):
                 ('TaFillGaps', 'fill_gaps'),
                 ('TaCopyPasteRaster', 'copy_paste'),
                 ('TaSmoothRaster', 'smoothing'),
-                ('TaIsostaticCompensation', 'isostat_cp')
+                ('TaIsostaticCompensation', 'isostat_cp'),
+                ('TaSetSeaLevel', 'set_sl')
                 ]
         for class_name, file_name in files:
             if class_name    == self.dlg_name:
