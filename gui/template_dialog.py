@@ -2,8 +2,7 @@ import os
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
-from qgis.gui import *
-from .widgets import TaRasterLayerComboBox, TaVectorLayerComboBox, TaHelpBrowser
+from .widgets import TaHelpBrowser
 
 
 class TaTemplateDialog(QtWidgets.QDialog):

@@ -1,8 +1,5 @@
-import sip
 from PyQt5 import QtCore
 
-import sys
-from PyQt5 import QtWidgets
 import logging
 
 class TaLogHandler(logging.Handler):

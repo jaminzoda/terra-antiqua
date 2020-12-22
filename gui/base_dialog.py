@@ -1,17 +1,12 @@
-import sys
 import os
-from PyQt5 import uic
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (
-    QDialog,
-    QPushButton,
     QLabel,
     QShortcut,
     QSizePolicy
 )
-import logging
 from qgis.gui import QgsFileWidget, QgsMessageBar
-from ..core.logger import TaLogHandler, TaLogStream, TaFeedback
+from ..core.logger import TaFeedback
 from .template_dialog import TaTemplateDialog
 
 class TaBaseDialog(TaTemplateDialog):
@@ -119,7 +114,7 @@ class TaBaseDialog(TaTemplateDialog):
             self.outputPath.setStorageMode(self.outputPath.SaveFile)
             self.outputPath.setFilter('*.tif;;*.tiff')
             self.outputPath.lineEdit().setPlaceholderText("[Create temporary layer]")
-            self.paramsLayout.addWidget(QLabel('Output file path'))
+            self.paramsLayout.addWidget(QLabel('Output file path:'))
             self.paramsLayout.addWidget(self.outputPath)
         self.paramsLayout.addStretch()
 

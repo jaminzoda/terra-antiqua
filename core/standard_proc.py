@@ -1,14 +1,5 @@
-from PyQt5.QtCore import (
-    QThread,
-    pyqtSignal
-)
 import os
 from osgeo import gdal
-
-try:
-    from plugins import processing
-except Exception:
-    import processing
 
 from qgis.core import (
     QgsVectorFileWriter,
@@ -18,7 +9,6 @@ from qgis.core import (
     QgsFeatureRequest
     )
 import shutil
-import tempfile
 
 import numpy as np
 
@@ -29,7 +19,7 @@ from.utils import (
     fillNoDataInPolygon,
     TaProgressImitation
     )
-from .smoothing import rasterSmoothing
+from .utils import rasterSmoothing
 from .base_algorithm import TaBaseAlgorithm
 
 
@@ -188,8 +178,12 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.feedback.info("Smoothing factor: {}.".format(smoothing_factor))
 
         if not self.killed:
-            smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_type, smoothing_factor,
-                                                    out_file=self.out_file_path, feedback = self.feedback)
+            try:
+                smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_type, smoothing_factor,
+                                                        out_file=self.out_file_path, feedback = self.feedback)
+            except Exception as e:
+                self.feedback.warning(e)
+
             self.feedback.progress = 100
             self.finished.emit(True, self.out_file_path)
         else:

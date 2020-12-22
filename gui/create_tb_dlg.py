@@ -1,11 +1,7 @@
 
 
-import os
 
-from PyQt5 import QtWidgets
-from PyQt5 import uic
-from PyQt5.QtWidgets import QFileDialog, QComboBox
-from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
+from PyQt5.QtWidgets import QComboBox
 from .base_dialog import TaBaseDialog
 from .widgets import (
                         TaRasterLayerComboBox,

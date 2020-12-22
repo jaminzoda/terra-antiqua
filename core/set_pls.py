@@ -1,8 +1,6 @@
-from PyQt5.QtCore import QThread, pyqtSignal
 import os
 from osgeo import gdal, osr, gdalconst
 from qgis.core import QgsRasterLayer
-import tempfile
 
 import numpy as np
 

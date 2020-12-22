@@ -22,28 +22,16 @@
  *                                                                         *
  ***************************************************************************/
 """
-import time
 from PyQt5.QtCore import (
                             QSettings,
                             QTranslator,
                             qVersion,
-                            QCoreApplication,
-                            QObject,
-                            pyqtSlot
+                            QCoreApplication
                         )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
-from qgis.core import QgsExpressionContext, QgsExpressionContextUtils, QgsProject
 
-try:
-    from qgis.core import QgsMapLayerType
-except Exception:
-    from qgis.core import QgsMapLayer
-
-import datetime
 import os.path
-
-
 
 from .compile_tb import TaCompileTopoBathy
 from .create_tb import TaCreateTopoBathy
@@ -51,11 +39,8 @@ from .prepare_masks import TaPrepareMasks
 from .set_pls import TaSetPaleoshorelines
 from .standard_proc import TaStandardProcessing
 from .modify_tb import TaModifyTopoBathy
-from .utils import setRasterSymbology
-from .remove_arts import TaPolygonCreator, TaRemoveArtefacts, TaFeatureSink
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
-from ..resources import *
 from .algorithm_provider import TaAlgorithmProvider, TaRemoveArtefactsAlgProvider
 
 from ..gui.compile_tb_dlg import  TaCompileTopoBathyDlg
@@ -65,6 +50,7 @@ from ..gui.prepare_masks_dlg import  TaPrepareMasksDlg
 from ..gui.set_pls_dlg import  TaSetPaleoshorelinesDlg
 from ..gui.remove_arts_dlg import  TaRemoveArtefactsDlg
 from ..gui.standard_proc_dlg import  TaStandardProcessingDlg
+from ..resources import *
 
 
 

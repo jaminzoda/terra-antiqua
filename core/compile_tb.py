@@ -1,11 +1,6 @@
-from PyQt5.QtCore import (
-    QThread,
-    pyqtSignal
-)
 import os
 from osgeo import (
-    gdal,
-    osr
+    gdal
 )
 from qgis.core import (
     QgsVectorFileWriter,
@@ -14,7 +9,6 @@ from qgis.core import (
     QgsFeatureRequest
 )
 import shutil
-import tempfile
 
 import numpy as np
 

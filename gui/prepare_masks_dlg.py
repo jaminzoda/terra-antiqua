@@ -1,14 +1,10 @@
 
-import os
 
-from PyQt5 import QtWidgets, QtCore, uic, QtGui
-from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
-from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsRasterLayer
-from qgis.gui import QgsMapLayerComboBox, QgsMessageBar
-import os
+from PyQt5 import QtCore, QtWidgets
+from qgis.core import QgsMapLayerProxyModel
+from qgis.gui import QgsMapLayerComboBox
 from .base_dialog import TaBaseDialog
 from .widgets import (
-    TaVectorLayerComboBox,
     TaTableWidget,
     TaButtonGroup
 )

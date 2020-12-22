@@ -1,6 +1,5 @@
 
 from PyQt5.QtCore import QVariant
-import os
 from qgis.core import (
     QgsVectorLayer,
     QgsWkbTypes,

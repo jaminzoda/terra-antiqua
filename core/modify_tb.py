@@ -1,38 +1,25 @@
-from PyQt5.QtCore import (
-    QThread,
-    pyqtSignal
-)
 import os
 from osgeo import (
     gdal,
     osr
 )
 
-try:
-    from plugins import processing
-except Exception:
-    import processing
-
 from qgis.core import (
     QgsVectorFileWriter,
     QgsVectorLayer,
-    QgsExpression,
     NULL,
-    QgsFeatureRequest,
     QgsExpressionContext,
     QgsExpressionContextUtils
 )
 import shutil
-import tempfile
 
 import numpy as np
 
 from .utils import (
      vectorToRaster,
      modFormula,
-     modMinMax,
      modRescale,
-    polygonOverlapCheck
+     polygonOverlapCheck
      )
 from .base_algorithm import TaBaseAlgorithm
 

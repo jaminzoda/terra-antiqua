@@ -11,8 +11,6 @@ from qgis.core import (
     QgsRasterLayer,
     QgsProject,
     QgsVectorLayer,
-    QgsExpressionContext,
-    QgsExpressionContextUtils,
     QgsPropertyDefinition,
     QgsProperty
 )
@@ -259,6 +257,10 @@ class TaCheckBox(QtWidgets.QCheckBox):
 
 
 
+
+    def changeEvent(self, event):
+        if event.type() == QtCore.QEvent.EnabledChange and not self.isEnabled():
+            self.setChecked(False)
 
     def registerEnabledWidgets(self, widgets:list, natural:bool = False):
         """Registers widgets that get disabled when the checkbox is checked.

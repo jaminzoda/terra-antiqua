@@ -1,41 +1,30 @@
-from PyQt5.QtCore import QVariant, Qt, pyqtSignal, QThread, QObject
+from PyQt5.QtCore import QObject, QVariant, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QGraphicsItem
 import os
 from osgeo import gdal
-from random import randrange
 from qgis.core import (
     QgsVectorLayer,
     QgsField,
     QgsWkbTypes,
     QgsFields,
     QgsFeature,
-    QgsExpressionContext,
-    QgsExpressionContextUtils,
     QgsProject,
     QgsMapLayer,
-    Qgis,
-    edit,
     QgsCoordinateReferenceSystem
     )
 from qgis.gui import (
     QgsMapToolEmitPoint,
     QgsRubberBand,
-    QgsVertexMarker,
-    QgsAttributeDialog,
-    QgsAttributeEditorContext
+    QgsVertexMarker
     )
-import tempfile
 
 import numpy as np
 
 
 from .utils import (
     vectorToRaster,
-    fillNoDataInPolygon,
-    setVectorSymbology)
+    fillNoDataInPolygon)
 from qgis._core import QgsRasterLayer
-from psycopg2.errorcodes import NO_DATA
 from .base_algorithm import TaBaseAlgorithm
 
 class TaPolygonCreator(QgsMapToolEmitPoint):

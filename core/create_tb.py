@@ -1,7 +1,5 @@
 
 from PyQt5.QtCore import (
-    QThread,
-    pyqtSignal,
     QVariant
 )
 import os
@@ -13,9 +11,6 @@ from qgis.core import (
     QgsField,
     QgsVectorLayer,
     QgsProcessingException,
-    QgsExpressionContext,
-    QgsExpressionContextUtils,
-    QgsVectorFileWriter,
     NULL
 )
 
@@ -23,7 +18,6 @@ from qgis.core import (
 import numpy as np
 
 from .utils import (
-    isPathValid,
     fillNoDataInPolygon,
     vectorToRaster,
     modRescale,
