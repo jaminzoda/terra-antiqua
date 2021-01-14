@@ -1,0 +1,813 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>terra_antiqua.gui package &mdash; Terra Antiqua 0.3 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Terra Antiqua
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">terra_antiqua.gui package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.base_dialog">terra_antiqua.gui.base_dialog module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.compile_tb_dlg">terra_antiqua.gui.compile_tb_dlg module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.create_tb_dlg">terra_antiqua.gui.create_tb_dlg module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.modify_tb_dlg">terra_antiqua.gui.modify_tb_dlg module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.prepare_masks_dlg">terra_antiqua.gui.prepare_masks_dlg module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.remove_arts_dlg">terra_antiqua.gui.remove_arts_dlg module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.set_pls_dlg">terra_antiqua.gui.set_pls_dlg module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.standard_proc_dlg">terra_antiqua.gui.standard_proc_dlg module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.template_dialog">terra_antiqua.gui.template_dialog module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui.widgets">terra_antiqua.gui.widgets module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.gui">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Terra Antiqua</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>terra_antiqua.gui package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/terra_antiqua.gui.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="terra-antiqua-gui-package">
+<h1>terra_antiqua.gui package<a class="headerlink" href="#terra-antiqua-gui-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-terra_antiqua.gui.base_dialog">
+<span id="terra-antiqua-gui-base-dialog-module"></span><h2>terra_antiqua.gui.base_dialog module<a class="headerlink" href="#module-terra_antiqua.gui.base_dialog" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.base_dialog.</code><code class="descname">TaBaseDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.template_dialog.TaTemplateDialog" title="terra_antiqua.gui.template_dialog.TaTemplateDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.template_dialog.TaTemplateDialog</span></code></a></p>
+<dl class="attribute">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.CANCELED">
+<code class="descname">CANCELED</code><em class="property"> = False</em><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.CANCELED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.RUNNING">
+<code class="descname">RUNNING</code><em class="property"> = False</em><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.RUNNING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.addMandatoryParameter">
+<code class="descname">addMandatoryParameter</code><span class="sig-paren">(</span><em>param</em>, <em>label=None</em>, <em>widget_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addMandatoryParameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.addParameter">
+<code class="descname">addParameter</code><span class="sig-paren">(</span><em>param</em>, <em>label=None</em>, <em>widget_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addParameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.addVariantParameter">
+<code class="descname">addVariantParameter</code><span class="sig-paren">(</span><em>param</em>, <em>variant_index</em>, <em>label=None</em>, <em>widget_type=None</em>, <em>mandatory=False</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addVariantParameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.appendVariantWidgets">
+<code class="descname">appendVariantWidgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.appendVariantWidgets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.cancelEvent">
+<code class="descname">cancelEvent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.cancelEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.cancelled">
+<code class="descname">cancelled</code><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.cancelled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.checkMandatoryParameters">
+<code class="descname">checkMandatoryParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.checkMandatoryParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.closeEvent">
+<code class="descname">closeEvent</code><span class="sig-paren">(</span><em>self</em>, <em>QCloseEvent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.createFeedback">
+<code class="descname">createFeedback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.createFeedback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.fillDialog">
+<code class="descname">fillDialog</code><span class="sig-paren">(</span><em>add_output_path=True</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.fillDialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.finishEvent">
+<code class="descname">finishEvent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.finishEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.getAlgName">
+<code class="descname">getAlgName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.getAlgName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.getParameters">
+<code class="descname">getParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.isCanceled">
+<code class="descname">isCanceled</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.isCanceled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.is_run">
+<code class="descname">is_run</code><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.is_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.loadHelp">
+<code class="descname">loadHelp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.loadHelp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.resetProgressValue">
+<code class="descname">resetProgressValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.resetProgressValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.runEvent">
+<code class="descname">runEvent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.runEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.setDialogName">
+<code class="descname">setDialogName</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.setDialogName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.setDialogTitle">
+<code class="descname">setDialogTitle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.setDialogTitle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.setKeyboardShortcuts">
+<code class="descname">setKeyboardShortcuts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.setKeyboardShortcuts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.setProgressValue">
+<code class="descname">setProgressValue</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.setProgressValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.showEvent">
+<code class="descname">showEvent</code><span class="sig-paren">(</span><em>self</em>, <em>QShowEvent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.base_dialog.TaBaseDialog.showVariantWidgets">
+<code class="descname">showVariantWidgets</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.showVariantWidgets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.compile_tb_dlg">
+<span id="terra-antiqua-gui-compile-tb-dlg-module"></span><h2>terra_antiqua.gui.compile_tb_dlg module<a class="headerlink" href="#module-terra_antiqua.gui.compile_tb_dlg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.compile_tb_dlg.</code><code class="descname">TaCompileTopoBathyDlg</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addColumn">
+<code class="descname">addColumn</code><span class="sig-paren">(</span><em>layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addRow">
+<code class="descname">addRow</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.defineParameters">
+<code class="descname">defineParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds parameters to a list object that is used by the TaBaseDialog
+class to create widgets and place them in parameters tab.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.enableOverlapRemoveCheckBox">
+<code class="descname">enableOverlapRemoveCheckBox</code><span class="sig-paren">(</span><em>layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.enableOverlapRemoveCheckBox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.getCategories">
+<code class="descname">getCategories</code><span class="sig-paren">(</span><em>layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.getCategories" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets category names stored in the attribute table
+of the input layer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.onLayerChange">
+<code class="descname">onLayerChange</code><span class="sig-paren">(</span><em>layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.onLayerChange" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterButtonSignal">
+<code class="descname">openRasterButtonSignal</code><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterButtonSignal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterFromDisk">
+<code class="descname">openRasterFromDisk</code><span class="sig-paren">(</span><em>cmb</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterFromDisk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.removeRow">
+<code class="descname">removeRow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.removeRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.create_tb_dlg">
+<span id="terra-antiqua-gui-create-tb-dlg-module"></span><h2>terra_antiqua.gui.create_tb_dlg module<a class="headerlink" href="#module-terra_antiqua.gui.create_tb_dlg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.create_tb_dlg.TaCreateTopoBathyDlg">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.create_tb_dlg.</code><code class="descname">TaCreateTopoBathyDlg</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.create_tb_dlg.TaCreateTopoBathyDlg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.create_tb_dlg.TaCreateTopoBathyDlg.defineParameters">
+<code class="descname">defineParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.create_tb_dlg.TaCreateTopoBathyDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.create_tb_dlg.TaCreateTopoBathyDlg.setFieldsInLayer">
+<code class="descname">setFieldsInLayer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.create_tb_dlg.TaCreateTopoBathyDlg.setFieldsInLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.modify_tb_dlg">
+<span id="terra-antiqua-gui-modify-tb-dlg-module"></span><h2>terra_antiqua.gui.modify_tb_dlg module<a class="headerlink" href="#module-terra_antiqua.gui.modify_tb_dlg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.modify_tb_dlg.TaModifyTopoBathyDlg">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.modify_tb_dlg.</code><code class="descname">TaModifyTopoBathyDlg</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.modify_tb_dlg.TaModifyTopoBathyDlg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.modify_tb_dlg.TaModifyTopoBathyDlg.defineParameters">
+<code class="descname">defineParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.modify_tb_dlg.TaModifyTopoBathyDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.modify_tb_dlg.TaModifyTopoBathyDlg.setFieldsInLayer">
+<code class="descname">setFieldsInLayer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.modify_tb_dlg.TaModifyTopoBathyDlg.setFieldsInLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.prepare_masks_dlg">
+<span id="terra-antiqua-gui-prepare-masks-dlg-module"></span><h2>terra_antiqua.gui.prepare_masks_dlg module<a class="headerlink" href="#module-terra_antiqua.gui.prepare_masks_dlg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.prepare_masks_dlg.</code><code class="descname">TaPrepareMasksDlg</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.addRow">
+<code class="descname">addRow</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.addRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.defineParameters">
+<code class="descname">defineParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.removeRow">
+<code class="descname">removeRow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.removeRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.updateItemsInMaskCategories">
+<code class="descname">updateItemsInMaskCategories</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.updateItemsInMaskCategories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.remove_arts_dlg">
+<span id="terra-antiqua-gui-remove-arts-dlg-module"></span><h2>terra_antiqua.gui.remove_arts_dlg module<a class="headerlink" href="#module-terra_antiqua.gui.remove_arts_dlg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.remove_arts_dlg.TaRemoveArtefactsDlg">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.remove_arts_dlg.</code><code class="descname">TaRemoveArtefactsDlg</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.remove_arts_dlg.TaRemoveArtefactsDlg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.remove_arts_dlg.TaRemoveArtefactsDlg.defineParameters">
+<code class="descname">defineParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.remove_arts_dlg.TaRemoveArtefactsDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.remove_arts_dlg.TaRemoveArtefactsDlg.typeOfComparison">
+<code class="descname">typeOfComparison</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.remove_arts_dlg.TaRemoveArtefactsDlg.typeOfComparison" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.set_pls_dlg">
+<span id="terra-antiqua-gui-set-pls-dlg-module"></span><h2>terra_antiqua.gui.set_pls_dlg module<a class="headerlink" href="#module-terra_antiqua.gui.set_pls_dlg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.set_pls_dlg.</code><code class="descname">TaSetPaleoshorelinesDlg</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg.defineParameters">
+<code class="descname">defineParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds parameters to a list object that is used by the TaBaseDialog
+class to create widgets and place them parameters tab.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg.selectModificationModeInterpolate">
+<code class="descname">selectModificationModeInterpolate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg.selectModificationModeInterpolate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg.selectModificationModeRescale">
+<code class="descname">selectModificationModeRescale</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.set_pls_dlg.TaSetPaleoshorelinesDlg.selectModificationModeRescale" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.standard_proc_dlg">
+<span id="terra-antiqua-gui-standard-proc-dlg-module"></span><h2>terra_antiqua.gui.standard_proc_dlg module<a class="headerlink" href="#module-terra_antiqua.gui.standard_proc_dlg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.standard_proc_dlg.TaStandardProcessingDlg">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.standard_proc_dlg.</code><code class="descname">TaStandardProcessingDlg</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.standard_proc_dlg.TaStandardProcessingDlg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.standard_proc_dlg.TaStandardProcessingDlg.defineParameters">
+<code class="descname">defineParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.standard_proc_dlg.TaStandardProcessingDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.standard_proc_dlg.TaStandardProcessingDlg.reloadHelp">
+<code class="descname">reloadHelp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.standard_proc_dlg.TaStandardProcessingDlg.reloadHelp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the name of the chosen processing algorithm (e.g. Smooth raster) to the dialog so that it can load the help
+file properly.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.template_dialog">
+<span id="terra-antiqua-gui-template-dialog-module"></span><h2>terra_antiqua.gui.template_dialog module<a class="headerlink" href="#module-terra_antiqua.gui.template_dialog" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.template_dialog.TaTemplateDialog">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.template_dialog.</code><code class="descname">TaTemplateDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.template_dialog.TaTemplateDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QDialog</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.template_dialog.TaTemplateDialog.changeCollapseButtonIcon">
+<code class="descname">changeCollapseButtonIcon</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.template_dialog.TaTemplateDialog.changeCollapseButtonIcon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.template_dialog.TaTemplateDialog.hideHelpTextBox">
+<code class="descname">hideHelpTextBox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.template_dialog.TaTemplateDialog.hideHelpTextBox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.template_dialog.TaTemplateDialog.onSwitchTab">
+<code class="descname">onSwitchTab</code><span class="sig-paren">(</span><em>tab</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.template_dialog.TaTemplateDialog.onSwitchTab" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.template_dialog.TaTemplateDialog.splitterCollapsed">
+<code class="descname">splitterCollapsed</code><span class="sig-paren">(</span><em>pos</em>, <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.template_dialog.TaTemplateDialog.splitterCollapsed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui.widgets">
+<span id="terra-antiqua-gui-widgets-module"></span><h2>terra_antiqua.gui.widgets module<a class="headerlink" href="#module-terra_antiqua.gui.widgets" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaAbstractMapLayerComboBox">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaAbstractMapLayerComboBox</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaAbstractMapLayerComboBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qgis._gui.QgsMapLayerComboBox</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaAbstractMapLayerComboBox.changeEvent">
+<code class="descname">changeEvent</code><span class="sig-paren">(</span><em>self</em>, <em>QEvent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaAbstractMapLayerComboBox.changeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.gui.widgets.TaAbstractMapLayerComboBox.enabled">
+<code class="descname">enabled</code><a class="headerlink" href="#terra_antiqua.gui.widgets.TaAbstractMapLayerComboBox.enabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaButtonGroup">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaButtonGroup</code><a class="headerlink" href="#terra_antiqua.gui.widgets.TaButtonGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaCheckBox</code><span class="sig-paren">(</span><em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QCheckBox</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox.changeEvent">
+<code class="descname">changeEvent</code><span class="sig-paren">(</span><em>self</em>, <em>QEvent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox.changeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox.enabledWidgets">
+<code class="descname">enabledWidgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox.enabledWidgets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox.linkedWidgets">
+<code class="descname">linkedWidgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox.linkedWidgets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox.registerEnabledWidgets">
+<code class="descname">registerEnabledWidgets</code><span class="sig-paren">(</span><em>widgets: list</em>, <em>natural: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox.registerEnabledWidgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers widgets that get disabled when the checkbox is checked.
+If natural is True, the widgets get disabled, when the checkbox is
+checked.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox.registerLinkedWidget">
+<code class="descname">registerLinkedWidget</code><span class="sig-paren">(</span><em>widget: PyQt5.QtWidgets.QWidget</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox.registerLinkedWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox.setSelfEnabled">
+<code class="descname">setSelfEnabled</code><span class="sig-paren">(</span><em>layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox.setSelfEnabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaCheckBox.setWidgetsEnabled">
+<code class="descname">setWidgetsEnabled</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaCheckBox.setWidgetsEnabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaExpressionWidget">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaExpressionWidget</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaExpressionWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaExpressionWidget.initOverrideButton">
+<code class="descname">initOverrideButton</code><span class="sig-paren">(</span><em>property_name</em>, <em>property_descr</em>, <em>layer=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaExpressionWidget.initOverrideButton" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaHelpBrowser">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaHelpBrowser</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaHelpBrowser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QTextBrowser</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaHelpBrowser.hideEvent">
+<code class="descname">hideEvent</code><span class="sig-paren">(</span><em>self</em>, <em>QHideEvent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaHelpBrowser.hideEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaHelpBrowser.showEvent">
+<code class="descname">showEvent</code><span class="sig-paren">(</span><em>self</em>, <em>QShowEvent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaHelpBrowser.showEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.gui.widgets.TaHelpBrowser.visibilityChanged">
+<code class="descname">visibilityChanged</code><a class="headerlink" href="#terra_antiqua.gui.widgets.TaHelpBrowser.visibilityChanged" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaMapLayerComboBox">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaMapLayerComboBox</code><span class="sig-paren">(</span><em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaMapLayerComboBox.currentLayer">
+<code class="descname">currentLayer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox.currentLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaMapLayerComboBox.getMainWidget">
+<code class="descname">getMainWidget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox.getMainWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaMapLayerComboBox.setAssociatedWidget">
+<code class="descname">setAssociatedWidget</code><span class="sig-paren">(</span><em>widget: PyQt5.QtWidgets.QWidget</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox.setAssociatedWidget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaMapLayerComboBox.setAssociatedWidgetsEnabled">
+<code class="descname">setAssociatedWidgetsEnabled</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox.setAssociatedWidgetsEnabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaMapLayerComboBox.setCurrentLayer">
+<code class="descname">setCurrentLayer</code><span class="sig-paren">(</span><em>layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox.setCurrentLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaMapLayerComboBox.setLabel">
+<code class="descname">setLabel</code><span class="sig-paren">(</span><em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox.setLabel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaRasterLayerComboBox">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaRasterLayerComboBox</code><span class="sig-paren">(</span><em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterLayerComboBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox" title="terra_antiqua.gui.widgets.TaMapLayerComboBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.widgets.TaMapLayerComboBox</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaRasterLayerComboBox.openRasterFromDisk">
+<code class="descname">openRasterFromDisk</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterLayerComboBox.openRasterFromDisk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaRasterLayerComboBox.setLayerType">
+<code class="descname">setLayerType</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterLayerComboBox.setLayerType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaSpinBox">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaSpinBox</code><a class="headerlink" href="#terra_antiqua.gui.widgets.TaSpinBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaSpinBox.initOverrideButton">
+<code class="descname">initOverrideButton</code><span class="sig-paren">(</span><em>property_name</em>, <em>property_descr</em>, <em>layer=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaSpinBox.initOverrideButton" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaSpinBox.setAllowedValueRange">
+<code class="descname">setAllowedValueRange</code><span class="sig-paren">(</span><em>min</em>, <em>max</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaSpinBox.setAllowedValueRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets allowed value range for the spinbox to bound the maximum and
+minimum values that the spinbox can receive.
+:param min: minimum value.
+:param nax: maximum value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaSpinBox.setDataType">
+<code class="descname">setDataType</code><span class="sig-paren">(</span><em>dataType: str</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaSpinBox.setDataType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the type of data set in SpinBox. Must be called before
+initOverrideButton. Accepts Integer and Double.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">DataType:</th><td class="field-body">A string defining the data type for the spinbox. Can be ‘integer’ or ‘double’.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaSpinBox.setValue">
+<code class="descname">setValue</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaSpinBox.setValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets value for the spinbox.
+param value: value to be set.
+type value: int.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaTableWidget">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaTableWidget</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QTableWidget</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaTableWidget.moveRowDown">
+<code class="descname">moveRowDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget.moveRowDown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaTableWidget.moveRowUp">
+<code class="descname">moveRowUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget.moveRowUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.gui.widgets.TaVectorLayerComboBox">
+<em class="property">class </em><code class="descclassname">terra_antiqua.gui.widgets.</code><code class="descname">TaVectorLayerComboBox</code><span class="sig-paren">(</span><em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaVectorLayerComboBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox" title="terra_antiqua.gui.widgets.TaMapLayerComboBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.widgets.TaMapLayerComboBox</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaVectorLayerComboBox.openVectorFromDisk">
+<code class="descname">openVectorFromDisk</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaVectorLayerComboBox.openVectorFromDisk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.gui.widgets.TaVectorLayerComboBox.setLayerType">
+<code class="descname">setLayerType</code><span class="sig-paren">(</span><em>layer_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaVectorLayerComboBox.setLayerType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.gui">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-terra_antiqua.gui" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Jovid Aminov.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

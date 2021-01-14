@@ -1,0 +1,1354 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>terra_antiqua.core package &mdash; Terra Antiqua 0.3 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Terra Antiqua
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">terra_antiqua.core package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.algorithm_provider">terra_antiqua.core.algorithm_provider module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.base_algorithm">terra_antiqua.core.base_algorithm module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.compile_tb">terra_antiqua.core.compile_tb module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.create_tb">terra_antiqua.core.create_tb module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.logger">terra_antiqua.core.logger module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.modify_tb">terra_antiqua.core.modify_tb module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.prepare_masks">terra_antiqua.core.prepare_masks module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.remove_arts">terra_antiqua.core.remove_arts module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.remove_arts_tooltip">terra_antiqua.core.remove_arts_tooltip module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.set_pls">terra_antiqua.core.set_pls module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.settings">terra_antiqua.core.settings module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.standard_proc">terra_antiqua.core.standard_proc module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.terra_antiqua">terra_antiqua.core.terra_antiqua module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core.utils">terra_antiqua.core.utils module</a></li>
+<li><a class="reference internal" href="#module-terra_antiqua.core">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Terra Antiqua</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>terra_antiqua.core package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/terra_antiqua.core.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="terra-antiqua-core-package">
+<h1>terra_antiqua.core package<a class="headerlink" href="#terra-antiqua-core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-terra_antiqua.core.algorithm_provider">
+<span id="terra-antiqua-core-algorithm-provider-module"></span><h2>terra_antiqua.core.algorithm_provider module<a class="headerlink" href="#module-terra_antiqua.core.algorithm_provider" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.algorithm_provider.</code><code class="descname">TaAlgorithmProvider</code><span class="sig-paren">(</span><em>dlg</em>, <em>thread</em>, <em>iface</em>, <em>settings</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.add_result">
+<code class="descname">add_result</code><span class="sig-paren">(</span><em>finished</em>, <em>output_path</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.add_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.load">
+<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.algorithm_provider.</code><code class="descname">TaRemoveArtefactsAlgProvider</code><span class="sig-paren">(</span><em>tltp</em>, <em>dlg</em>, <em>iface</em>, <em>actions</em>, <em>settings</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.addResult">
+<code class="descname">addResult</code><span class="sig-paren">(</span><em>finished</em>, <em>output_path</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.addResult" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.clean">
+<code class="descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.clean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.createPolygon">
+<code class="descname">createPolygon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.createPolygon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.drawPolygon">
+<code class="descname">drawPolygon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.drawPolygon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.initiate">
+<code class="descname">initiate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.initiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.load">
+<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.storeRubberbands">
+<code class="descname">storeRubberbands</code><span class="sig-paren">(</span><em>rb</em>, <em>vrtx</em>, <em>pnt</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.storeRubberbands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.base_algorithm">
+<span id="terra-antiqua-core-base-algorithm-module"></span><h2>terra_antiqua.core.base_algorithm module<a class="headerlink" href="#module-terra_antiqua.core.base_algorithm" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.base_algorithm.</code><code class="descname">TaBaseAlgorithm</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QThread</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.checkCrs">
+<code class="descname">checkCrs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.checkCrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.emit_progress">
+<code class="descname">emit_progress</code><span class="sig-paren">(</span><em>progress_count</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.emit_progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.finished">
+<code class="descname">finished</code><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.finished" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getExpressionContext">
+<code class="descname">getExpressionContext</code><span class="sig-paren">(</span><em>layer: qgis._core.QgsVectorLayer = None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getExpressionContext" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getOutFilePath">
+<code class="descname">getOutFilePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getOutFilePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getProcessingOutput">
+<code class="descname">getProcessingOutput</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getProcessingOutput" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getProjectCrs">
+<code class="descname">getProjectCrs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.getProjectCrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.kill">
+<code class="descname">kill</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.kill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.log">
+<code class="descname">log</code><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.onRun">
+<code class="descname">onRun</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.onRun" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.progress">
+<code class="descname">progress</code><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.setName">
+<code class="descname">setName</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.setName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.setProjectCrs">
+<code class="descname">setProjectCrs</code><span class="sig-paren">(</span><em>crs: qgis._core.QgsCoordinateReferenceSystem = None</em><span class="sig-paren">)</span> &#x2192; qgis._core.QgsCoordinateReferenceSystem<a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.setProjectCrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.set_progress">
+<code class="descname">set_progress</code><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.set_progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.startOver">
+<code class="descname">startOver</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.startOver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.compile_tb">
+<span id="terra-antiqua-core-compile-tb-module"></span><h2>terra_antiqua.core.compile_tb module<a class="headerlink" href="#module-terra_antiqua.core.compile_tb" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.compile_tb.TaCompileTopoBathy">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.compile_tb.</code><code class="descname">TaCompileTopoBathy</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.compile_tb.TaCompileTopoBathy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="terra_antiqua.core.base_algorithm.TaBaseAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.core.base_algorithm.TaBaseAlgorithm</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.core.compile_tb.TaCompileTopoBathy.getParameters">
+<code class="descname">getParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.compile_tb.TaCompileTopoBathy.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.compile_tb.TaCompileTopoBathy.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.compile_tb.TaCompileTopoBathy.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.create_tb">
+<span id="terra-antiqua-core-create-tb-module"></span><h2>terra_antiqua.core.create_tb module<a class="headerlink" href="#module-terra_antiqua.core.create_tb" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.create_tb.TaCreateTopoBathy">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.create_tb.</code><code class="descname">TaCreateTopoBathy</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.create_tb.TaCreateTopoBathy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="terra_antiqua.core.base_algorithm.TaBaseAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.core.base_algorithm.TaBaseAlgorithm</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.core.create_tb.TaCreateTopoBathy.createMountainRange">
+<code class="descname">createMountainRange</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.create_tb.TaCreateTopoBathy.createMountainRange" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.create_tb.TaCreateTopoBathy.createSea">
+<code class="descname">createSea</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.create_tb.TaCreateTopoBathy.createSea" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.create_tb.TaCreateTopoBathy.getParameters">
+<code class="descname">getParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.create_tb.TaCreateTopoBathy.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.create_tb.TaCreateTopoBathy.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.create_tb.TaCreateTopoBathy.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.logger">
+<span id="terra-antiqua-core-logger-module"></span><h2>terra_antiqua.core.logger module<a class="headerlink" href="#module-terra_antiqua.core.logger" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.logger.TaFeedback">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.logger.</code><code class="descname">TaFeedback</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaFeedback.critical">
+<code class="descname">critical</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.critical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaFeedback.debug">
+<code class="descname">debug</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaFeedback.error">
+<code class="descname">error</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.logger.TaFeedback.finished">
+<code class="descname">finished</code><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.finished" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaFeedback.info">
+<code class="descname">info</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.logger.TaFeedback.progress">
+<code class="descname">progress</code><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaFeedback.setCanceled">
+<code class="descname">setCanceled</code><span class="sig-paren">(</span><em>value: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.setCanceled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaFeedback.setProgress">
+<code class="descname">setProgress</code><span class="sig-paren">(</span><em>progress_value</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.setProgress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaFeedback.warning">
+<code class="descname">warning</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaFeedback.warning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.core.logger.TaLogHandler">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.logger.</code><code class="descname">TaLogHandler</code><a class="headerlink" href="#terra_antiqua.core.logger.TaLogHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Handler</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaLogHandler.emit">
+<code class="descname">emit</code><span class="sig-paren">(</span><em>record</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogHandler.emit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do whatever it takes to actually log the specified logging record.</p>
+<p>This version is intended to be implemented by subclasses and so
+raises a NotImplementedError.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.core.logger.TaLogStream">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.logger.</code><code class="descname">TaLogStream</code><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaLogStream.emitProgress">
+<code class="descname">emitProgress</code><span class="sig-paren">(</span><em>progress_count</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.emitProgress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaLogStream.fileno">
+<code class="descname">fileno</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.fileno" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaLogStream.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.flush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.logger.TaLogStream.messageWritten">
+<code class="descname">messageWritten</code><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.messageWritten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="terra_antiqua.core.logger.TaLogStream.progress">
+<em class="property">static </em><code class="descname">progress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.logger.TaLogStream.progressSet">
+<code class="descname">progressSet</code><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.progressSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="terra_antiqua.core.logger.TaLogStream.stderr">
+<em class="property">static </em><code class="descname">stderr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.stderr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="terra_antiqua.core.logger.TaLogStream.stdout">
+<em class="property">static </em><code class="descname">stdout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.stdout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.logger.TaLogStream.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.logger.TaLogStream.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.modify_tb">
+<span id="terra-antiqua-core-modify-tb-module"></span><h2>terra_antiqua.core.modify_tb module<a class="headerlink" href="#module-terra_antiqua.core.modify_tb" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.modify_tb.TaModifyTopoBathy">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.modify_tb.</code><code class="descname">TaModifyTopoBathy</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.modify_tb.TaModifyTopoBathy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="terra_antiqua.core.base_algorithm.TaBaseAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.core.base_algorithm.TaBaseAlgorithm</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.core.modify_tb.TaModifyTopoBathy.cleanUp">
+<code class="descname">cleanUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.modify_tb.TaModifyTopoBathy.cleanUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.modify_tb.TaModifyTopoBathy.createTemporaryFolder">
+<code class="descname">createTemporaryFolder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.modify_tb.TaModifyTopoBathy.createTemporaryFolder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.modify_tb.TaModifyTopoBathy.getParameters">
+<code class="descname">getParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.modify_tb.TaModifyTopoBathy.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.modify_tb.TaModifyTopoBathy.modifyWithFormula">
+<code class="descname">modifyWithFormula</code><span class="sig-paren">(</span><em>run_time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.modify_tb.TaModifyTopoBathy.modifyWithFormula" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.modify_tb.TaModifyTopoBathy.modifyWithMinAndMax">
+<code class="descname">modifyWithMinAndMax</code><span class="sig-paren">(</span><em>run_time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.modify_tb.TaModifyTopoBathy.modifyWithMinAndMax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.modify_tb.TaModifyTopoBathy.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.modify_tb.TaModifyTopoBathy.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.prepare_masks">
+<span id="terra-antiqua-core-prepare-masks-module"></span><h2>terra_antiqua.core.prepare_masks module<a class="headerlink" href="#module-terra_antiqua.core.prepare_masks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.prepare_masks.TaPrepareMasks">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.prepare_masks.</code><code class="descname">TaPrepareMasks</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.prepare_masks.TaPrepareMasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="terra_antiqua.core.base_algorithm.TaBaseAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.core.base_algorithm.TaBaseAlgorithm</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.core.prepare_masks.TaPrepareMasks.getParameters">
+<code class="descname">getParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.prepare_masks.TaPrepareMasks.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.prepare_masks.TaPrepareMasks.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.prepare_masks.TaPrepareMasks.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.remove_arts">
+<span id="terra-antiqua-core-remove-arts-module"></span><h2>terra_antiqua.core.remove_arts module<a class="headerlink" href="#module-terra_antiqua.core.remove_arts" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.remove_arts.TaFeatureSink">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.remove_arts.</code><code class="descname">TaFeatureSink</code><span class="sig-paren">(</span><em>crs</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaFeatureSink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaFeatureSink.cleanFeatureSink">
+<code class="descname">cleanFeatureSink</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaFeatureSink.cleanFeatureSink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaFeatureSink.createFeature">
+<code class="descname">createFeature</code><span class="sig-paren">(</span><em>geom</em>, <em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaFeatureSink.createFeature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaFeatureSink.createVectorLayer">
+<code class="descname">createVectorLayer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaFeatureSink.createVectorLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaFeatureSink.getVectorLayer">
+<code class="descname">getVectorLayer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaFeatureSink.getVectorLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.core.remove_arts.TaPolygonCreator">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.remove_arts.</code><code class="descname">TaPolygonCreator</code><span class="sig-paren">(</span><em>canvas</em>, <em>iface</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaPolygonCreator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qgis._gui.QgsMapToolEmitPoint</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaPolygonCreator.canvasPressEvent">
+<code class="descname">canvasPressEvent</code><span class="sig-paren">(</span><em>self</em>, <em>e: QgsMapMouseEvent</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaPolygonCreator.canvasPressEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.remove_arts.TaPolygonCreator.finished">
+<code class="descname">finished</code><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaPolygonCreator.finished" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.remove_arts.TaPolygonCreator.geom">
+<code class="descname">geom</code><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaPolygonCreator.geom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaPolygonCreator.removePolygons">
+<code class="descname">removePolygons</code><span class="sig-paren">(</span><em>rb</em>, <em>pnt</em>, <em>vrtx</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaPolygonCreator.removePolygons" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaPolygonCreator.showRubberband">
+<code class="descname">showRubberband</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaPolygonCreator.showRubberband" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.core.remove_arts.TaRemoveArtefacts">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.remove_arts.</code><code class="descname">TaRemoveArtefacts</code><span class="sig-paren">(</span><em>dlg</em>, <em>iface</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaRemoveArtefacts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="terra_antiqua.core.base_algorithm.TaBaseAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.core.base_algorithm.TaBaseAlgorithm</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaRemoveArtefacts.getTopoLayer">
+<code class="descname">getTopoLayer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaRemoveArtefacts.getTopoLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaRemoveArtefacts.prepareExpression">
+<code class="descname">prepareExpression</code><span class="sig-paren">(</span><em>H</em>, <em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaRemoveArtefacts.prepareExpression" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaRemoveArtefacts.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaRemoveArtefacts.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts.TaRemoveArtefacts.setInputLayer">
+<code class="descname">setInputLayer</code><span class="sig-paren">(</span><em>vl</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts.TaRemoveArtefacts.setInputLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.remove_arts_tooltip">
+<span id="terra-antiqua-core-remove-arts-tooltip-module"></span><h2>terra_antiqua.core.remove_arts_tooltip module<a class="headerlink" href="#module-terra_antiqua.core.remove_arts_tooltip" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.remove_arts_tooltip.TaRemoveArtefactsTooltip">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.remove_arts_tooltip.</code><code class="descname">TaRemoveArtefactsTooltip</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts_tooltip.TaRemoveArtefactsTooltip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QDialog</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Ui_Dialog</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts_tooltip.TaRemoveArtefactsTooltip.isShowable">
+<code class="descname">isShowable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts_tooltip.TaRemoveArtefactsTooltip.isShowable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.remove_arts_tooltip.TaRemoveArtefactsTooltip.setShowable">
+<code class="descname">setShowable</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.remove_arts_tooltip.TaRemoveArtefactsTooltip.setShowable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.set_pls">
+<span id="terra-antiqua-core-set-pls-module"></span><h2>terra_antiqua.core.set_pls module<a class="headerlink" href="#module-terra_antiqua.core.set_pls" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.set_pls.TaSetPaleoshorelines">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.set_pls.</code><code class="descname">TaSetPaleoshorelines</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.set_pls.TaSetPaleoshorelines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="terra_antiqua.core.base_algorithm.TaBaseAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.core.base_algorithm.TaBaseAlgorithm</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.core.set_pls.TaSetPaleoshorelines.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.set_pls.TaSetPaleoshorelines.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.settings">
+<span id="terra-antiqua-core-settings-module"></span><h2>terra_antiqua.core.settings module<a class="headerlink" href="#module-terra_antiqua.core.settings" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.settings.TaSettings">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.settings.</code><code class="descname">TaSettings</code><a class="headerlink" href="#terra_antiqua.core.settings.TaSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QSettings</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.settings.TaSettings.setTempValue">
+<code class="descname">setTempValue</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.settings.TaSettings.setTempValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.settings.TaSettings.tempValueChanged">
+<code class="descname">tempValueChanged</code><a class="headerlink" href="#terra_antiqua.core.settings.TaSettings.tempValueChanged" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.standard_proc">
+<span id="terra-antiqua-core-standard-proc-module"></span><h2>terra_antiqua.core.standard_proc module<a class="headerlink" href="#module-terra_antiqua.core.standard_proc" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.standard_proc.</code><code class="descname">TaStandardProcessing</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm" title="terra_antiqua.core.base_algorithm.TaBaseAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.core.base_algorithm.TaBaseAlgorithm</span></code></a></p>
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.calculateBathymetry">
+<code class="descname">calculateBathymetry</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.calculateBathymetry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates ocean depth from its age.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.copyPasteRaster">
+<code class="descname">copyPasteRaster</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.copyPasteRaster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.fillGaps">
+<code class="descname">fillGaps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.fillGaps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.getParameters">
+<code class="descname">getParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.isostaticCompensation">
+<code class="descname">isostaticCompensation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.isostaticCompensation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.setSeaLevel">
+<code class="descname">setSeaLevel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.setSeaLevel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.standard_proc.TaStandardProcessing.smoothRaster">
+<code class="descname">smoothRaster</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.standard_proc.TaStandardProcessing.smoothRaster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.terra_antiqua">
+<span id="terra-antiqua-core-terra-antiqua-module"></span><h2>terra_antiqua.core.terra_antiqua module<a class="headerlink" href="#module-terra_antiqua.core.terra_antiqua" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>/<strong>***********************************************************************</strong></dt>
+<dd><dl class="first docutils">
+<dt>Terra Antiqua</dt>
+<dd>A QGIS plugin</dd>
+</dl>
+<p>The Terra Antiqua plugin creates a paleogeographic map of a specific time.
+It modifies present day topography and bathymetry that is rotated to the time
+of reconstruction in Gplates with a set of masks that are also rotated in Gplates.</p>
+<blockquote>
+<div><blockquote>
+<div></div></blockquote>
+<p>begin                : 2019-03-18
+git sha              : $Format:%H$
+copyright            : (C) 2019 by Jovid Aminov
+email                : <a class="reference external" href="mailto:jovid&#46;aminov&#37;&#52;&#48;outlook&#46;com">jovid<span>&#46;</span>aminov<span>&#64;</span>outlook<span>&#46;</span>com</a></p>
+</div></blockquote>
+<p class="last"><strong>***********************************************************************</strong>/</p>
+</dd>
+<dt>/<strong>***********************************************************************</strong></dt>
+<dd><ul class="first simple">
+<li><ul class="first">
+<li></li>
+</ul>
+</li>
+<li>This program is free software; you can redistribute it and/or modify  *</li>
+<li>it under the terms of the GNU General Public License as published by  *</li>
+<li>the Free Software Foundation; either version 2 of the License, or     *</li>
+<li>(at your option) any later version.                                   *</li>
+<li><ul class="first">
+<li></li>
+</ul>
+</li>
+</ul>
+<p class="last"><strong>***********************************************************************</strong>/</p>
+</dd>
+</dl>
+<dl class="class">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.terra_antiqua.</code><code class="descname">TerraAntiqua</code><span class="sig-paren">(</span><em>iface</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.add_action">
+<code class="descname">add_action</code><span class="sig-paren">(</span><em>icon_path</em>, <em>text</em>, <em>callback</em>, <em>enabled_flag=True</em>, <em>add_to_menu=True</em>, <em>add_to_toolbar=True</em>, <em>status_tip=None</em>, <em>whats_this=None</em>, <em>parent=None</em>, <em>checkable=False</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.add_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a toolbar icon to the toolbar.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>icon_path</strong> (<em>str</em>) – Path to the icon for this action. Can be a resource
+path (e.g. ‘:/plugins/foo/bar.png’) or a normal file system path.</li>
+<li><strong>text</strong> (<em>str</em>) – Text that should be shown in menu items for this action.</li>
+<li><strong>callback</strong> (<em>function</em>) – Function to be called when the action is triggered.</li>
+<li><strong>enabled_flag</strong> (<em>bool</em>) – A flag indicating if the action should be enabled
+by default. Defaults to True.</li>
+<li><strong>add_to_menu</strong> (<em>bool</em>) – Flag indicating whether the action should also
+be added to the menu. Defaults to True.</li>
+<li><strong>add_to_toolbar</strong> (<em>bool</em>) – Flag indicating whether the action should also
+be added to the toolbar. Defaults to True.</li>
+<li><strong>status_tip</strong> (<em>str</em>) – Optional text to show in a popup when mouse pointer
+hovers over the action.</li>
+<li><strong>parent</strong> (<em>QWidget</em>) – Parent widget for the new action. Defaults None.</li>
+<li><strong>whats_this</strong> – Optional text to show in the status bar when the
+mouse pointer hovers over the action.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The action that was created. Note that the action is also
+added to self.actions list.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QAction</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initCompileTopoBathy">
+<code class="descname">initCompileTopoBathy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initCompileTopoBathy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Compile Topo/Bathymetry algotithm and loads it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initCreateTopoBathy">
+<code class="descname">initCreateTopoBathy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initCreateTopoBathy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Create Topography/Bathymetry algorithm and loads it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initGui">
+<code class="descname">initGui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initGui" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the menu entries and toolbar icons inside the QGIS GUI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initModifyTopoBathy">
+<code class="descname">initModifyTopoBathy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initModifyTopoBathy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Modify Topo/Bathymetry algorithm and loads it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initPrepareMasks">
+<code class="descname">initPrepareMasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initPrepareMasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Prepare masks algorithm and loads it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initRemoveArtefacts">
+<code class="descname">initRemoveArtefacts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initRemoveArtefacts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Remove artefacts algorithm and activates it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initSetPaleoShorelines">
+<code class="descname">initSetPaleoShorelines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initSetPaleoShorelines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Set Paleoshorelines algorithm and loads it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.initStandardProcessing">
+<code class="descname">initStandardProcessing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.initStandardProcessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Standard processing algorithm set and loads it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.tr">
+<code class="descname">tr</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the translation for a string using Qt translation API.</p>
+<p>We implement this ourselves since we do not inherit QObject.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> (<em>str</em><em>, </em><em>QString</em>) – String for translation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Translated version of message.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">QString</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.unload">
+<code class="descname">unload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.unload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the plugin menu item and icon from QGIS GUI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.terra_antiqua.TerraAntiqua.updatePluginSettings">
+<code class="descname">updatePluginSettings</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua.updatePluginSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core.utils">
+<span id="terra-antiqua-core-utils-module"></span><h2>terra_antiqua.core.utils module<a class="headerlink" href="#module-terra_antiqua.core.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="terra_antiqua.core.utils.TaFeedbackOld">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">TaFeedbackOld</code><a class="headerlink" href="#terra_antiqua.core.utils.TaFeedbackOld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<dl class="attribute">
+<dt id="terra_antiqua.core.utils.TaFeedbackOld.finished">
+<code class="descname">finished</code><a class="headerlink" href="#terra_antiqua.core.utils.TaFeedbackOld.finished" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.core.utils.TaProgressImitation">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">TaProgressImitation</code><span class="sig-paren">(</span><em>total</em>, <em>total_time</em>, <em>finish_signal</em>, <em>feedback</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QThread</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.utils.TaProgressImitation.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation.finish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="terra_antiqua.core.utils.TaProgressImitation.finished">
+<code class="descname">finished</code><em class="property"> = False</em><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation.finished" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="terra_antiqua.core.utils.TaProgressImitation.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terra_antiqua.core.utils.TaVectorFileWriter">
+<em class="property">class </em><code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">TaVectorFileWriter</code><a class="headerlink" href="#terra_antiqua.core.utils.TaVectorFileWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qgis._core.QgsVectorFileWriter</span></code></p>
+<dl class="method">
+<dt id="terra_antiqua.core.utils.TaVectorFileWriter.writeToShapeFile">
+<code class="descname">writeToShapeFile</code><span class="sig-paren">(</span><em>fileName: str</em>, <em>fileEncoding: str</em>, <em>destCRS: qgis._core.QgsCoordinateReferenceSystem</em>, <em>driverName: str) -&gt; (&lt;class 'qgis._core.QgsVectorFileWriter.WriterError'&gt;</em>, <em>&lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaVectorFileWriter.writeToShapeFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to make writing to shapefiles compatible beteen Qgis version &gt;3.10 and &lt;3.10.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.addRasterLayerForDebug">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">addRasterLayerForDebug</code><span class="sig-paren">(</span><em>array</em>, <em>geotransform</em>, <em>iface</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.addRasterLayerForDebug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.addVectorLayerForDebug">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">addVectorLayerForDebug</code><span class="sig-paren">(</span><em>vlayer</em>, <em>iface</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.addVectorLayerForDebug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.assignUniqueIds">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">assignUniqueIds</code><span class="sig-paren">(</span><em>vlayer</em>, <em>feedback</em>, <em>run_time</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.assignUniqueIds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.bufferAroundGeometries">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">bufferAroundGeometries</code><span class="sig-paren">(</span><em>in_layer</em>, <em>buf_dist</em>, <em>num_segments</em>, <em>feedback</em>, <em>runtime_percentage</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.bufferAroundGeometries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates buffer around polygon geometries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>in_layer</strong> – QgsVectorLayer or QgsFeatureItterator</li>
+<li><strong>buf_dist</strong> – int Buffer distance</li>
+<li><strong>num_segments</strong> – Number of segments (int) used to approximate curves</li>
+<li><strong>feedback</strong> – a TaFeedback object to report feedback into log tab</li>
+<li><strong>runtime_percentage</strong> – Percentage of runtime (int) to report progress</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.fillNoData">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">fillNoData</code><span class="sig-paren">(</span><em>in_layer</em>, <em>out_file_path=None</em>, <em>no_data_value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.fillNoData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills the missing data by interpolating from edges.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_layer</strong> – QgsRasterLayer</li>
+<li><strong>no_data_value</strong> – NoDataValue of the input layer. These values to be set to np.nan   during the interpolation.</li>
+<li><strong>vlayer</strong> – A vector layer with masks for interpolating only inside masks</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">String - the path of the output file.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.fillNoDataInPolygon">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">fillNoDataInPolygon</code><span class="sig-paren">(</span><em>in_layer</em>, <em>poly_layer</em>, <em>out_file_path=None</em>, <em>no_data_value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.fillNoDataInPolygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills the missing data by interpolating from edges.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_layer</strong> – Input raster layer in which the empty cells are filled with interpolation (IDW). Type: QgsRasterLayer.</li>
+<li><strong>poly_layer</strong> – A vector layer with polygon masks that are used to interpolate values inside them. Type: QgsVectorLayer.</li>
+<li><strong>out_file_path</strong> – A path for the output raster layer, filled. Type: str.</li>
+<li><strong>no_data_value</strong> – NoDataValue of the input layer. These values to be set to np.nan   during the interpolation. Type: Number (Double, Int, Float…) or numpy.nan.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">String - the path of the output file.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.generateUniqueIds">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">generateUniqueIds</code><span class="sig-paren">(</span><em>vlayer</em>, <em>id_field</em><span class="sig-paren">)</span> &#x2192; qgis._core.QgsVectorLayer<a class="headerlink" href="#terra_antiqua.core.utils.generateUniqueIds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.install_package">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">install_package</code><span class="sig-paren">(</span><em>package</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.install_package" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.isPathValid">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">isPathValid</code><span class="sig-paren">(</span><em>path: str</em>, <em>output_type: str</em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#terra_antiqua.core.utils.isPathValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the specified output path is valid and accessible. Returns True, if the path is a file path and writable. False otherwise.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.loadHelp">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">loadHelp</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.loadHelp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.modFormula">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">modFormula</code><span class="sig-paren">(</span><em>in_array</em>, <em>formula</em>, <em>min=None</em>, <em>max=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.modFormula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies elevation values given a formula.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>(</strong><strong>numpy array</strong><strong>)</strong> (<em>in_array</em>) – an input array that contains elevation values.</li>
+<li><strong>formula</strong> – the formula to be used for topography modification.</li>
+<li><strong>mask_array</strong> – mask that will be used to subset area of the raster (input array) for modification.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy array of modified elevation values.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.modMinMax">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">modMinMax</code><span class="sig-paren">(</span><em>in_array</em>, <em>fmin: int</em>, <em>fmax: int</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.modMinMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the elevation/bathimetry values based on the current and provided
+minimum and maximum values.  This is basically flattening and roughening.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_array</strong> – input numpy array for modification.</li>
+<li><strong>fmin</strong> – final minimum value of elevation/bathymetry.</li>
+<li><strong>fmax</strong> – final maximum value of elevation/bathymetry.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.modRescale">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">modRescale</code><span class="sig-paren">(</span><em>in_array</em>, <em>min: int</em>, <em>max: int</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.modRescale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the elevation/bathimetry
+values based on the current and provided
+minimum and maximum values.
+This is basically flattening and roughening.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_array</strong> – input numpy array for modification.</li>
+<li><strong>fmin</strong> – final minimum value of elevation/bathymetry.</li>
+<li><strong>fmax</strong> – final maximum value of elevation/bathymetry.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.polygonOverlapCheck">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">polygonOverlapCheck</code><span class="sig-paren">(</span><em>vlayer</em>, <em>selected_only=False</em>, <em>feedback=None</em>, <em>run_time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.polygonOverlapCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.polygonsToPolylines">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">polygonsToPolylines</code><span class="sig-paren">(</span><em>in_layer</em>, <em>out_layer_path: str</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.polygonsToPolylines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts polygons to polylines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>out_layer_path</strong> – the path to store the layer with polylines.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">QgsVectorLayer.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.polylinesToPolygons">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">polylinesToPolygons</code><span class="sig-paren">(</span><em>in_layer: qgis._core.QgsVectorLayer</em>, <em>feedback: terra_antiqua.core.logger.TaFeedback</em><span class="sig-paren">)</span> &#x2192; qgis._core.QgsVectorLayer<a class="headerlink" href="#terra_antiqua.core.utils.polylinesToPolygons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates polygon feature from the points of line features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_layer</strong> – Input vector layer.</li>
+<li><strong>feedback</strong> – A feedback object to show progress and log info.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#terra_antiqua.core.logger.TaFeedback" title="terra_antiqua.core.logger.TaFeedback">TaFeedback</a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">QgsVectorLayer</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.randomPointsInPolygon">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">randomPointsInPolygon</code><span class="sig-paren">(</span><em>source</em>, <em>point_density</em>, <em>min_distance</em>, <em>feedback</em>, <em>runtime_percentage</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.randomPointsInPolygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates random points inside polygons.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source</strong> – input vector layer with polygon features, inside which the random points will be created.</li>
+<li><strong>point_density</strong> – the density of points to be created inside polygons. Number of points to be created will be calculated with the following formula: Pnumber = Pdensity * PolygonArea.</li>
+<li><strong>min_distance</strong> – Minimum distance that will be kept between created points.</li>
+<li><strong>feedback</strong> – a feedback object to provide progress and other info to user. For now a Qthread object is passed to use its pyqtsignals, functions and attributes for feedback purposes.</li>
+<li><strong>runtime_percentage</strong> – time that this part of the algorithm will take (this function is run inside an algorithm e.g. Feature Creator) in percent (e.g. 10%)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.rasterSmoothing">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">rasterSmoothing</code><span class="sig-paren">(</span><em>in_layer</em>, <em>filter_type</em>, <em>factor</em>, <em>out_file=None</em>, <em>feedback=None</em>, <em>runtime_percentage=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.rasterSmoothing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smoothes values of pixels in a raster  by implementing a low-pass filter  such as gaussian or uniform (mean filter)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>in_layer</strong> – input raster layer (QgsRasterLayer) for smoothing</li>
+<li><strong>factor</strong> – factor that is used define the size of a kernel used (e.g. 3x3, 5x5 etc).</li>
+<li><strong>out_file</strong> – String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will be written in a new raster, otherwise the old raster will be updated.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:return:QgsRasterLayer. Smoothed raster layer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.refactorFields">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">refactorFields</code><span class="sig-paren">(</span><em>in_layer</em>, <em>layer2</em>, <em>out_layer_name</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.refactorFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.setRasterSymbology">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">setRasterSymbology</code><span class="sig-paren">(</span><em>in_layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.setRasterSymbology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a color palette to a raster layer. It does not add the raster layer to the Map canvas. Before passing a layer to this function, it should be added to the map canvas.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.setVectorSymbology">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">setVectorSymbology</code><span class="sig-paren">(</span><em>in_layer</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.setVectorSymbology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders symbology for the input vector layer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>in_layer</strong> (<em>QgsVectorLayer.</em>) – input vector layer for rendering symbology.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.vectorToRaster">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">vectorToRaster</code><span class="sig-paren">(</span><em>in_layer</em>, <em>geotransform</em>, <em>width</em>, <em>height</em>, <em>feedback=None</em>, <em>field_to_burn=None</em>, <em>no_data=None</em>, <em>burn_value=None</em>, <em>output_path=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.vectorToRaster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rasterizes a vector layer and returns a numpy array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>field_to_burn</strong> – A specific field from attributes table to get values to burn. This can be a field with depth or elevation values.</li>
+<li><strong>no_data</strong> – No data value. It can be NAN, zero or any other value.</li>
+<li><strong>burn_value</strong> – A fixed value to burn in the raster.</li>
+<li><strong>geotransform</strong> – geotransform for the resulting raster layer. Can accept geotransform (raster_ds.GetGeotransform()) extent (raster_layer.extent()) and QgsRasterLayer.</li>
+<li><strong>width</strong> – number of columns in the raster. Should be consistent with the raster that the masks will deployed on.</li>
+<li><strong>height</strong> – number of rows in the raster. Should be consistent with the raster that the masks will deployed on.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Numpy array.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="terra_antiqua.core.utils.vectorToRasterOld">
+<code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">vectorToRasterOld</code><span class="sig-paren">(</span><em>in_layer</em>, <em>geotransform</em>, <em>ncols</em>, <em>nrows</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.vectorToRasterOld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rasterizes a vector layer and returns a numpy array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>geotransform</strong> – geotransform for the resulting raster layer.</li>
+<li><strong>ncols</strong> – number of columns in the raster. Should be consistent with the raster that the masks will deployed on.</li>
+<li><strong>nrows</strong> – number of rows in the raster. Should be consistent with the raster that the masks will deployed on.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Numpy array.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-terra_antiqua.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-terra_antiqua.core" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Jovid Aminov.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
