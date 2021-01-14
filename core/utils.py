@@ -63,6 +63,7 @@ from .logger import TaFeedback
 def fillNoData(in_layer, out_file_path=None, no_data_value=None):
     """
     Fills the missing data by interpolating from edges.
+
     :param in_layer: QgsRasterLayer
     :param no_data_value: NoDataValue of the input layer. These values to be set to np.nan   during the interpolation.
     :param vlayer: A vector layer with masks for interpolating only inside masks
@@ -146,6 +147,7 @@ def fillNoData(in_layer, out_file_path=None, no_data_value=None):
 def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=None):
     """
     Fills the missing data by interpolating from edges.
+
     :param in_layer: Input raster layer in which the empty cells are filled with interpolation (IDW). Type: QgsRasterLayer.
     :param poly_layer: A vector layer with polygon masks that are used to interpolate values inside them. Type: QgsVectorLayer.
     :param out_file_path: A path for the output raster layer, filled. Type: str.
@@ -245,6 +247,7 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
 def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None, runtime_percentage=None):
     """
     Smoothes values of pixels in a raster  by implementing a low-pass filter  such as gaussian or uniform (mean filter)
+
     :param in_layer: input raster layer (QgsRasterLayer) for smoothing
     :param factor: factor that is used define the size of a kernel used (e.g. 3x3, 5x5 etc).
     :param out_file: String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will be written in a new raster, otherwise the old raster will be updated.
@@ -377,6 +380,7 @@ def setRasterSymbology(in_layer):
 def setVectorSymbology(in_layer):
     """
     Renders symbology for the input vector layer.
+
     :param in_layer: input vector layer for rendering symbology.
     :type in_layer: QgsVectorLayer.
     """
@@ -428,12 +432,10 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
     """
     Rasterizes a vector layer and returns a numpy array.
 
-    :param field_to_burn: A specific field from attributes table to get values to burn. This can be a field with
-    depth or elevation values.
+    :param field_to_burn: A specific field from attributes table to get values to burn. This can be a field with depth or elevation values.
     :param no_data: No data value. It can be NAN, zero or any other value.
     :param burn_value: A fixed value to burn in the raster.
-    :param geotransform: geotransform for the resulting raster layer. Can accept geotransform (raster_ds.GetGeotransform())
-    extent (raster_layer.extent()) and QgsRasterLayer.
+    :param geotransform: geotransform for the resulting raster layer. Can accept geotransform (raster_ds.GetGeotransform()) extent (raster_layer.extent()) and QgsRasterLayer.
     :param width: number of columns in the raster. Should be consistent with the raster that the masks will deployed on.
     :param height: number of rows in the raster. Should be consistent with the raster that the masks will deployed on.
     :return: Numpy array.
@@ -564,7 +566,13 @@ def polygonsToPolylines(in_layer, out_layer_path: str):
     return polylines_layer
 
 def polylinesToPolygons(in_layer:QgsVectorLayer, feedback:TaFeedback)->QgsVectorLayer:
-    """Creates polygon feature from the points of line features."""
+    """Creates polygon feature from the points of line features.
+
+    :param in_layer: Input vector layer.
+    :param feedback: A feedback object to show progress and log info.
+    :type: TaFeedback
+    :return: QgsVectorLayer
+    """
     features = in_layer.getFeatures()
     assert in_layer.featureCount() >0, "The input layer is empty."
     polygonFeatures = []
@@ -655,14 +663,13 @@ def refactorFields(in_layer, layer2, out_layer_name):
 
 def modMinMax(in_array, fmin: int, fmax: int):
     """
-    Modifies the elevation/bathimetry
-    values based on the current and provided
-    minimum and maximum values.
-    This is basically flattening and roughening.
+    Modifies the elevation/bathimetry values based on the current and provided
+    minimum and maximum values.  This is basically flattening and roughening.
+
     :param in_array: input numpy array for modification.
     :param fmin: final minimum value of elevation/bathymetry.
     :param fmax: final maximum value of elevation/bathymetry.
-    :return: modified array of eleveation/bathymetry values.
+    :return: numpy.array
     """
 
     # Define the initial minimum and maximum values of the array
@@ -680,10 +687,11 @@ def modRescale(in_array, min: int, max: int):
     values based on the current and provided
     minimum and maximum values.
     This is basically flattening and roughening.
+
     :param in_array: input numpy array for modification.
     :param fmin: final minimum value of elevation/bathymetry.
     :param fmax: final maximum value of elevation/bathymetry.
-    :return: modified array of eleveation/bathymetry values.
+    :return: numpy.array
     """
 
     # Define the initial minimum and maximum values of the array
@@ -699,7 +707,9 @@ def modRescale(in_array, min: int, max: int):
 
 def modFormula(in_array, formula, min=None, max=None):
         """
-        :input in_array (numpy array): an input array that contains elevation values.
+        Modifies elevation values given a formula.
+
+        :param in_array (numpy array): an input array that contains elevation values.
         :param formula: the formula to be used for topography modification.
 
         :param mask_array: mask that will be used to subset area of the raster (input array) for modification.
@@ -824,6 +834,7 @@ def generateUniqueIds(vlayer, id_field) -> QgsVectorLayer:
 def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime_percentage):
     """
     Creates random points inside polygons.
+
     :param source: input vector layer with polygon features, inside which the random points will be created.
     :param point_density: the density of points to be created inside polygons. Number of points to be created will be calculated with the following formula: Pnumber = Pdensity * PolygonArea.
     :param min_distance: Minimum distance that will be kept between created points.
@@ -934,6 +945,7 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
 
 def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_percentage):
     """Creates buffer around polygon geometries.
+
     :param in_layer: QgsVectorLayer or QgsFeatureItterator
     :param buf_dist: int Buffer distance
     :param num_segments: Number of segments (int) used to approximate curves

@@ -231,8 +231,11 @@ class TaSpinBox(QtWidgets.QWidget):
     def setDataType(self, dataType:str):
         """Sets the type of data set in SpinBox. Must be called before
         initOverrideButton. Accepts Integer and Double.
-        :param dataType: A string defining the data type for the spinbox. Can be
-        integer or double.
+
+        :dataType: A string defining the data type for the spinbox. Can be 'integer' or 'double'.
+
+        :type: str
+
         """
         self.dataType = dataType
 
