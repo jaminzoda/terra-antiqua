@@ -48,13 +48,17 @@ class TaTableWidget(QtWidgets.QTableWidget):
 
     def moveRowDown(self):
         row = self.currentRow()
+        print(f"Current row: {row}")
         column = self.currentColumn()
-        if row < self.rowCount()-1:
+        if row < self.rowCount()-1 and self.rowCount()>1:
             self.insertRow(row+2)
+            print(f"Inserted a row at {row}")
             for i in range(self.columnCount()):
-               self.setCellWidget(row+2,i,self.cellWidget(row,i))
-               self.setCurrentCell(row+2,column)
+                print("Switching widgets")
+                self.setCellWidget(row+2,i,self.cellWidget(row,i))
+                self.setCurrentCell(row+2,column)
             self.removeRow(row)
+            print(f"Removed row at {row}")
 
     def moveRowUp(self):
         row = self.currentRow()

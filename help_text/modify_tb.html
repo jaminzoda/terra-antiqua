@@ -5,41 +5,40 @@
 <title> Modify Topography </title>
 <body>
     <p>
-    This tool allows to modify the elevation values of a topography/bathymetry raster in a given area. That area must be defined by a mask contained in a vector file <i>(Shapefile; .shp)</i>.
+    This tool allows to modify the elevation values of a topography/bathymetry raster in a given area. The area to be modified must be defined by a mask contained in a vector file <i>(Shapefile; .shp)</i>.
     </p>
     
-    <p>
-    <h4>I- Input layers</h4><br/>
-    Select the <b><i>topography raster </b></i>(DEM) you want to edit and the <b><i>vector layer containing the masks</b></i> of the areas to be modified.<br/>
-    Tick the box to use all the masks contained in the vector file for the topography modification.<br/>
     
-<div>
-        Alternatively, you may specify a single mask by selecting (in the dropdown menu) the column which contains its name. The name of the mask should then be specified in the text box.
- </div>
+    <h4>I- Input layers</h4>
+    <p>
+    Select the <b><i>topography raster </b></i>(DEM) you want to edit and the <b><i>vector layer containing the masks</b></i> of the areas to be modified.If you want to modify the DEM using only certain masks, you can select these masks on the map canvas and then check the <i><b>Selected features only</i></b> checkbox.</p>
+     
                 
-<p>
-    <h4>II- Parameters for the topography modification</h4><br/>
-    
-    The topography modification must be performed in one of the two following ways:<br/>
-   <p> <b>Field - <i>Use minimum and maximum values</i></b> <br/>
-    This will linearly rescale the topography and bathymetry (see manual).<br/>
-   You need to specify the minimum and maximum elevation of the resulting topography. These can be taken automatically from the attribute table (please specify the fields), or you can enter them manually in the text boxes.
+
+    <h4>II- Parameters for the topography modification</h4>
     <p>
-    <b> Field - <i>Use formula for topography modification</b></i><br/>
-  
-    If you have a formula of your own, enter the formula in the text field or, if it is in the attribute table (eg. it’s different for each mask), please select the corresponding column.<br/>
+        The topography modification can be performed in one of the two following ways:
+    </p>
+     <p>
+    <b> <i>Modify with formula:</b></i><br/>
+      If you have a formula, enter the formula in the text field or, if it is in the attribute table (eg. it’s different for each mask), please select the corresponding column by pressing the button on the right side of the formula field and selecting a field under the <i>Field type</i> menu.<br/>
+      <b>Note:</b> A mask layer (vector) must be selected first in order for the fields appear under the menu of the button on the right. <br/>
     The formula must include <b>x</b>, which will correspond to the original
     elevation value (e.g. <b>x*3</b> to multiply all the values by three).
     Arithmetical operators must be explicitly defined. Operations like 2x will not
     work.
-<div>        You may enter a minimum and maximum bounding values or choose to take them automatically from the attribute table. These are constraining the range of elevation that will be modified.</div>
-<p><h4>Output</h4><br/>
+<div>        You may enter a minimum and maximum bounding values or choose to take them automatically from the attribute table (Button on the right side). These are constraining the range of elevation that will be modified.</div>
+
+   <p> <b> <i>Rescale with final minimum and maximum values</i></b> <br/>
+    This will linearly rescale the topography and bathymetry.<br/>
+   You need to specify the final minimum and maximum elevation of the resulting topography. These can be taken automatically from the attribute table (please specify the fields), or you can enter them manually in the text boxes.
+   
+<p>
 <b>Specify the <i>Output file path</i>.</b><br>
 If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div> </br>
-    <p>Note: This tool is beeing redesigned for v0.3 of Terra Antiqua</p>
-</p>
+    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div> </br>
+   </p>
 
 </body>
 </html>

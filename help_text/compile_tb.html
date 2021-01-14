@@ -6,52 +6,28 @@
 
 <body>
 <p>
-	The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. This may be done differently depending on which files are available.
+	The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. The combined topography and bathymetry raster may be compiled from multiple source layers.
 
 <p>
-<div>The fields marked with a <b>*</b> are mandatory.</div>
-
-<p>
-    <h4>I- Masks</h4><br/>
-<b>Field - <i>Continental Blocks</i></b><br/> To perform the compilation you need, within a layer, the set of vector polygons of the tectonic blocks rotated back to the time of reconstruction.
+    
+ The <b><i>Mask layer</i></b> parameter introduces a layer with masks (a set of vector polygons) that will be used to constrain the spatial extent of the data in the source raster layers, which will be compiled. This mask layer may contain several categories of masks that can be applied to different source layers. When a mask layer is selected, a category column will appear in the table below, in which a category can be assigned to each layer. The <b><i>Mask layer</i></b> must have a column with a name "Category" (case insensitive) populated with category names (e.g. "Continents", "Continetal Shelf" etc. ).<br/> 
 </p>
 
 <p>
-	 <h4> II- Topography raster</h4><br/>
-     
-     <b> Field - <i> Bedrock topography</i> </b><br/> Enter the raster containing the topography (ETOPO).<br/>
-     <div><p style='color:red'>For ice sheets, you need the bedrock topography. If you have data for the ice topography, you may perform an isostatic compensation using the "standard processing tools".</p></div>
-</p>
-<p>
-	<h4> III- Bathymetry rasters</h4><br/>
-
-    
-    <b>Field -<i> Reconstructed paleobathymetry</i> </b> <br/> Select your bathymetry file, already reconstructed to the desired time (eg. Mueller et al. 2008).<br/>
-    <p>
-    <div> If you select datasets for the optional fields below, they will be used to reconstruct the paleobathymetry, and the data from the raster entered as <i> reconstructed paleobathymetry</i> will only be used to fill in the gaps. Please refer to the manual for more info.</div> <br/>
-    
-    <b> Field (optional) - <i>Ocean age</i> </b><br/> If you have a present day ocean age raster, select it from the list.  It must be rotated to its position at the time of reconstruction.
-   You will have to specify the <i><b>age of the reconstruction (Ma)</b></i> in the corresponding field. This will be used to calculate the paleobathymetry.<br/>
-    
-    <b> Field (optional) - <i>Shallow sea bathymetry</i> </b> <br/> If you have a present day shallow bathymetry raster, enter it here (rotated to its position at the time of reconstruction).
-    You will have to specify a <b><i>maximum depth (in m) for the continental shelf</i></b>.
-
-    </p>
-<p>
-<h4> Advanced parameters</h4><br/>
-
-In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. If you choose to <b><i>remove overlapping bathymetry</i></b>, a buffer zone will be created around the continental blocks to avoid bathymetry values appearing accidentally within continents.
+In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. The <b><i>Remove overlapping bathymetry</i></b> parameter is used to remove this overlapping bathymetry. If you check the <b><i>remove overlapping bathymetry</i></b> parameter, a buffer zone with a distance of 0.5 degrees will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. The removed pixel values can then be interpolated. For this parameter to work, a mask layer should be selected and a category should be assigned to a topography layer. <br/>
 </p>
 
 <p>
-	<h4> Output</h4><br/>
-    
+	 The <i><b>Input layer</i></b> parameter in the table specifies the source layers that should be compiled into a combined raster layer with topography and bathymetry. The order in which the layers should be specified is important. The layers specified first (top layers) will be of higher order and will remove the overlapping topography or bathymetry of underlying layers. If a <i><b>Mask layer</i></b> is selected, the <i><b>Category</i></b> parameter will appear that associates a mask category to each source layer. The vector polygons of the specified category will be retrieved from the <i><b> Mask layer</i></b>, rasterized and used for compiling data from the associated source layer. 
+</p>
+
+<p>
+	    
     <b>Specify the <i>Output file path</i>.</b><br>
-    If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+    If there is no path specified, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
   
     <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-    II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div> </br>
-       <p>Note: This tool is beeing redesigned for v0.3 of Terra Antiqua</p>
+    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time.</div> </br>
 </p>
 </body>
 </html>

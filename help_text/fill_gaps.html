@@ -6,25 +6,29 @@
     
     <body>
         <p>
-        <b>Field - <i>How would you like to process the DEM</i></b>:<br/>
+        <b><i>How would you like to process the DEM</i></b>:<br/>
         Choose the processing tool you want to use.
         <p>
-<i>Fill gaps</i> is intended to interpolate values for gaps between rotated tectonic blocks. It generates elevation data in each empty pixel by averaging pixel values around it, using inverse distance weighting. Please refer to the manual to know when to use it in your specific case.
+<i>Fill gaps</i> is intended to interpolate values for gaps between rotated tectonic blocks. It generates elevation data
+in each empty pixel by interpolatinf from pixel values around it, using inverse distance weighting. 
 <p>
-<b>Field - <i>Raster to be modified (Input)</i></b>:<br/> Choose the raster (topography and bathymetry DEM) where you want to perform the interpolation.
+<b><i>Raster to be modified (Input)</i></b>:<br/> Choose the raster (topography and bathymetry DEM) where you want to perform the interpolation.
 
-<br>If you tick the box <i><b>Interpolate inside polygons</b></i>, the interpolation will be constrained to the <i><b>masks</b></i> you select. </div>
+<br>If you check <i><b>Interpolate inside polygons</b></i> checkbox, the interpolation will be constrained to the <i><b>masks</b></i> you select. </div>
 <p>
-<b>Field - <i>Smooth resulting raster</i></b>:<br/>
-If you tick this box the resulting raster will be smoothed. This means that the sharp edges will be less pronounced (see manual).
-<br/>You may also specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. <br/>The higher the factor the smoother will the resulting raster be.
+<b><i>Smooth resulting raster</i></b>:<br/>
+Checking this checkbox will smooth the resulting raster. This means that the sharp edges will be less pronounced.<br/>
+For now two different <b><i>Smoothing types</i></b> are available: Gaussian filter and Uniform filter. 
+<br/>You may also specify a <b><i>smoothing factor</i></b>, which represents the radius around a given pixel that will
+be taken into consideration. <br/>The higher the factor, the smoother will the resulting raster be.
 <div> Please be aware that smoothing may take 5 to 10 minutes, depending on the system. A higher smoothing factor will increase the processing time.</div>
 <p>
 <b>Specify the <i>Output file path</i>.</b><br>
-If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+If there is no path specified here, the output file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 
 <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+    <b>Note:</b>If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid
+this, specify a different file path each time</div>
 </p>
     </body>
     </html>

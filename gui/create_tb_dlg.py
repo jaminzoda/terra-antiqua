@@ -17,29 +17,29 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
         self.masksBox.layerChanged.connect(self.setFieldsInLayer)
 
     def defineParameters(self):
-        self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox, "Raster to be modified", "TaMapLayerComboBox")
-        self.masksBox = self.addMandatoryParameter(TaVectorLayerComboBox, "Layer with feature polygons", "TaMapLayerComboBox")
+        self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox, "Raster to be modified:", "TaMapLayerComboBox")
+        self.masksBox = self.addMandatoryParameter(TaVectorLayerComboBox, "Layer with feature polygons:", "TaMapLayerComboBox")
         self.selectedFeaturesBox = self.addParameter(TaCheckBox, "Selected features only")
         self.selectedFeaturesBox.registerLinkedWidget(self.masksBox)
-        self.featureTypeBox = self.addParameter(QComboBox, "Geographic feature type")
+        self.featureTypeBox = self.addParameter(QComboBox, "Geographic feature type:")
         self.featureTypeBox.addItems(["Sea", "Mountain range"])
 
         #Parameters for sea creation
         self.maxDepth= self.addVariantParameter(TaSpinBox, "Sea",
-                                                "Maximum sea depth (in m)")
+                                                "Maximum sea depth (in m):")
         self.maxDepth.spinBox.setValue(-5750)
         self.minDepth= self.addVariantParameter(TaSpinBox, "Sea",
-                                                    "Minimum sea depth (in m)")
+                                                "Minimum sea depth (in m):")
         self.minDepth.spinBox.setValue(-4000)
         self.shelfDepth= self.addVariantParameter(TaSpinBox, "Sea",
-                                                "Maximum shelf depth (in m)")
+                                                  "Maximum shelf depth (in m):")
         self.shelfDepth.spinBox.setValue(-200)
         self.shelfWidth= self.addVariantParameter(TaSpinBox, "Sea",
-                                                "Shelf width (in km)")
+                                                  "Shelf width (in km):")
         self.shelfWidth.spinBox.setValue(150)
         self.shelfWidth.setAllowedValueRange(0, 1000)
         self.contSlopeWidth= self.addVariantParameter(TaSpinBox, "Sea",
-                                        "Width of continental slope (in km)")
+                                                      "Width of continental slope (in km):")
         self.contSlopeWidth.spinBox.setValue(100)
         self.contSlopeWidth.setAllowedValueRange(0, 1000)
 

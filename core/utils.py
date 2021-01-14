@@ -933,13 +933,25 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
     return points_layer
 
 def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_percentage):
+    """Creates buffer around polygon geometries.
+    :param in_layer: QgsVectorLayer or QgsFeatureItterator
+    :param buf_dist: int Buffer distance
+    :param num_segments: Number of segments (int) used to approximate curves
+    :param feedback: a TaFeedback object to report feedback into log tab
+    :param runtime_percentage: Percentage of runtime (int) to report progress
+    """
+
     feats = in_layer.getFeatures()
+
     buffer_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
     fixed_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
     dp = buffer_layer.dataProvider()
     dp_fixed = fixed_layer.dataProvider()
-    total = runtime_percentage/fixed_layer.featureCount() if fixed_layer.featureCount() else 0
+    total = runtime_percentage/in_layer.featureCount() if in_layer.featureCount() else 0
+    progress = 0
     for current, feat in enumerate(feats):
+        if feedback.canceled:
+            break
         geom_in = feat.geometry()
         fixed_geom = geom_in.makeValid()
         buf = fixed_geom.buffer(buf_dist, num_segments)
@@ -948,8 +960,10 @@ def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_p
         buf_feat.setGeometry(buf)
         dp.addFeature(buf_feat)
         dp_fixed.addFeature(feat)
-        feedback.progress_count += current*total
-        feedback.progress.emit(feedback.progress_count)
+        progress += total
+        if progress>=1:
+            feedback.progress += int(progress)
+            progress = 0
     dp = None
     dp_fixed = None
     params = {
@@ -1105,17 +1119,17 @@ class TaVectorFileWriter(QgsVectorFileWriter):
 
         # Check if the file is already created. Acts like overwrite
         if os.path.exists(fileName):
-            deleted = QgsVectorFileWriter.deleteShapeFile(fileName)
+            deleted = TaVectorFileWriter.deleteShapeFile(fileName)
             if not deleted:
                 raise Exception("Could not delete shapefile {}.".format(fileName))
         try:
-            error = QgsVectorFileWriter.writeAsVectorFormat(layer, fileName, fileEncoding, destCRS, driverName)
+            result = TaVectorFileWriter.writeAsVectorFormat(layer, fileName, fileEncoding, destCRS, driverName)
         except Exception:
             context = QgsCoordinateTransformContext()
             context.addCoordinateOperation(destCRS, destCRS, destCRS.toProj())
-            options = QgsVectorFileWriter.SaveVectorOptions()
+            options = TaVectorFileWriter.SaveVectorOptions()
             options.driverName = driverName
-            error = QgsVectorFileWriter.writeAsVectorFormat2(layer, fileName, context, options)
-        return error
+            result= TaVectorFileWriter.writeAsVectorFormat2(layer, fileName, context, options)
+        return result
 
 

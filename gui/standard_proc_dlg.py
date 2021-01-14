@@ -105,7 +105,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
         #Parameters for Setting sea level
         self.seaLevelShiftBox = self.addVariantParameter(QgsSpinBox,
                                                          "Set new sea level",
-                                                         "Amount of sea level shift:")
+                                                         "Amount of sea level shift (m):")
         self.seaLevelShiftBox.setMinimum(-1000)
         self.seaLevelShiftBox.setMaximum(1000)
         self.seaLevelShiftBox.setValue(100)

@@ -16,11 +16,11 @@ class TaSetPaleoshorelinesDlg(TaBaseDialog):
 
         self.baseTopoBox = self.addMandatoryParameter(
             TaRasterLayerComboBox,
-            "Raster to be modifiied (input)",
+            "Raster to be modifiied (input):",
             "TaMapLayerComboBox")
         self.masksBox = self.addMandatoryParameter(
             TaVectorLayerComboBox,
-            "Rotated paleoshorelines",
+            "Rotated paleoshorelines:",
             "TaMapLayerComboBox")
 
         self.modeLabel = self.addParameter(

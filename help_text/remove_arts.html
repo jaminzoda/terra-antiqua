@@ -9,18 +9,21 @@
         
         The (Digital Elevation Models) DEMs often contain artefacts introduced mostly during different processing steps in the framework of this plugin, e.g. while interpolating elevation values to fill in gaps.
 <p>
-<b>Artefact remover</b> is designed to remove them from the DEM raster. The polygons drawn before this dialog emerges, are  used to specify the area where artefacts will be removed.<br/>
+<b>Artefact remover</b> is designed to remove the artefacts from the DEM raster. The polygons drawn before this dialog emerges, are  used to specify the area where artefacts will be removed.<br/>
 Artefact values are defined by the <i><b>Expression</i></b> you enter in the corresponding field.<br/>
 
 <div>Your expression should consist of simple comparison operators such as "&gt;", "&lt;", "==" and "within a range". These can be selected from the drop-down menu. You can also use any forms of "NoData" (No data, no data, nodata, NODATA etc) to refer to empty pixels. In this case no pixel will be erased, and the empty pixels will simply be filled with interpolated values.</div>
 <p>
-<b>Field - <i>Enter your expressions</i>:</b><br/>
-Enter the expression that will define which range of elevation values is to be consideres as artefacts and thus removed. The expression must contain the letter <b>H</b> (height) which refers to the value of the pixels in the DEM.<br/>
+<b><i>Enter your expression</i>:</b><br/>
+Enter the expression that will define which range of elevation values is to be considered as artefacts and thus removed. The expression must contain the letter <b>H</b> (height) which refers to the value of the pixels in the DEM.<br/>
 
-<div> Click <b><i>add more polygons</i></b> to go to back to the map and draw another polygon. Keep in mind the same expression will be applied to every polygon you draw.</div><br/>
+<div> Click <b><i>add more polygons</i></b> to go back to the map and draw another polygon. Keep in mind the same expression will be applied to every polygon you draw.</div><br/>
 
-<b>Field - <i>Interpolate values for removed artefacts</i>:</b><br/>
-Tick this box to fill in the gaps left by removed pixels.
+<b><i>Interpolate values for removed cells</i>:</b><br/>
+Check this checkbox to fill in the gaps left by removed pixels.
+<p>
+<b>Specify the <i>Output file path</i>.</b><br>
+If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 <p>
 <div><b>Warning:</b> <br/>
     I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>

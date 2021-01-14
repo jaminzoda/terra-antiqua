@@ -65,6 +65,7 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
         cmb = self.tableWidget.cellWidget(row, 0)
         cmb.setFilters(filter_model.filters())
         btn.clicked.connect(lambda: self.openRasterButtonSignal.emit(cmb))
+        self.tableWidget.setCurrentCell(row,0)
 
     def removeRow(self):
         selected_rows = self.tableWidget.selectionModel().selectedRows()

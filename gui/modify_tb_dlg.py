@@ -17,11 +17,11 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
     def defineParameters(self):
         self.baseTopoBox = self.addMandatoryParameter(
             TaRasterLayerComboBox,
-            "Select the topography raster for modification",
+            "Select the topography raster for modification:",
             "TaMapLayerComboBox")
         self.masksBox = self.addMandatoryParameter(
                                     TaVectorLayerComboBox,
-                                    "Select vector layer containing masks",
+                                    "Select vector layer containing masks:",
                                     "TaMapLayerComboBox")
         self.selectedFeaturesBox = self.addParameter(
                                     TaCheckBox,
@@ -33,7 +33,7 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
             pass
         self.modificationModeComboBox = self.addParameter(
                                             QtWidgets.QComboBox,
-                                            "Topography modification mode")
+                                            "Topography modification mode:")
         self.modificationModeComboBox.addItems([
                                             'Modify with formula',
                                             'Rescale with final minimum and maximum values'])
@@ -41,7 +41,7 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
         self.formulaField = self.addVariantParameter(
                                     TaExpressionWidget,
                                     "Modify with formula",
-                                    "Select the formula field or type the formula")
+                                    "Select the formula field or type the formula:")
         self.min_maxValueCheckBox = self.addVariantParameter(
                                         TaCheckBox,
                                         "Modify with formula",
@@ -50,22 +50,22 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
         self.minValueSpin= self.addVariantParameter(
                                     TaSpinBox,
                                     "Modify with formula",
-                                    "Minimum")
+                                    "Minimum:")
 
         self.maxValueSpin= self.addVariantParameter(
                                     TaSpinBox,
                                     "Modify with formula",
-                                    "Maximum")
+                                    "Maximum:")
         self.min_maxValueCheckBox.registerEnabledWidgets([self.minValueSpin,
                                                           self.maxValueSpin])
 
         # The rescaling modification parameters
         self.newMinValueSpin = self.addVariantParameter(TaSpinBox,
                                                         "Rescale with final minimum and maximum values",
-                                                        "Final minimum")
+                                                        "Final minimum:")
         self.newMaxValueSpin = self.addVariantParameter(TaSpinBox,
                                                         "Rescale with final minimum and maximum values",
-                                                        "Final maximum")
+                                                        "Final maximum:")
 
 
 

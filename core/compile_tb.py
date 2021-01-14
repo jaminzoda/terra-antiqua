@@ -12,7 +12,12 @@ import shutil
 
 import numpy as np
 
-from .utils import vectorToRaster, modRescale, bufferAroundGeometries
+from .utils import (
+    vectorToRaster,
+    modRescale,
+    bufferAroundGeometries,
+    TaVectorFileWriter
+)
 from .base_algorithm import TaBaseAlgorithm
 
 
@@ -20,434 +25,162 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
     def __init__(self, dlg):
         super().__init__(dlg)
-        self.masks_layer = None
-        self.topo_layer = None
-        self.bathy_layer = None
-        self.ocean_age_layer = None
-        self.s_bathy_layer = None
         self.crs = None
-        self.reconstruction_time = None
-        self.shelf_depth = None
         self.remove_overlap = None
 
 
     def getParameters(self):
-
+        self.items=[]
         if not self.killed:
-            # Get the general masks layer from the dialog
-            self.masks_layer = self.dlg.selectMasks.currentLayer()
-            if self.masks_layer.isValid() and self.masks_layer.featureCount()>0:
-                self.feedback.info("The layer with continental blocks is loaded properly.")
-            elif self.masks_layer.isValid() and self.masks_layer.featureCount()==0:
-                self.feedback.info("Error: The continental blocks' layer is empty. Please, add polygon features in it and try again.")
-                self.kill()
+            self.mask_layer = self.dlg.maskComboBox.currentLayer()
+            self.remove_overlap = self.dlg.removeOverlapBathyCheckBox.isChecked()
+        self.feedback.info(f"{self.dlg.tableWidget.rowCount()} layers will be merged in the following order:")
+
+        for i in range(self.dlg.tableWidget.rowCount()):
+            if self.killed:
+                break
+            layer = self.dlg.tableWidget.cellWidget(i,0).currentLayer()
+            if self.dlg.maskComboBox.currentLayer():
+                category = self.dlg.tableWidget.cellWidget(i, 2).currentText()
             else:
-                self.feedback.info("Error: The masks layer is not valid. Please, select a valid layer.")
+                category = None
+            item = {
+                        "Order":i+1,
+                        "Category": category,
+                        "Layer":layer
+                        }
+            self.items.append(item)
+            self.feedback.info(f"{i+1}: {layer.name()}")
+        self.feedback.info("Note that the overlaping data of a higher order layer will be removed.")
 
-        if not self.killed:
-            # Read the Bedrock topography from the dialog
-            self.topo_layer = self.dlg.selectBrTopo.currentLayer()
-            if self.topo_layer.isValid():
-                self.feedback.info("The topography raster layer is loaded properly.")
-            else:
-                self.feedback.info("Error: The topography raster layer is not valid. Please select a valid raster layer.")
-                self.kill()
 
-        if not self.killed:
-            # getting the paleobathymetry layer
-
-            self.bathy_layer = self.dlg.selectPaleoBathy.currentLayer()
-            if self.bathy_layer.isValid():
-                self.feedback.info("The bathymetry raster layer is loaded properly.")
-            else:
-                self.feedback.info("Error: The bathymetry raster layer is not valid. Please select a valid raster layer.")
-                self.kill()
-
-        if not self.killed:
-            # getting ocean age layer
-            if self.dlg.selectOceanAge.currentLayer():
-
-                self.ocean_age_layer = self.dlg.selectOceanAge.currentLayer()
-                if self.ocean_age_layer.isValid():
-                    self.feedback.info("The ocean age layer is loaded properly.")
-                else:
-                    self.feedback.info("Warning: The ocean age layer is not valid. Please, select a valid layer." )
-
-        if not self.killed:
-            # getting the shallow sea bathymetry
-            if self.dlg.selectSbathy.currentLayer():
-
-                self.s_bathy_layer = self.dlg.selectSbathy.currentLayer()
-                if self.s_bathy_layer.isValid():
-                    self.feedback.info("The shallow sea bathymetry layer is loaded properly.")
-                else:
-                    self.feedback.info("Warning: The shallow sea bathymetry  layer is not valid. Please, select a valid layer." )
-
-        if not self.killed:
-            #getting the topography layer coordinate reference system (crs)
-            self.crs = self.topo_layer.crs()
-            self.reconstruction_time = self.dlg.ageBox.value()
-            self.shelf_depth = self.dlg.shelfDepthBox.value()
-
-        if not self.killed:
-            #Remove overlapping bethymetry? This option is intended to remove overlapping bathymetry.
-            #Overlaping bathymetry emerges when for an area between tectonic blocks we get an empty area,
-            #which has bethymetry values coming from the bathymetry raster.
-            if self.dlg.removeOverlapBathyCheckBox.isChecked():
-                self.remove_overlap = True
-            else:
-                self.remove_overlap = False
-
+        self.feedback.info(f"The following Coordinate Reference System will be used for the resuling layer:")
+        if  self.mask_layer:
+            self.crs = self.mask_layer.crs()
+            self.feedback.info(f"{self.crs.authid()} (Taken from {self.mask_layer.name()})")
+        else:
+            for item in self.items:
+                if item.get("Layer").crs().isValid():
+                    self.crs = item.get("Layer").crs()
+                    self.feedback.info(f"{self.crs.authid()} (Taken from {item.get('Layer').name()})")
+                    break
 
 
     def run(self):
-        self.feedback.info("Reading the input data and parameters...")
         self.getParameters()
+        raster_size = (self.items[0].get('Layer').dataProvider().ySize(),
+                      self.items[0].get('Layer').dataProvider().xSize())
+        compiled_array = np.empty(raster_size)
+        compiled_array[:] = np.nan
+        unit_progress = 90/len(self.items)
+        for i in range(len(self.items), 0, -1):
+            item = self.items[i-1]
+            self.feedback.info(f"Compiling {item.get('Layer').name()} raster layer.")
 
-        if not self.killed:
-            bathy_ds = gdal.Open(self.bathy_layer.dataProvider().dataSourceUri())
-            paleo_bathy = bathy_ds.GetRasterBand(1).ReadAsArray()
-
-            # creating a base grid for compiling topography and bathymetry
-            paleo_dem = np.empty(paleo_bathy.shape)
-            paleo_dem[:] = np.nan
-            # Copy the bathymetry to the base grid. Values above sea level are set to 0.
-            paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-            paleo_dem[paleo_bathy > 0] = -0.1  # Bring the values, which are above sea level down below sea level.
-
-            self.set_progress += 5
-
-
-        if not self.killed:
-            if self.ocean_age_layer:
-
-                age_ds = gdal.Open(self.ocean_age_layer.dataProvider().dataSourceUri())
-                ocean_age = age_ds.GetRasterBand(1).ReadAsArray()
-
-                # create an empty array to store calculated ocean depth from age.
-                ocean_depth = np.empty(paleo_bathy.shape)
-                ocean_depth[:] = np.nan
-
-
-                # calculate ocean age
-                ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - self.reconstruction_time
-                ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
-                ocean_depth[ocean_age > 90] = -5750
-                # Update the bathymetry, keeping mueller only where agegrid is undefined
-                paleo_dem[np.isfinite(ocean_depth)] = ocean_depth[np.isfinite(ocean_depth)]
-
-                self.set_progress += 5
-
-
-            else:
-                pass
-
-
-        if not self.killed:
-            # Get features by attribute from the masks layer - the attributes are fetched in the 'layer' field
-            expr_ss = QgsExpression("\"layer\"='Shallow sea'")
-            expr_cs = QgsExpression("\"layer\"='Continental Shelves'")
-            expr_coast = QgsExpression("\"layer\"='Continents'")
-
-            ss_features = self.masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
-            cs_features = self.masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
-            coast_features = self.masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
-
-            ss_n = 0
-            for feature in ss_features:
-                ss_n += 1
-
-            cs_n = 0
-            for feature in cs_features:
-                cs_n += 1
-            coast_n = 0
-            for feature in coast_features:
-                coast_n += 1
-
-            self.set_progress += 10
-
-        if not self.killed:
-            if coast_n > 0:
-
-                # Get the features again, because in the loop above they reset.
-                ss_features = self.masks_layer.getFeatures(QgsFeatureRequest(expr_ss))
-                cs_features = self.masks_layer.getFeatures(QgsFeatureRequest(expr_cs))
-                coast_features = self.masks_layer.getFeatures(QgsFeatureRequest(expr_coast))
-
-                # Create temporary layers to store extracted masks
-                ss_temp = QgsVectorLayer("Polygon?crs={}".format(self.crs.authid()), "Temporary ss", "memory")
-                ss_prov = ss_temp.dataProvider()
-                cs_temp = QgsVectorLayer("Polygon?crs={}".format(self.crs.authid()), "Temporary cs", "memory")
-                cs_prov = cs_temp.dataProvider()
-                coast_temp = QgsVectorLayer("Polygon?crs={}".format(self.crs.authid()), "Temporary coastline", "memory")
-                coast_prov = coast_temp.dataProvider()
-
-                # Add extracted features (masks) to the temporary layers
-                ss_prov.addFeatures(ss_features)
-                cs_prov.addFeatures(cs_features)
-                coast_prov.addFeatures(coast_features)
-
-                # Prepare the parameters for rasterization of the masks
-                out_path = os.path.dirname(self.out_file_path)
-                geotransform = bathy_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
-                nrows, ncols = np.shape(
-                    paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
-
+            ds = gdal.Open(item.get("Layer").source())
+            data_array = ds.GetRasterBand(1).ReadAsArray()
+            if item.get("Category") and item.get("Category") != "All":
+                self.feedback.info(f"Using {item.get('Category')} vector masks to comile raster.")
+                expression = QgsExpression(f"\"Category\"='{item.get('Category')}'")
+                features = self.mask_layer.getFeatures(QgsFeatureRequest(expression))
+                temp_layer = QgsVectorLayer("Polygon?crs={}".format(self.crs.authid()), "Layer to rasterize", "memory")
+                temp_layer_dp = temp_layer.dataProvider()
+                feats_added = temp_layer_dp.addFeatures(list(features))
+                res = temp_layer_dp.flushBuffer()
+                if not res:
+                    self.feedback.debug(f"Masking features in {item.get('Layer').name()} \
+                                          were not added to a temporary layer for rasterization.")
+                del temp_layer_dp
+                # Saving the temporaty vector layer on disk to be able to use it in rasterization algorithm.
+                # TODO Figure out how to use in-memory vector layer to rasterize. The gdal.RasterizeLayer takes OGRLayerSadow, whereas in-memory layers are QgsVectorLayer.
+                output_path = os.path.join(os.path.dirname(self.out_file_path), "vector_masks")
+                if not os.path.exists(output_path):
+                    os.makedirs(output_path)
+                temp_file_path = os.path.join(output_path, "vector_masks.shp")
+                try:
+                    result = TaVectorFileWriter.writeToShapeFile(temp_layer,
+                                                                   temp_file_path,
+                                                                   "UTF-8",
+                                                                   self.crs,
+                                                                   "ESRI Shapefile")
+                except Exception as e:
+                    self.feedback.warning(e)
+                if not result[0] == TaVectorFileWriter.NoError:
+                    self.feedback.warning("Could not save the extracted vector masks for rasterization.")
                 if not self.killed:
-                    # Save the extracted masks to be able to rasterize them
-                    # TODO Figure out how to use in-memory vector layer to rasterize. The gdal.RasterizeLayer takes OGRLayerSadow, whereas in-memory layers are QgsVectorLayer.
-                    # Create a directory for the vector masks
-
-                    if not os.path.exists(os.path.join(out_path, "vector_masks")):
-                        os.makedirs(os.path.join(out_path, "vector_masks"))
-
-                    # Output files
-                    ss_out_file = os.path.join(out_path, "vector_masks", "Shallow_sea.shp")
-                    cs_out_file = os.path.join(out_path, "vector_masks", "Continental_shelves.shp")
-                    coast_out_file = os.path.join(out_path, "vector_masks", "Coastline.shp")
-
-                    layers = [(ss_temp, ss_out_file, "ShallowSea"), (cs_temp, cs_out_file, "ContinentalShelves"),
-                              (coast_temp, coast_out_file, "Coastline")]
-
-                    self.set_progress += 10
+                    temp_layer = QgsVectorLayer(temp_file_path, "Extracted masks", "ogr")
+            elif item.get("Category") and item.get("Category") =="All":
+                temp_layer = self.mask_layer
 
 
-                    for layer, out_file, name in layers:
-                        if self.killed:
-                            break
-                        # Check if the file is already created. Acts like overwrite
-                        if os.path.exists(out_file):
-                            deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-                            if deleted:
-                                pass
-                            else:
-                                self.feedback.info("{} is not deleted.".format(out_file))
-
-                        error = QgsVectorFileWriter.writeAsVectorFormat(layer, out_file, "UTF-8", layer.crs(), "ESRI Shapefile")
-                        if error[0] == QgsVectorFileWriter.NoError:
-                            self.feedback.info(
-                                "The  shape file {} has been created and saved successfully".format(os.path.basename(out_file)))
-                        else:
-                            self.feedback.info(
-                                "The {} shapefile is not created because {}".format(os.path.basename(out_file), error[1]))
-                        if name == "ShallowSea":
-                            ss_temp = QgsVectorLayer(out_file, "Shallow sea masks", "ogr")
-                        elif name == "ContinentalShelves":
-                            cs_temp = QgsVectorLayer(out_file, "Continental Shelves masks", "ogr")
-                        elif name == "Coastline":
-                            coast_temp = QgsVectorLayer(out_file, "Continental Shelves masks", "ogr")
-
-                            self.set_progress += 4
-
-
-                if not self.killed:
-
-                    # Rasterize extracted masks
-                    ss_mask = vectorToRaster(
-                        ss_temp,
-                        geotransform,
-                        ncols,
-                        nrows,
-                        field_to_burn=None,
-                        no_data=0
-                        )
-
-                    self.set_progress += 5
-
-
-                    cs_mask = vectorToRaster(
-                        cs_temp,
-                        geotransform,
-                        ncols,
-                        nrows,
-                        field_to_burn=None,
-                        no_data=0
-                        )
-
-                    self.set_progress += 5
-
-
-                    coast_mask = vectorToRaster(
-                        coast_temp,
-                        geotransform,
-                        ncols,
-                        nrows,
-                        field_to_burn=None,
-                        no_data=0
-                        )
-
-                    self.set_progress += 5
-
-
-                if not self.killed:
-
-                    # Check if the shallow sea bathhymetry raster and shallow sea masks are defined.
-                    if self.s_bathy_layer and ss_n > 0:
-
-                        sbathy_ds = gdal.Open(self.s_bathy_layer.dataProvider().dataSourceUri())
-                        s_bathy = sbathy_ds.GetRasterBand(1).ReadAsArray()
-
-                        # Modify bathymetry according to masks
-                        s_bathy[s_bathy < paleo_dem] = paleo_dem[
-                            s_bathy < paleo_dem]  # remove parts that are deeper than current bathymetry
-                        paleo_dem[ss_mask == 1] = s_bathy[ss_mask == 1]
-
-                        self.set_progress += 10
-
-
-                if not self.killed:
-                    if self.s_bathy_layer and cs_n > 0:
-                        # Replace continental shelf by shallow region depth where the latter is deeper and less than 2000m
-
-                        paleo_dem[cs_mask == 1] = self.shelf_depth
-                        paleo_dem[((cs_mask == 1) * (s_bathy > -2000) * (s_bathy < self.shelf_depth)) == 1] = s_bathy[
-                            ((cs_mask == 1) * (s_bathy > -2000) * (s_bathy < self.shelf_depth)) == 1]
-                        if not self.remove_overlap:
-                            self.set_progress += 10
-
-
-                    # Fill the land area with the present day rotated topography
-
-                if not self.killed:
-                    # Get the data provider to access the data
-                    topo_ds = gdal.Open(self.topo_layer.dataProvider().dataSourceUri())
-                    # Read the data as a an array of data
-                    topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
-                    paleo_dem[coast_mask == 1] = topo_br[coast_mask == 1]
-
-                # This is needed to remove bathymetry between continental blocks inside the coastlines area.
-                if not self.killed:
-                    if self.remove_overlap:
-                        buffer_layer = bufferAroundGeometries(coast_temp, 0.5, 100, self, 10)
-                        buffer_array = vectorToRaster(
-                            buffer_layer,
-                            geotransform,
-                            ncols,
-                            nrows,
-                            field_to_burn = None,
-                            no_data = 0
-                            )
-
-                        #Remove negative values inside the buffered regions
-                        paleo_dem[(buffer_array == 1)*(paleo_dem < -1000)==1] = np.nan
-
-
-                    # Close all the temporary vector layers
-                    cs_temp = None
-                    ss_temp = None
-                    coast_temp = None
-
-                    # Remove the shapefiles of the temporary vector layers from the disk. Also remove the temporary folder created for them.
-                    temp_files = [ss_out_file, cs_out_file, coast_out_file]
-                    deleted_n = 0
-                    for out_file in temp_files:
-                        if self.killed:
-                            break
-                        if os.path.exists(out_file):
-                            deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-                            if deleted:
-                                deleted_n += 1
-
-                        self.set_progress += 5
-
-
-                    if deleted_n > 2:
-                        if os.path.exists(os.path.join(out_path, "vector_masks")):
-                            shutil.rmtree(os.path.join(out_path, "vector_masks"))
-                        else:
-                            self.feedback.info(
-                                'I created a temporary folder with some shapefiles: ' + os.path.join(out_path, "vector_masks"))
-                            self.feedback.info('And could not delete it. You may delete it manually.')
-
-                        self.set_progress += 5
-
-
-
-
-
-            else:
-                if not self.killed:
-                    # creating a base grid for compiling topography and bathymetry
-                    paleo_dem = np.empty(paleo_bathy.shape)
-                    paleo_dem[:] = np.nan
-                    paleo_dem[paleo_bathy < 0] = paleo_bathy[paleo_bathy < 0]
-                    paleo_dem[paleo_bathy < -12000] = np.nan
+            if not self.killed:
+                if item.get("Category"):
                     try:
-                        paleo_dem[paleo_bathy > 0] = modRescale(paleo_dem[paleo_bathy>0], -15, -0.1)
-                    except ValueError:
-                        pass
+                        mask_array = vectorToRaster(temp_layer,
+                                                ds.GetGeoTransform(),
+                                                raster_size[1],
+                                                raster_size[0],
+                                                field_to_burn=None,
+                                                no_data = 0)
+                        compiled_array[mask_array==1] = data_array[mask_array == 1]
+                    except Exception as e:
+                        self.feedback.warning("Could not rasterize vector layer containing masks because of the \
+                                              following error:")
+                        self.feedback.warning(e)
+                        self.feedback.warning(f"All the data from the {item.get('Layer').name()} \
+                                              raster layer will be compiled.")
+                        compiled_array[np.isfinite(data_array)] = data_array[np.isfinite(data_array)]
 
-                    self.set_progress += 20
+                else:
+                    compiled_array[np.isfinite(data_array)] = data_array[np.isfinite(data_array)]
 
+                #Delete temporary shapefile and folder
+                if 'output_path' in locals() and os.path.exists(output_path):
+                    shutil.rmtree(output_path)
 
-                if not self.killed:
-                    geotransform = bathy_ds.GetGeoTransform()  # geotransform is used for creating raster file of the mask layer
-                    nrows, ncols = np.shape(
-                        paleo_dem)  # number of columns and rows in the matrix for storing the rasterized file before saving it as a raster on the disk
-
-
-                    # Rasterize masks layer
-                    coast_mask = vectorToRaster(
-                        self.masks_layer,
-                        geotransform,
-                        ncols,
-                        nrows,
-                        field_to_burn=None,
-                        no_data=0
-                        )
-
-                    self.set_progress += 20
-
-
-                # Fill the land area with the present day rotated topography
-
-                if not self.killed:
-                    topo_ds = gdal.Open(self.topo_layer.dataProvider().dataSourceUri())
-                    # Read the data as an array of data
-                    topo_br = topo_ds.GetRasterBand(1).ReadAsArray()
-                    paleo_dem[coast_mask == 1] = topo_br[coast_mask == 1]
-
-                    if not self.remove_overlap:
-                        self.set_progress += 27
-
-                if not self.killed:
-                    if self.remove_overlap:
-                        buffer_layer = bufferAroundGeometries(self.masks_layer, 0.5, 100, self, 27)
-                        buffer_array = vectorToRaster(
-                            buffer_layer,
-                            geotransform,
-                            ncols,
-                            nrows,
-                            field_to_burn = None,
-                            no_data = 0
-                            )
-
-                        #Remove negative values inside the buffered regions
-                        paleo_dem[(buffer_array == 1)*(paleo_dem < 0)==1] = np.nan
+                self.feedback.progress += unit_progress
 
         if not self.killed:
-            nrows, ncols = np.shape(paleo_dem)
-            geotransform = bathy_ds.GetGeoTransform()
+            geotransform = gdal.Open(self.items[0].get("Layer").source()).GetGeoTransform()
+            if self.remove_overlap:
+                item = self.items[0]
+                self.feedback.info(f"Creating buffer around polygon \
+                                   geometries of the {item.get('Category')} category.")
+                expression = QgsExpression(f"\"Category\"='{item.get('Category')}'")
+                features = self.mask_layer.getFeatures(QgsFeatureRequest(expression))
+                buffer_layer= QgsVectorLayer(f"Polygon?crs={self.crs.authid()}", "Temporary ss", "memory")
+                buffer_layer.dataProvider().addFeatures(features)
+                buffer_layer.dataProvider().flushBuffer()
+                buffer_layer = bufferAroundGeometries(buffer_layer, 0.5, 100, self.feedback, 10)
+                buffer_array = vectorToRaster(
+                    buffer_layer,
+                    geotransform,
+                    raster_size[1],
+                    raster_size[0],
+                    field_to_burn = None,
+                    no_data = 0
+                    )
 
-            raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
-            raster.SetGeoTransform(geotransform)
-            raster.SetProjection(self.crs.toWkt())
-            raster.GetRasterBand(1).WriteArray(paleo_dem)
-            raster.GetRasterBand(1).SetNoDataValue(np.nan)
-            raster = None
+                #Remove negative values inside the buffered regions
+                self.feedback.info("Removing bathymetry values from the gaps between continental blocks." )
+                compiled_array[(buffer_array == 1)*(compiled_array< -1000)==1] = np.nan
 
-            self.set_progress = 100
-            self.feedback.info(
-                "The resulting raster is saved at: <a href='file://{}'>{}<a/>".format(os.path.dirname(self.out_file_path),
-                                                                                      self.out_file_path))
+
+        if not self.killed:
+            output_raster = gdal.GetDriverByName("GTiff").Create(self.out_file_path,
+                                                                 raster_size[1],
+                                                                 raster_size[0],
+                                                                 1,
+                                                                 gdal.GDT_Float32)
+            output_raster.SetGeoTransform(geotransform)
+            output_raster.SetProjection(self.crs.toWkt())
+            output_raster.GetRasterBand(1).WriteArray(compiled_array)
+            output_raster.GetRasterBand(1).SetNoDataValue(np.nan)
+            output_raster = None
+
+            self.feedback.progress = 100
+
             self.finished.emit(True, self.out_file_path)
         else:
             self.finished.emit(False, "")
-
-
-
-
-
-
-
 

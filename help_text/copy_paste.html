@@ -5,23 +5,24 @@
     <title> Copy / paste raster </title>
     <body>
         <p>
-            <b>Field - <i>How would you like to process the DEM</i></b>:<br/>
+            <b><i>How would you like to process the DEM</i></b>:<br/>
             Choose the processing tool you want to use.
-<p> This tool allows you to copy values from a raster into another one. The values of the pixels covered by a mask will be copied into the second raster.
+<p> This tool allows you to copy elevation values from a raster into another one. The elevation values of the pixels covered by a mask will be copied into the second raster.
 <div>Please note that the area you copy from the original raster will be in the same position in the target raster.</div>
 <p>
-<b>Field - <i>Raster to be modified</i></b><br/>
-Choose the DEM you want to copy the values to.
-<br/><b>Field - <i>Raster to copy the values from</i></b><br/>
+<b><i>Raster to be modified:</i></b><br/>
+Choose the DEM you want to copy the elevation values to.
+<br/><b><i>Raster to copy the values from:</i></b><br/>
 Choose the DEM you want to copy the values from.
-<br/><b>Field - <i>Masks</i></b><br/>
+<br/><b><i>Mask layer:</i></b><br/>
 Select the vector layer containing the masks covering the areas you want to copy.
 <p>
 <b>Specify the <i>Output file path</i>.</b><br>
-If there is not a path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+If there is no path specified here, the output file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
 
 <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-II) If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+    <b>Note:</b>If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid
+this, specify a different file path each time</div>
 </p>
 </body>
     </html>

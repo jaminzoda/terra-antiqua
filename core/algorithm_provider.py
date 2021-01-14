@@ -78,9 +78,11 @@ class TaAlgorithmProvider:
                         setVectorSymbology(layer)
                 self.thread.feedback.info("The algorithm finished processing successfully,")
                 self.thread.feedback.info("and added the resulting raster/vector layer to the map canvas.")
+                self.thread.feedback.info(f"The ouput file path is: {output_path}")
             else:
                 self.thread.feedback.info("The algorithm finished successfully,")
                 self.thread.feedback.info("however the resulting layer did not load. You may need to load it manually.")
+                self.thread.feedback.info(f"The ouput file path is: {output_path}")
 
             self.finish()
         else:
