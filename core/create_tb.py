@@ -148,19 +148,19 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 self.feedback.info("<b><i>Processing feature {}".format(feature.attribute('id')))
                 self.feedback.debug(e)
             #Reading parameters for creating feature from the dialog or attributes
-            shelf_width, ok = self.dlg.shelfWidth.overrideButton.toProperty().value(self.context)
+            shelf_width, ok = self.dlg.shelfWidth.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 shelf_width = self.dlg.shelfWidth.spinBox.value()
-            max_sea_depth, ok = self.dlg.maxDepth.overrideButton.toProperty().value(self.context)
+            max_sea_depth, ok = self.dlg.maxDepth.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 max_sea_depth = self.dlg.maxDepth.spinBox.value()
-            min_sea_depth, ok = self.dlg.minDepth.overrideButton.toProperty().value(self.context)
+            min_sea_depth, ok = self.dlg.minDepth.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 min_sea_depth = self.dlg.minDepth.spinBox.value()
-            slope_width, ok = self.dlg.contSlopeWidth.overrideButton.toProperty().value(self.context)
+            slope_width, ok = self.dlg.contSlopeWidth.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 slope_width = self.dlg.contSlopeWidth.spinBox.value()
-            max_shelf_depth, ok = self.dlg.shelfDepth.overrideButton.toProperty().value(self.context)
+            max_shelf_depth, ok = self.dlg.shelfDepth.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 max_shelf_depth = self.dlg.shelfDepth.spinBox.value()
 
@@ -291,10 +291,11 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 min_dist = min(dists)
                 max_dist = max(dists)
             else:
-                self.feedback.error("Something went wrong. the distances\
-                                    between the coastline and  depth\
-                                    points are not calculated.")
-                self.kill()
+                name = feature.attribute('name') if feature.attribute('name')!=NULL else 'NoName'
+                self.feedback.warning(f"Something went wrong while processing feature {name}.")
+                self.feedback.warning("The distances between the shoreline and\
+                                      depth points are not calculated.")
+                continue
 
             if not self.killed:
                 self.feedback.info("Calculating depth values ... ")
@@ -531,16 +532,16 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 self.feedback.debug(e)
 
             #Reading parameters for creating feature from the dialog or attributes
-            max_mount_elev, ok = self.dlg.maxElev.overrideButton.toProperty().value(self.context)
+            max_mount_elev, ok = self.dlg.maxElev.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 max_mount_elev = self.dlg.maxElev.spinBox.value()
-            min_mount_elev, ok = self.dlg.minElev.overrideButton.toProperty().value(self.context)
+            min_mount_elev, ok = self.dlg.minElev.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 min_mount_elev = self.dlg.minElev.spinBox.value()
-            ruggedness, ok = self.dlg.mountRugged.overrideButton.toProperty().value(self.context)
+            ruggedness, ok = self.dlg.mountRugged.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 ruggedness = self.dlg.mountRugged.spinBox.value()
-            slope_width, ok = self.dlg.mountSlope.overrideButton.toProperty().value(self.context)
+            slope_width, ok = self.dlg.mountSlope.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
                 slope_width = self.dlg.mountSlope.spinBox.value()
 
@@ -670,10 +671,11 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     min_dist = min(dists)
                     max_dist = max(dists)
                 else:
-                    self.feedback.error("Something went wrong. the distances\
-                                        between the mountain boundary and elevation\
-                                        points are not calculated.")
-                    self.kill()
+                    name = feature.attribute('name') if feature.attribute('name')!=NULL else 'NoName'
+                    self.feedback.warning(f"Something went wrong while processing feature {name}.")
+                    self.feedback.warning("The distances between the mountain boundary and\
+                                          elevation  points are not calculated.")
+                    continue
 
 
             if not self.killed:
