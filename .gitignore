@@ -13,7 +13,6 @@
 
 # KDE directory preferences
 .directory
-.pb_tool.cfg
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
 
@@ -259,9 +258,6 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/python,windows,pycharm
 *.doctree
 *.doctree
-pb_tool.cfg
-.pb_tool.cfg
-*.cfg
 zip_build/
 .DS_Store
 .settings/
