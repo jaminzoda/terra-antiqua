@@ -8,13 +8,13 @@
 
 [general]
 name=Terra Antiqua
-qgisMinimumVersion=3.4
-description=This plugin creates paleogeographic maps and their digital elevation models. 
-version=0.2
-author=Jovid Aminov, Diego Ruitz
+qgisMinimumVersion=3.10
+description=This plugin creates digital elevation models of paleogeographic maps.
+version=0.3
+author=Jovid Aminov, Diego Ruiz
 email=jovid.aminov@outlook.com
 
-about=Terra Antiqua allows creation of paleogeoraphic digital elevation models (DEM) by combining several bathymetry and topography datasets that are rotated to the time of reconstruction in GPlates software. The final compiled topography and bathymetry DEM can be further modified and processed with the plugin. 
+about=Terra Antiqua deals with the reconstruction of paleogeoraphic digital elevation models (DEM) by combining several bathymetry and topography datasets. These must previously be rotated back to the time of reconstruction with the software GPlates. The final compiled topography and bathymetry can be further modified and processed with the plugin, which provides a complete set of tools to edit Digital Elevations Models (DEM) for paleoreconstructions. 
 
 tracker=http://bugs
 repository=http://repo
