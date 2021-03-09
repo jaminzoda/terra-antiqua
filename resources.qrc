@@ -2,8 +2,13 @@
 <RCC version="1.0">
 	<qresource>
 		<file alias="icon.png">resources/icon.png</file>
+		<file alias="removeButton.png">resources/removeButton.png</file>
+		<file alias="arrow_down.png">resources/arrow_down.png</file>
 		<file alias="artefact_rem.png">resources/artefact_rem.png</file>
+		<file alias="addButton.svg">resources/addButton.svg</file>
 		<file alias="arrow_right.png">resources/arrow_right.png</file>
+		<file alias="addButton.png">resources/addButton.png</file>
+		<file alias="Ocean_Land_3.cpt">resources/Ocean_Land_3.cpt</file>
 		<file alias="mask.png">resources/mask.png</file>
 		<file alias="arrow_left.png">resources/arrow_left.png</file>
 		<file alias="fill_smooth.png">resources/fill_smooth.png</file>
@@ -11,12 +16,10 @@
 		<file alias="colour ramp TopoBathym_DRuiz.txt">resources/colour ramp TopoBathym_DRuiz.txt</file>
 		<file alias="topomod.png">resources/topomod.png</file>
 		<file alias="paleocoastlines.png">resources/paleocoastlines.png</file>
+		<file alias="arrow_up.png">resources/arrow_up.png</file>
 		<file alias="feat_create.png">resources/feat_create.png</file>
 		<file alias="settings.txt">resources/settings.txt</file>
 		<file alias="naming_conventions.xls">resources/naming_conventions.xls</file>
-		<file alias="addButton.png">resources/addButton.png</file>
-		<file alias="removeButton.png">resources/removeButton.png</file>
-		<file alias="arrow_up.png">resources/arrow_up.png</file>
-		<file alias="arrow_down.png">resources/arrow_down.png</file>
+		<file alias="removeButton.svg">resources/removeButton.svg</file>
 	</qresource>
 </RCC>

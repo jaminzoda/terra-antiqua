@@ -41,7 +41,7 @@ class TaBaseAlgorithm(QThread):
 
     def setName(self, name):
         self.__name__ = name
-        self.getOutFilePath()
+        self.out_file_path = self.getOutFilePath()
 
     def checkCrs(self):
         if not self.crs.isValid():
