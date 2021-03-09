@@ -9,25 +9,26 @@
     It will emerge regions that should be emerged but appear underwater. Conversely, it submerges regions that should be submerged but are shown above the sea level.
 
 <p>
-The <b><i>Raster to be modified (Input)</b></i> parameter is used to select the input raster (DEM), which combines  topography and  bathymetry (rotated to the time of reconstruction). 
+<b><i>Raster to be modified (Input)</b></i>: select the input raster (DEM) combining  topography and  bathymetry (rotated to the time of reconstruction).
 <p>
-The <b><i>Rotated Paleoshorelines</b></i> parameter specifies the vector layer with the paleoshorelines rotated to the time of reconstruction (to get or modify paleoshorelines).
-<p> The <b><i>Modification mode</b></i> parameter:<br/>
-If you select <i><b>Interpolation</b></i>, elevation values of the areas to be emerged or submerged are erased and these gaps subsequently interpolated.<br/>
-If you select <i><b>Rescaling</b></i>, the originally submerged values are linearly rescaled between <i>0.1</i> and the elevation you enter. For the newly submerged areas, the originally emerged values are linearly rescaled between <i>-0.1</i> and the depth you enter.
+<b><i>Rotated Paleoshorelines</b></i>: select the vector layer with the paleoshorelines rotated to the time of reconstruction.
+<p> <b><i>Modification mode</b></i>:<br/>
+If you select <b>Interpolation</b>, elevation values of the areas to be emerged or submerged are erased and these gaps subsequently interpolated.<br/>
+If you select <b>Rescaling</b>, the originally submerged values are linearly rescaled between <i>0.1</i> and the elevation you enter. For the newly submerged areas, the originally emerged values are linearly rescaled between <i>-0.1</i> and the depth you enter.
 </p>
 
 <p>
-<b><i>Maximum elevation of the emerged area</b></i>:<br/> Enter the chosen maximum elevation for the newly emerged areas in m (default = 2.0m). This is only available for the <I>Rescaling</i> modification mode.
+<b><i>Maximum elevation of the emerged area</b></i>:<br/> Enter the chosen maximum elevation for the newly emerged areas in m (default = <i>2.0m</i>). This is only available for the <I>Rescaling</i> modification mode.
 <p>
 <b><i>Maximum depth of the submerged area</b></i>:<br/>
-Enter the chosen maximum depth for the newly submerged area in m (default = -5.0m). This must be a negative value since it's related to bathymetry. This is only available for the <i>Rescaling</i> modification mode.
-</p>:
+Enter the chosen maximum depth for the newly submerged areas in m (default = <i>-5.0m</i>). This must be a negative value since it's related to bathymetry. This is only available for the <i>Rescaling</i> modification mode.
+</p>
 <p>
-<b>Specify the <i>Output file path</i>.</b><br>
-If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-<b>Note:</b>If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+<b><i>Output file path:</i></b><br/>
+If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
+
+<div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
+    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 </p>
 </body>
 </html>

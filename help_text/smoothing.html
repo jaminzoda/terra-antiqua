@@ -6,29 +6,25 @@
     
     <body>
         <p>
-            <b><i>How would you like to process the DEM</i></b>:<br/>
+        <b><i>How would you like to process the DEM:</i></b><br/>
             Choose the processing tool you want to use.
             
-   <p> This tool is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after topography modification and interpolation. However, it may be used in any DEM raster (1 band).
+   <p> <b>Smoothing</b> is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after the primary tools in a map without gaps.
    <p>
-   <b><i>Raster to be modified:</i></b><br/>You need to specify a raster (DEM) where you want to perform the smoothing.
+   <b><i>Raster to be modified:</i></b><br/>You need to choose a raster (DEM) where you want to perform the smoothing.
    <p>
        <b><i>Smoothing type:</i></b></br>
-   Select a Smoothing type. For now two Smoothing types are available: <a
-       href='https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.gaussian_filter.html'>Gaussian filter
-   </a> and <a href = 'https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.uniform_filter.html'> Uniform
-       filter</a>. 
+   Select a Smoothing type: Gaussian filter or Uniform filter. Please refer to the manual for details about these.
    <p>
-   <b><i>Smoothing factor</i></b>:<br/>
-   You may specify a smoothing factor, which represents the radius around a given pixel that will be taken into
-   consideration. The greater the factor, the smoother will the resulting raster be.
-      <div>Please be aware that smoothing may take 5 to 10 minutes, depending on the system. A higher smoothing factor will increase the processing time.</div>
+   <b><i>Smoothing factor:</i></b><br/>
+   You may specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. The greater the factor, the smoother will the resulting raster be.
+      <div>Please be aware that a higher smoothing factor will increase the processing time.</div>
    <p>
-   <b>Specify the <i>Output file path</i>.</b><br>
-   If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-   
-   <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-       <b>Note:</b>If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+   <b><i>Output file path:</i></b><br/>
+   If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
+
+   <div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
+       <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 
    </p>
    </body>
