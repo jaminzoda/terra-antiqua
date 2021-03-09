@@ -26,6 +26,10 @@ from .base_algorithm import TaBaseAlgorithm
 
 class TaModifyTopoBathy(TaBaseAlgorithm):
 
+    #TODO: uncomment the commented part with creating temporary folder and shapefiles, if the fix does not work
+    #TODO: Also replace temp_layer to v_layer in vectorToRaster function call
+    #TODO: If the fix does work, remove cleanUp and createTemporaryFolder methods, removing commented parts as well.
+
     def __init__(self, dlg):
         super().__init__(dlg)
         self.vlayer = None
@@ -97,7 +101,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                     self.kill()
 
             self.context = QgsExpressionContext(QgsExpressionContextUtils.globalProjectLayerScopes(self.vlayer))
-            self.path = self.createTemporaryFolder()
+#            self.path = self.createTemporaryFolder()
             return True
         else:
             return False
@@ -114,7 +118,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 else:
                     modified_array, ok = self.modifyWithMinAndMax(80)
 
-        self.cleanUp()
+#        self.cleanUp()
 
         if not self.killed:
             # Check if raster was modified. If the x matrix was assigned.
@@ -189,28 +193,29 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             temp_layer.updateFields()
 
             temp_dp.addFeature(feat)
+            temp_dp = None
 
             # Create a temporary shapefile to store extracted masks before rasterizing them
-            self.out_file = os.path.join(self.path, 'masks_for_topo_modification.shp')
+#            self.out_file = os.path.join(self.path, 'masks_for_topo_modification.shp')
 
-            if os.path.exists(self.out_file):
-                deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file)
-
-            error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, self.out_file, "UTF-8",
-                                                            temp_layer.crs(), "ESRI Shapefile")
-            if error[0] == QgsVectorFileWriter.NoError:
-                self.feedback.debug("The  {} shapefile is created\
-                                    successfully.".format(os.path.basename(self.out_file)))
-            else:
-                self.feedback.error("Failed to create the {0} shapefile because\
-                                    {1}.".format(os.path.basename(self.out_file), error[1]))
-                self.kill()
+#            if os.path.exists(self.out_file):
+#                deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file)
+#
+#            error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, self.out_file, "UTF-8",
+#                                                            temp_layer.crs(), "ESRI Shapefile")
+#            if error[0] == QgsVectorFileWriter.NoError:
+#                self.feedback.debug("The  {} shapefile is created\
+#                                    successfully.".format(os.path.basename(self.out_file)))
+#            else:
+#                self.feedback.error("Failed to create the {0} shapefile because\
+#                                    {1}.".format(os.path.basename(self.out_file), error[1]))
+#                self.kill()
 
             if not self.killed:
                 # Rasterize extracted masks
-                v_layer = QgsVectorLayer(self.out_file, 'extracted_masks', 'ogr')
+#                v_layer = QgsVectorLayer(self.out_file, 'extracted_masks', 'ogr')
                 r_masks = vectorToRaster(
-                    v_layer,
+                    temp_layer,
                     self.geotransform,
                     self.ncols,
                     self.nrows,
@@ -265,29 +270,30 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             temp_layer.updateFields()
 
             temp_dp.addFeature(feat)
+            temp_dp = None
 
             # Create a temporary shapefile to store extracted masks before rasterizing them
-            self.out_file = os.path.join(self.path, 'masks_for_topo_modification.shp')
-
-            if os.path.exists(self.out_file):
-                deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file)
-            error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer,
-                                                            self.out_file, "UTF-8",
-                                                            temp_layer.crs(), "ESRI Shapefile")
-            if error[0] == QgsVectorFileWriter.NoError:
-                self.feedback.debug(
-                    "The  {} shapefile is created\
-                    successfully.".format(os.path.basename(self.out_file)))
-            else:
-                self.feedback.error(
-                    "Failed to create the {0} shapefile because\
-                    {1}.".format(os.path.basename(self.out_file), error[1]))
-                self.kill()
+#            self.out_file = os.path.join(self.path, 'masks_for_topo_modification.shp')
+#
+#            if os.path.exists(self.out_file):
+#                deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file)
+#            error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer,
+#                                                            self.out_file, "UTF-8",
+#                                                            temp_layer.crs(), "ESRI Shapefile")
+#            if error[0] == QgsVectorFileWriter.NoError:
+#                self.feedback.debug(
+#                    "The  {} shapefile is created\
+#                    successfully.".format(os.path.basename(self.out_file)))
+#            else:
+#                self.feedback.error(
+#                    "Failed to create the {0} shapefile because\
+#                    {1}.".format(os.path.basename(self.out_file), error[1]))
+#                self.kill()
 
             # Rasterize extracted masks
-            v_layer = QgsVectorLayer(self.out_file, 'extracted_masks', 'ogr')
+#            v_layer = QgsVectorLayer(self.out_file, 'extracted_masks', 'ogr')
             r_masks = vectorToRaster(
-                v_layer,
+                temp_layer,
                 self.geotransform,
                 self.ncols,
                 self.nrows,

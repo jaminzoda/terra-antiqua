@@ -431,6 +431,13 @@ def setVectorSymbology(in_layer):
 def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
     """
     Rasterizes a vector layer and returns a numpy array.
+    :param in_layer: Accepted data types:
+		- str: layer ID
+		- str: layer name
+		- str: layer source
+		- QgsProcessingFeatureSourceDefinition
+		- QgsProperty
+		- QgsVectorLayer
 
     :param field_to_burn: A specific field from attributes table to get values to burn. This can be a field with depth or elevation values.
     :param no_data: No data value. It can be NAN, zero or any other value.
@@ -441,8 +448,9 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
     :return: Numpy array.
     """
 
-    # Convert geotransform to extent if the geotransform is supplied
+    # define the output path for the resulting raster file
     output = os.path.join(tempfile.gettempdir(), "Rasterized_vector_layer.tiff") if output_path is None else output_path
+    # Convert geotransform to extent if the geotransform is supplied
     if type(geotransform) == tuple and len(geotransform) == 6:
         upx, xres, xskew, upy, yskew, yres = geotransform
         cols = width
@@ -458,9 +466,12 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
     else:
         raster_extent = geotransform
 
+    #Burn values from a field in the attribute table if the field is supplied
     field_to_burn = field_to_burn if field_to_burn is not None else None
 
+    #Specify NODATA value
     nodata = no_data if no_data is not None else np.nan
+    # If a fixed value should be burned, specify the value to burn
     burn_value = burn_value if burn_value is not None else 1
 
     #Check if the input vector layer contains any feature
