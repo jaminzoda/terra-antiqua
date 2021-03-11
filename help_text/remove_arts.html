@@ -7,9 +7,9 @@
     <body>
         <p>
         
-        The (Digital Elevation Models) DEMs often contain artefacts introduced mostly during different processing steps in the framework of this plugin, e.g. while interpolating elevation values to fill in gaps.
+    The Digital Elevation Models (DEMs) often contain artefacts introduced mostly during different processing steps in the framework of this plugin, such as interpolation.
 <p>
-Artefact remover is designed to remove the artefacts from the DEM raster. The polygons drawn before this window emerges, are  used to specify the area where artefacts will be removed. The values defined by the mathematical expression you enter will be considered artefacts.
+The tool <b>Remove Artefacts</b> helps to eliminate these artefacts from the DEM raster. The polygons drawn before this window emerges, are  used to specify the area where artefacts will be removed. The values defined by the mathematical expression you enter will be considered artefacts.
 <p>
 
 <b><i>Choose a comparison operator:</i></b>
@@ -17,12 +17,14 @@ Artefact remover is designed to remove the artefacts from the DEM raster. The po
     You can also use any form of "NoData" (No data, no data, nodata, NODATA, etc.) to refer to empty pixels. In this case no pixel will be erased, and the empty pixels will simply be filled with interpolated values.
 <p>
 <b><i>Enter your expression:</i></b><br/>
-Enter the expression that will define which range of elevation values is to be considered as artefacts and thus removed. The expression must contain the letter <i>H</i> (height) which refers to the value of the pixels in the DEM.<br/>
+Enter the expression that will define which elevation values are to be considered as artefacts and thus removed. The expression must contain the letter <i>H</i> (height) which refers to the value of the pixels in the DEM.<br/>
 
-<div> Check the box <b><i>add more polygons</i></b> to go back to the map and draw another polygon. Keep in mind the same expression will be applied to every polygon you draw.</div><br/>
 
+<p>
 <b><i>Interpolate values for removed cells:</i></b><br/>
 Check this box to fill in the gaps left by removed pixels. If this option is not selected, a gap will be left for each removed pixel.
+
+<div> Click <b><i>add more polygons</i></b> to go back to the map and draw another polygon. Keep in mind the same expression will be applied to every polygon you draw.</div><br/>
 <p>
 <b><i>Output file path:</i></b><br/>
 If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
@@ -32,6 +34,8 @@ If there is no path specified here, the file will be created in the temporary fo
 <div><b>Warnings:</b> <br/>
     I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
     II) The polygons you draw while using this tool are temporary and will be erased as soon as the processing is finished.</div>
+<br/>
+    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 
 </p>
 </body>

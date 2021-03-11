@@ -6,11 +6,11 @@
     
     <body>
         <p>
-            <b><i>How would you like to process the DEM:</i></b><br/>
+        <b><i>How would you like to process the input DEM:</i></b><br/>
             Choose the processing tool you want to use.
 <p>
 
-This tool compensates for the absence of ice mass in the poles. The DEM values will be modified in the areas where there is a difference between ice and bedrock topography. Present-day ice and  bedrock topography are used to calculate the thickness of present-day ice covering Antarctic and Greenland. The thickness is determined by subtracting the bedrock topography from ice topography. Then that topography is raised according to following formula:
+This tool compensates for the absence of ice mass in the poles. The DEM values will be modified in the areas where there is a difference between ice and bedrock topography. Present-day ice and  bedrock topography are used to calculate the thickness of present-day ice covering Antarctic and Greenland. The thickness is determined by subtracting the bedrock topography from ice topography. Then the bedrock topography is raised according to following formula:
 
 
 <p>
@@ -40,10 +40,11 @@ for the ice load. <br/>
     containing the continental blocks in the field <b>Mask layer</b>.
     Make sure you have an attribute field called NAME and that it is populated 
     with the name of tectonic blocks. <br/>Please refer to the manual for the
-    full list of polar plate names that the algorithm recognizes.</div>
+    full list of polar plate names that the algorithm recognizes.<br/>
+If you don't check this box, all the polygons from the mask layer will be used.</div>
 
 <p><b><i>Amount of ice to be removed:</i></b><br/>
-    If you enter <i>100%</i>, the isostatic rebound will be calculated assuming all the ice dissapears from the poles. With a lower percentage, the isostatic rebound will be smaller and the bedrock topography will be lower.
+    If you enter <i>100%</i>, the isostatic rebound will be calculated assuming all the ice disappears from the poles. With a lower percentage, the isostatic rebound will be smaller and the bedrock topography will not be lifted that much.
 <p>
 <b><i>Output file path:</i></b><br/>
 If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
