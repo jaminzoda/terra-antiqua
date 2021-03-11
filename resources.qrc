@@ -4,6 +4,7 @@
 		<file alias="icon.png">resources/icon.png</file>
 		<file alias="removeButton.png">resources/removeButton.png</file>
 		<file alias="arrow_down.png">resources/arrow_down.png</file>
+		<file alias="timestep_interpolation.png">resources/timestep_interpolation.png</file>
 		<file alias="artefact_rem.png">resources/artefact_rem.png</file>
 		<file alias="addButton.svg">resources/addButton.svg</file>
 		<file alias="arrow_right.png">resources/arrow_right.png</file>

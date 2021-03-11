@@ -19,8 +19,8 @@ class TaAlgorithmProvider:
 
     def __init__(self, dlg, thread, iface, settings):
         self.dlg = dlg()
-        self.thread = thread(self.dlg)
         self.iface = iface
+        self.thread = thread(self.dlg)
         self.settings = settings
         self.dlg.is_run.connect(self.start)
         self.dlg.cancelled.connect(self.stop)

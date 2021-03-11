@@ -195,7 +195,8 @@ class TaBaseDialog(TaTemplateDialog):
                 ('TaSmoothRaster', 'smoothing'),
                 ('TaIsostaticCompensation', 'isostat_cp'),
                 ('TaSetSeaLevel', 'set_sl'),
-                ('TaCalculateBathymetry', 'calc_bathy')
+                ('TaCalculateBathymetry', 'calc_bathy'),
+                ('TaInterpolateBetweenTimeStepsDlg', 'interpolate_between_time_steps')
                 ]
         for class_name, file_name in files:
             if class_name    == self.dlg_name:

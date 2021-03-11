@@ -45,7 +45,8 @@ from qgis.core import (
     QgsVectorFileWriter,
     QgsCoordinateTransformContext,
     QgsCoordinateReferenceSystem,
-    QgsSimpleFillSymbolLayer
+    QgsSimpleFillSymbolLayer,
+    QgsProcessingException
 
     )
 

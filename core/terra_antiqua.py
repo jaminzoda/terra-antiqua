@@ -42,6 +42,7 @@ from .modify_tb import TaModifyTopoBathy
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
 from .algorithm_provider import TaAlgorithmProvider, TaRemoveArtefactsAlgProvider
+from .interpolate_between_time_steps import TaInterpolateBetweenTimeSteps
 
 from ..gui.compile_tb_dlg import  TaCompileTopoBathyDlg
 from ..gui.modify_tb_dlg import  TaModifyTopoBathyDlg
@@ -50,6 +51,7 @@ from ..gui.prepare_masks_dlg import  TaPrepareMasksDlg
 from ..gui.set_pls_dlg import  TaSetPaleoshorelinesDlg
 from ..gui.remove_arts_dlg import  TaRemoveArtefactsDlg
 from ..gui.standard_proc_dlg import  TaStandardProcessingDlg
+from ..gui.interpolate_between_time_steps_dlg import TaInterpolateBetweenTimeStepsDlg
 from ..resources import *
 
 
@@ -207,6 +209,7 @@ class TerraAntiqua:
         std_proc_icon = ':/fill_smooth.png'
         feat_create_icon = ':/feat_create.png'
         artefact_remover_icon = ':/artefact_rem.png'
+        time_step_interpolation_icon = ':/timstep_interpolation.png'
 
         self.add_action(
             dem_builder_icon,
@@ -251,6 +254,12 @@ class TerraAntiqua:
             std_proc_icon,
             text = self.tr(u'Standard Processing'),
             callback = self.initStandardProcessing,
+            parent = self.iface.mainWindow())
+
+        self.add_action(
+            time_step_interpolation_icon,
+            text = self.tr(u'Interpolate between time steps'),
+            callback = self.initTimeStepInterpolation,
             parent = self.iface.mainWindow())
 
         # will be set False in run()
@@ -330,6 +339,17 @@ class TerraAntiqua:
             self.settings.removeArtefactsChecked = True
             self.removeArtefacts = TaRemoveArtefactsAlgProvider(TaRemoveArtefactsTooltip, TaRemoveArtefactsDlg, self.iface, self.actions, self.settings)
             self.removeArtefacts.initiate()
+
+
+    def initTimeStepInterpolation(self):
+
+        """Initializes the Interpolate between time steps algorithm and loads it"""
+        self.interpolateBetweenTimeSteps = TaAlgorithmProvider(TaInterpolateBetweenTimeStepsDlg,
+                                                      TaInterpolateBetweenTimeSteps,
+                                                      self.iface,
+                                                      self.settings)
+        self.interpolateBetweenTimeSteps.load()
+
 
 
 
