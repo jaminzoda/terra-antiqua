@@ -200,28 +200,28 @@ class TerraAntiqua:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        dem_builder_icon = ':/icon.png' #os.path.join(icons_path, 'icon.png')
-        mask_prep_icon = ':/mask.png'
-        topo_modifier_icon =':/topomod.png'
-        p_coastline_icon = ':/paleocoastlines.png'
-        std_proc_icon = ':/fill_smooth.png'
-        feat_create_icon = ':/feat_create.png'
-        artefact_remover_icon = ':/artefact_rem.png'
+        compile_tb_icon = ':/compile_tb_icon.png'
+        prepare_masks_icon = ':/prepare_masks_icon.png'
+        modify_tb_icon =':/modify_tb_icon.png'
+        set_pls_icon = ':/set_pls_icon.png'
+        std_proc_icon = ':/std_proc_icon.png'
+        feat_create_icon = ':/feat_create_icon.png'
+        remove_arts_icon = ':/remove_arts_icon.png'
 
         self.add_action(
-            dem_builder_icon,
+            compile_tb_icon,
             text = self.tr(u'Compile Topo/Bathymetry'),
             callback = self.initCompileTopoBathy,
             parent = self.iface.mainWindow())
 
         self.add_action(
-            p_coastline_icon,
+            set_pls_icon,
             text = self.tr(u'Set Paleoshorelines'),
             callback = self.initSetPaleoShorelines,
             parent = self.iface.mainWindow())
 
         self.add_action(
-            topo_modifier_icon,
+            modify_tb_icon,
             text = self.tr(u'Modify Topo/Bathymetry'),
             callback = self.initModifyTopoBathy,
             parent = self.iface.mainWindow())
@@ -235,14 +235,14 @@ class TerraAntiqua:
 
 
         self.add_action(
-            artefact_remover_icon,
+            remove_arts_icon,
             text = self.tr(u'Remove Artefacts'),
             callback = self.initRemoveArtefacts,
             parent = self.iface.mainWindow(),
             checkable = True)
 
         self.add_action(
-            mask_prep_icon,
+            prepare_masks_icon,
             text = self.tr(u'Prepare masks'),
             callback = self.initPrepareMasks,
             parent = self.iface.mainWindow())

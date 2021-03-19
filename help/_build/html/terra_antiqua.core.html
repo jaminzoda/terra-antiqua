@@ -1257,7 +1257,18 @@ This is basically flattening and roughening.</p>
 <dl class="function">
 <dt id="terra_antiqua.core.utils.vectorToRaster">
 <code class="descclassname">terra_antiqua.core.utils.</code><code class="descname">vectorToRaster</code><span class="sig-paren">(</span><em>in_layer</em>, <em>geotransform</em>, <em>width</em>, <em>height</em>, <em>feedback=None</em>, <em>field_to_burn=None</em>, <em>no_data=None</em>, <em>burn_value=None</em>, <em>output_path=None</em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.vectorToRaster" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rasterizes a vector layer and returns a numpy array.</p>
+<dd><p>Rasterizes a vector layer and returns a numpy array.
+:param in_layer: Accepted data types:</p>
+<blockquote>
+<div><ul class="simple">
+<li>str: layer ID</li>
+<li>str: layer name</li>
+<li>str: layer source</li>
+<li>QgsProcessingFeatureSourceDefinition</li>
+<li>QgsProperty</li>
+<li>QgsVectorLayer</li>
+</ul>
+</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
