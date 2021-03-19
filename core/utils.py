@@ -284,7 +284,7 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
     rows = in_array.shape[0]
     cols = in_array.shape[1]
     if filter_type == 'Gaussian filter':
-        out_array = gaussian_filter(in_array, factor / 2)
+        out_array = gaussian_filter(in_array, factor / 2, mode="wrap")
     elif filter_type == 'Uniform filter':
         out_array = uniform_filter(in_array, factor*3-(factor-1))
 

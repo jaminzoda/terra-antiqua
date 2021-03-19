@@ -173,7 +173,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             raster_to_smooth_layer = self.dlg.baseTopoBox.currentLayer()
             self.feedback.info("Smoothing toporaphy in the {} raster layer.".format(raster_to_smooth_layer))
             smoothing_factor = self.dlg.smFactorSpinBox2.value()
-            smoothing_type = self.dlg.smoothingTypeBox.currentText()
+            smoothing_type = self.dlg.smoothingTypeBox2.currentText()
             self.feedback.info("Using {} for smoothing the elevation/bathymetry values.".format(smoothing_type))
             self.feedback.info("Smoothing factor: {}.".format(smoothing_factor))
 
