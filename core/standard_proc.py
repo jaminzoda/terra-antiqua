@@ -241,27 +241,54 @@ class TaStandardProcessing(TaBaseAlgorithm):
             if self.dlg.masksFromCoastCheckBox.isChecked():
                 if not self.killed:
                     self.feedback.info("Retrieving the masks with the following names (case insensitive): ")
-                    for i in [ "<i>Greeanland",
-                                  "<i>Antarctic or antarctica (Including East Antarctica and Antarctic peninsula)",
-                                  "<i>Marie Byrd Land",
-                                  "<i>Rone Ice Shelf",
-                                  "<i>Thurston Island",
-                                  "<i>Berkner Island",
-                                  "<i>Whitmore Mountains",
-                                  "<i>Filchner Block",
-                                  "<i>Ross Terrane",
-                                  "<i>Ellsworth Mountains",
-                                  "<i>Dronning or Queen Maud Land",
-                                  "<i>Lutzow-Holm or Luetzow-Holm Bay",
-                                  "<i>Raynor Province",
-                                  "<i> Haag Mountains o Nunataks",
-                                  "<i>Admundsen Terrane."
+                    for i in [ "Greenland",
+                                  "Antarctic or antarctica (Including East Antarctica and Antarctic peninsula)",
+                                  "Marie Byrd Land",
+                                  "Rone Ice Shelf",
+                                  "Thurston Island",
+                                  "Berkner Island",
+                                  "Whitmore Mountains",
+                                  "Filchner Block",
+                                  "Ross Terrane",
+                                  "Ellsworth Mountains",
+                                  "Dronning or Queen Maud Land",
+                                  "Lutzow-Holm or Luetzow-Holm Bay",
+                                  "Raynor Province",
+                                  "Haag Mountains o Nunataks",
+                                  "Admundsen Terrane"
                               ]:
-                        self.feedback.info(i)
+                        self.feedback.info(f"<i>{i}")
                     # Get features from the masks layer
+                    #build expression string
+                    names_to_look_for = ["greenland",
+                                         "antarctic",
+                                         "antarctica",
+                                         "eastantarctic",
+                                         "eastantarctica",
+                                         "marie",
+                                         "byrd",
+                                         "rone",
+                                         "thurston",
+                                         "berkner",
+                                         "whitmore",
+                                         "filchner",
+                                         "ross",
+                                         "ellsworth",
+                                         "dronning",
+                                         "queen",
+                                         "maud",
+                                         "lutzow",
+                                         "luetzow",
+                                         "raynor",
+                                         "haag",
+                                         "admundsen"]
+                    expression_string = ""
+                    for i in names_to_look_for:
+                        if len(expression_string)!=0:
+                            expression_string+=" OR "
+                        expression_string+= f"lower(\"NAME\") LIKE '%{i}%'"
                     try:
-                        expr = QgsExpression(
-                            "lower(\"NAME\") LIKE '%greenland%' OR lower(\"NAME\") LIKE '%ellsworth%' OR lower(\"NAME\") LIKE '%filchner%' OR lower(\"NAME\") LIKE '%berkner%'  OR lower(\"NAME\") LIKE '%raynor%' OR   lower(\"NAME\") LIKE '%whitmore%' OR lower(\"NAME\") LIKE '%lutzow%'  OR  lower(\"NAME\") LIKE '%luetzow%' OR  lower(\"NAME\") LIKE '%ross%'   OR   lower(\"NAME\") LIKE '%haag%'     OR lower(\"NAME\") LIKE '%antarctic%' OR lower(\"NAME\") LIKE '%eastantarctica%' OR lower(\"NAME\") LIKE '%eastantarctic%' OR lower(\"NAME\") LIKE '%antarctica%' OR lower(\"NAME\") LIKE '%maud%'     OR lower(\"NAME\") LIKE '%byrd%'    OR lower(\"NAME\") LIKE '%rone ice%' OR lower(\"NAME\") LIKE '%thurston%' OR lower(\"NAME\") LIKE '%admundsen%'")
+                        expr = QgsExpression(expression_string)
 
                         features = vlayer.getFeatures(QgsFeatureRequest(expr))
                         assert any(True for _ in features), "No features with the above names are found in the input mask layer"
