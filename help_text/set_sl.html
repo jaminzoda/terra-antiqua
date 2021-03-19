@@ -2,34 +2,27 @@
     <head>
         <link rel="stylesheet" type="text/css" href="StyleSheet.css">
     </head>
-    <title> Set Paleoshorelines </title>
+    <title> Set new sea level </title>
     <body>
         <p>
-            <b><i>How would you like to process the DEM</i></b>:<br/>
-            Choose the processing tool you want to use.
+        <b><i>How would you like to process the input DEM:</i></b><br/>
+        Choose the processing tool you want to use.
 <p>
-This tool sets a new sea level by shifting the elevation values vertically by the 
-amount specified. 
+This tool sets a new sea level by shifting the elevation values vertically.
 
-<p><b><i>Raster to be modified </i></b><br/>
-Select a raster layer, on which a new sea level shoud be set. 
+<p><b><i>Raster to be modified: </i></b><br/>
+Select a raster layer, on which a new sea level should be set.
 
-<p>The <b><i>amount of sea level shift</i></b> parameter  defines the amount of the 
-    sea level vertical shift relative to its present day level.
-    For example, if the sea level should be dropped by 100 meters this parameter 
-    should set a value of -100 m. In this case the topography will get higher by 
-    100 m and the bathymetry will shallower by this same amount
+<p><b><i>Amount of sea level shift:</i></b><br/>
+This parameter defines by how much the sea level will be changed relative to the present day.
 <p>
-<b>Specify the <i>Output file path</i>.</b><br>
-If there is no path specified here, the file will be created in the temporary folder. 
-The full path will be shown in the <i>Log</i> tab and the result will be loaded to 
-the map canvas.
+    If the value entered here is positive the sea level will rise, making the topography lower and the bathymetry deeper. Conversely, if it is negative the sea level will fall, making the topography higher and the bathymetry shallower.
+<p>
+<b><i>Output file path:</i></b><br/>
+If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
 
-<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, 
-    as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-<b>Note:</b>If this tool is used repetitively with no path specified, previous 
-results will be overwritten. To avoid this, specify a different path (or filename) 
-each time</div>
+<div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
+    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 </p>
 
 </body>

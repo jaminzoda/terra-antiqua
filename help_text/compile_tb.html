@@ -6,28 +6,34 @@
 
 <body>
 <p>
-	The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. The combined topography and bathymetry raster may be compiled from multiple source layers.
+	The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. The combined raster may be compiled from multiple source layers.
 
 <p>
     
- The <b><i>Mask layer</i></b> parameter introduces a layer with masks (a set of vector polygons) that will be used to constrain the spatial extent of the data in the source raster layers, which will be compiled. This mask layer may contain several categories of masks that can be applied to different source layers. When a mask layer is selected, a category column will appear in the table below, in which a category can be assigned to each layer. The <b><i>Mask layer</i></b> must have a column with a name "Category" (case insensitive) populated with category names (e.g. "Continents", "Continetal Shelf" etc. ).<br/> 
-</p>
+<b><i>Mask layer:</i></b> You may select a shapefile (a set of vector polygons) that will be used to constrain the spatial extent of the data in the raster layers and limit the compilation to certain areas.
+<br/>
+The <b><i>mask layer</b></i> must have (in the attribute table) a column called "Category" (case insensitive) populated with category names (e.g. "Continents", "Continetal Shelf" etc. ). <br/>
+
+This <b><i>Mask layer</i></b> may contain several categories of masks that can be applied to different raster layers. Then, during the compilation, only the part of the raster covered by the mask will be used.
+<br/>
+When a <b><i>Mask layer</i></b> is selected, a category column will appear in the table below. Please select the category you want to assign to each raster . Remember these are the categories from the attribute table of your <b><i>Mask layer</i></b>. <br/>
+
+You must then link the polygons from the <b><i>Mask layer</i></b> to a raster by choosing the appropriate category next to the raster.<br/>
+ 
 
 <p>
-In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. The <b><i>Remove overlapping bathymetry</i></b> parameter is used to remove this overlapping bathymetry. If you check the <b><i>remove overlapping bathymetry</i></b> parameter, a buffer zone with a distance of 0.5 degrees will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. The removed pixel values can then be interpolated. For this parameter to work, a mask layer should be selected and a category should be assigned to a topography layer. <br/>
-</p>
+	<i><b>Input layer</i></b>: in this table, enter the source layers that should be compiled into a combined raster. The arangement of the layers is important. The ones on top will be of higher order and will remove the overlapping data of underlying layers during the compilation. If you have selected a <b>Mask layer</b>, the parameter <b>Category</b> will appear. This associates a mask category to each source layer. The vector polygons of the specified category will be retrieved from the <b>Mask layer</b> and used to compile data from the associated source layer.
 
 <p>
-	 The <i><b>Input layer</i></b> parameter in the table specifies the source layers that should be compiled into a combined raster layer with topography and bathymetry. The order in which the layers should be specified is important. The layers specified first (top layers) will be of higher order and will remove the overlapping topography or bathymetry of underlying layers. If a <i><b>Mask layer</i></b> is selected, the <i><b>Category</i></b> parameter will appear that associates a mask category to each source layer. The vector polygons of the specified category will be retrieved from the <i><b> Mask layer</i></b>, rasterized and used for compiling data from the associated source layer. 
+In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check that box, a buffer zone with a distance of <i>0.5</i> degrees will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
 </p>
-
 <p>
 	    
-    <b>Specify the <i>Output file path</i>.</b><br>
-    If there is no path specified, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-  
-    <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time.</div> </br>
+        <b><i>Output file path:</i></b><br/>
+        If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
+
+        <div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
+            <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 </p>
 </body>
 </html>

@@ -5,7 +5,7 @@
 <title> Modify Topography </title>
 <body>
     <p>
-    This tool allows to modify the elevation values of a topography/bathymetry raster in a given area. The area to be modified must be defined by a mask contained in a vector file <i>(Shapefile; .shp)</i>.
+    This tool allows to modify the elevation values of a topography/bathymetry raster (DEM) in a given area. The areas to be modified must be defined by masks contained in a vector file (<i>Shapefile; .shp</i>).
     </p>
     
     
@@ -21,23 +21,23 @@
     </p>
      <p>
     <b> <i>Modify with formula:</b></i><br/>
-      If you have a formula, enter the formula in the text field or, if it is in the attribute table (eg. it’s different for each mask), please select the corresponding column by pressing the button on the right side of the formula field and selecting a field under the <i>Field type</i> menu.<br/>
-      <b>Note:</b> A mask layer (vector) must be selected first in order for the fields appear under the menu of the button on the right. <br/>
-    The formula must include <b>x</b>, which will correspond to the original
-    elevation value (e.g. <b>x*3</b> to multiply all the values by three).
-    Arithmetical operators must be explicitly defined. Operations like 2x will not
-    work.
-<div>        You may enter a minimum and maximum bounding values or choose to take them automatically from the attribute table (Button on the right side). These are constraining the range of elevation that will be modified.</div>
+      If you have a formula, enter it in the text field or, if it is in the attribute table (eg. it’s different for each mask), please select the corresponding attribute field by pressing the button on the right <br/>
+      
+    The formula must include <i>x</i>, which will correspond to the original
+    elevation value (e.g.: the formula <i>x*3</i> will multiply all the values by <i>3</i>).<br/>
+    Arithmetical operators must be explicitly defined (operations like <i>2x</i> will not work).
+<div>        You may enter a minimum and maximum bounding values or choose to take them automatically from the attribute table (Button on the right side). These will constrain the range of elevation to be modified.</div>
 
    <p> <b> <i>Rescale with final minimum and maximum values</i></b> <br/>
     This will linearly rescale the topography and bathymetry.<br/>
    You need to specify the final minimum and maximum elevation of the resulting topography. These can be taken automatically from the attribute table (please specify the fields), or you can enter them manually in the text boxes.
    
 <p>
-<b>Specify the <i>Output file path</i>.</b><br>
-If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
-<div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div> </br>
+<b><i>Output file path:</i></b><br/>
+If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
+
+<div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
+    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
    </p>
 
 </body>

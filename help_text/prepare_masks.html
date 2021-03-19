@@ -5,22 +5,22 @@
     <title> Prepare masks </title>
     
 <body>
-   <p>This tool prepares and merges the masks that are used to compile a PaleoDEM and modify it. These masks can be in
-       the form of polylines and polygons. Polylines are polygonized first, then all the invalid geometries in all the input
-       layers are fixed. After this, the difference algorithm is run to remove the overlapping geometries. <b>In this case,
-           the order, in which the input layers are added in the table is important.</b> The layers specified first (on top) are of higher order and the overlapping geometries in the underlying layers (lower order) will be removed by the difference algorithm. 
-   <p> The <b><i>Input layer</i></b> parameter (column): <br/> Here the layers that need to be merged (prepared) should be specified. More rows for additional layers can be added, pressing the + button below the table.  Inversely, the redundant rows can be deleted, pressing the x button. 
-   <p> The <b><i>Category</i></b> parameter: <br/> Assign a category to the masks in the associated mask layer.  The
-       categories of each input layer is added to the category column of the resulting layer as attributes. The Category
-       field is in edit mode and any arbitrary category can be added by typing the name of category in this field and
-       pressing enter. 
+   <p> Often, Gplates works
+    not only with polygons but also polylines to represent the masks. Then the output of GPlates consists of separate shapefiles. This tool allows polygonization of the lines to combine all masks into a single shapefile. That shapefile will serve as mask layer for the other tools.
+    <p> The masks are combined in order. The layers on top of the list will be of higher order and the overlaping geometries of the underlying layers (with lower order) will be erased. Invalid geometries are solved too.
+    
+   <p> <b><i>Input layer:</i></b> <br/>
+   Specify which layers need to be merged into a single file. Make sure you arrange them in the right order.
+   <p> <b><i>Mask category:</i></b> <br/>
+   The <b>output file</b> combining all masks will have a new attribute called <b>category</b> showing which original file each polygon comes from. Here you should determine what will be written in that field.
+   <br/> You may choose one of the preset categories or write it by yourself.
    
    
-    <p><b>Specify the <i>Output file path</i>.</b><br>
-  If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <i>Log</i> tab and the result will be loaded to the map canvas.
+   
+    <p><b><i>Output file path:</i></b><br/>
+    If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
 
-
-  <div><b>Warnings:</b> <br>I) Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br>
-      <b>Note:</b>If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+    <div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
+        <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
 </body>
 </html>
