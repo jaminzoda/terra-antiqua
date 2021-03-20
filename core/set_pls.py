@@ -124,11 +124,13 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
                 # Check if raster was modified. If the x matrix was assigned.
                 if 'topo' in locals():
 
+                    temp_out_file = os.path.join(os.path.dirname(self.out_file_path),
+                                                 "PaleoShorelines_without_theGaps_filled.tiff")
                     driver = gdal.GetDriverByName('GTiff')
-                    if os.path.exists(self.out_file_path):
-                        driver.Delete(self.out_file_path)
+                    if os.path.exists(temp_out_file):
+                        driver.Delete(temp_out_file)
 
-                    raster = driver.Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                    raster = driver.Create(temp_out_file, ncols, nrows, 1, gdal.GDT_Float32)
                     raster.SetGeoTransform(geotransform)
                     crs = topo_layer.crs().toWkt()
                     raster.SetProjection(crs)
@@ -138,18 +140,21 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
                     self.set_progress += 5
 
-                    raster_layer = QgsRasterLayer(self.out_file_path, "PaleoShorelines_without_theGaps_filled", "gdal")
+                    raster_layer = QgsRasterLayer(temp_out_file, "PaleoShorelines_without_theGaps_filled", "gdal")
 
-                    raster_layer_interpolated = os.path.join(os.path.dirname(self.out_file_path),
-                                                             "PaleoShorelines_with-gaps_filled.tiff")
-                    ret = fillNoData(raster_layer, raster_layer_interpolated)
+                    ret = fillNoData(raster_layer, self.out_file_path)
+
+                    #Delete the temporary layer stored before filling the gaps
+                    if os.path.exists(temp_out_file):
+                        driver.Delete(temp_out_file)
+                        driver = None
 
                     self.set_progress += 10
 
                     # Read the resulting raster to check if the interpolation was done correctly.
                     # If some areas are interpolated between to zero values of shorelines (i.e. large areas were
                     # assigned zero values), the old values will used and rescaled below/above sea level
-                    raster_layer_ds = gdal.Open(raster_layer_interpolated, gdalconst.GA_Update)
+                    raster_layer_ds = gdal.Open(self.out_file_path, gdalconst.GA_Update)
                     topo_modified = raster_layer_ds.GetRasterBand(1).ReadAsArray()
 
                     array_to_rescale_bsl = topo_values_copied[np.isfinite(topo_values_copied) * (topo_modified == 0)
@@ -202,9 +207,9 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
                     self.feedback.info(
                         "The raster was modified successfully and saved at: <a href='file://{}'>{}</a>.".format(
-                            os.path.dirname(raster_layer_interpolated), raster_layer_interpolated))
+                            os.path.dirname(self.out_file_path), self.out_file_path))
 
-                    self.finished.emit(True, raster_layer_interpolated)
+                    self.finished.emit(True, self.out_file_path)
 
                     self.set_progress = 100
 
