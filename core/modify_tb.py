@@ -26,9 +26,6 @@ from .base_algorithm import TaBaseAlgorithm
 
 class TaModifyTopoBathy(TaBaseAlgorithm):
 
-    #TODO: uncomment the commented part with creating temporary folder and shapefiles, if the fix does not work
-    #TODO: Also replace temp_layer to v_layer in vectorToRaster function call
-    #TODO: If the fix does work, remove cleanUp and createTemporaryFolder methods, removing commented parts as well.
 
     def __init__(self, dlg):
         super().__init__(dlg)
@@ -101,7 +98,6 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                     self.kill()
 
             self.context = QgsExpressionContext(QgsExpressionContextUtils.globalProjectLayerScopes(self.vlayer))
-#            self.path = self.createTemporaryFolder()
             return True
         else:
             return False
@@ -118,7 +114,6 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 else:
                     modified_array, ok = self.modifyWithMinAndMax(80)
 
-#        self.cleanUp()
 
         if not self.killed:
             # Check if raster was modified. If the x matrix was assigned.
@@ -195,25 +190,9 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             temp_dp.addFeature(feat)
             temp_dp = None
 
-            # Create a temporary shapefile to store extracted masks before rasterizing them
-#            self.out_file = os.path.join(self.path, 'masks_for_topo_modification.shp')
-
-#            if os.path.exists(self.out_file):
-#                deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file)
-#
-#            error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, self.out_file, "UTF-8",
-#                                                            temp_layer.crs(), "ESRI Shapefile")
-#            if error[0] == QgsVectorFileWriter.NoError:
-#                self.feedback.debug("The  {} shapefile is created\
-#                                    successfully.".format(os.path.basename(self.out_file)))
-#            else:
-#                self.feedback.error("Failed to create the {0} shapefile because\
-#                                    {1}.".format(os.path.basename(self.out_file), error[1]))
-#                self.kill()
 
             if not self.killed:
                 # Rasterize extracted masks
-#                v_layer = QgsVectorLayer(self.out_file, 'extracted_masks', 'ogr')
                 r_masks = vectorToRaster(
                     temp_layer,
                     self.geotransform,
@@ -272,26 +251,8 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             temp_dp.addFeature(feat)
             temp_dp = None
 
-            # Create a temporary shapefile to store extracted masks before rasterizing them
-#            self.out_file = os.path.join(self.path, 'masks_for_topo_modification.shp')
-#
-#            if os.path.exists(self.out_file):
-#                deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file)
-#            error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer,
-#                                                            self.out_file, "UTF-8",
-#                                                            temp_layer.crs(), "ESRI Shapefile")
-#            if error[0] == QgsVectorFileWriter.NoError:
-#                self.feedback.debug(
-#                    "The  {} shapefile is created\
-#                    successfully.".format(os.path.basename(self.out_file)))
-#            else:
-#                self.feedback.error(
-#                    "Failed to create the {0} shapefile because\
-#                    {1}.".format(os.path.basename(self.out_file), error[1]))
-#                self.kill()
 
             # Rasterize extracted masks
-#            v_layer = QgsVectorLayer(self.out_file, 'extracted_masks', 'ogr')
             r_masks = vectorToRaster(
                 temp_layer,
                 self.geotransform,
@@ -315,51 +276,4 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
         else:
             return (None, False)
 
-    def createTemporaryFolder(self):
-        if not self.killed:
-            # Create a directory for temporary vector files
-            path = os.path.join(os.path.dirname(self.out_file_path), "vector_masks")
-            if not os.path.exists(path):
-                try:
-                    os.mkdir(path)
-                except OSError:
-                    self.feedback.error("Creation of the directory {}\
-                                       failed".format(path))
-                    return None
-                else:
-                    self.feedback.info("Successfully created the  directory\
-                                       {}".format(path))
-                    return path
-            else:
-                self.feedback.info("The folder vector_masks is already created.")
-                return path
-
-    def cleanUp(self):
-        # Delete temporary files and folders
-        self.feedback.info('Trying to delete the temporary files and folders.')
-
-        try:
-            if os.path.exists(self.out_file):
-                deleted = QgsVectorFileWriter.deleteShapeFile(self.out_file)
-                if deleted:
-                    self.feedback.info(
-                        "The {} shapefile is deleted\
-                        successfully.".format(os.path.basename(self.out_file)))
-                else:
-                    self.feedback.warning("The {} shapefile is NOT\
-                                          deleted.".format(os.path.basename(self.out_file)))
-        except Exception:
-            pass
-        try:
-            if os.path.exists(self.path):
-                try:
-                    shutil.rmtree(self.path)
-                except OSError:
-                    self.feedback.warning("The directory {} is not\
-                                       deleted.".format(self.path))
-                else:
-                    self.feedback.info("The directory {} is successfully\
-                                       deleted".format(self.path))
-        except:
-            pass
 

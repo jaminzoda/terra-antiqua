@@ -94,24 +94,6 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                     self.feedback.debug(f"Masking features in {item.get('Layer').name()} \
                                           were not added to a temporary layer for rasterization.")
                 del temp_layer_dp
-#                # Saving the temporaty vector layer on disk to be able to use it in rasterization algorithm.
-#                # TODO Figure out how to use in-memory vector layer to rasterize. The gdal.RasterizeLayer takes OGRLayerSadow, whereas in-memory layers are QgsVectorLayer.
-#                output_path = os.path.join(os.path.dirname(self.out_file_path), "vector_masks")
-#                if not os.path.exists(output_path):
-#                    os.makedirs(output_path)
-#                temp_file_path = os.path.join(output_path, "vector_masks.shp")
-#                try:
-#                    result = TaVectorFileWriter.writeToShapeFile(temp_layer,
-#                                                                   temp_file_path,
-#                                                                   "UTF-8",
-#                                                                   self.crs,
-#                                                                   "ESRI Shapefile")
-#                except Exception as e:
-#                    self.feedback.warning(e)
-#                if not result[0] == TaVectorFileWriter.NoError:
-#                    self.feedback.warning("Could not save the extracted vector masks for rasterization.")
-#                if not self.killed:
-#                    temp_layer = QgsVectorLayer(temp_file_path, "Extracted masks", "ogr")
             elif item.get("Category") and item.get("Category") =="All":
                 temp_layer = self.mask_layer
 
@@ -137,9 +119,6 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                 else:
                     compiled_array[np.isfinite(data_array)] = data_array[np.isfinite(data_array)]
 
-                #Delete temporary shapefile and folder
-#                if 'output_path' in locals() and os.path.exists(output_path):
-#                    shutil.rmtree(output_path)
 
                 self.feedback.progress += unit_progress
 
