@@ -45,7 +45,8 @@ from qgis.core import (
     QgsVectorFileWriter,
     QgsCoordinateTransformContext,
     QgsCoordinateReferenceSystem,
-    QgsSimpleFillSymbolLayer
+    QgsSimpleFillSymbolLayer,
+    QgsProcessingException
 
     )
 
@@ -568,11 +569,12 @@ def polygonsToPolylines(in_layer, out_layer_path: str):
     except Exception as e:
         raise e
     try:
-        processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': out_layer_path})
+        polylines = processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': 'memory:polylines_from_prolygons'})
     except Exception as e:
         raise e
 
-    polylines_layer = QgsVectorLayer(out_layer_path, "Polylines_from_polygons", "ogr")
+
+    polylines_layer = polylines['OUTPUT']
 
     return polylines_layer
 
