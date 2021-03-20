@@ -47,7 +47,6 @@ class TaRemoveArtefactsTooltip(QtWidgets.QDialog, FORM_CLASS):
     def setShowable(self, value):
         data_out = None
         settings_file = os.path.join(os.path.dirname(__file__), '../resources/settings.txt')
-        settings_file2 = os.path.join(os.path.dirname(__file__), '../resources/settings2.txt')
         if value:
             pass
         else:
