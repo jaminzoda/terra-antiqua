@@ -25,7 +25,7 @@ repository=http://repo
 # changelog= 
 
 # Tags are comma separated with spaces allowed
-tags=python, paleoreconstruction, DEM, geology, geoscience, topography, paleotopography, bathymetry, paleobathymetry, climate modeling
+tags=python
 
 homepage=http://homepage
 category=Plugins
