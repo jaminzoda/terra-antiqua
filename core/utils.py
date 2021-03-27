@@ -50,6 +50,7 @@ from qgis.core import (
 
     )
 
+from qgis.gui import QgsMessageBar
 try:
     from plugins import processing
     from plugins.processing.tools import vector
@@ -1097,6 +1098,13 @@ def loadHelp(dlg):
 
 def install_package(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+
+
+def isProcessingPluginEnabled(settings):
+    value = settings.value("PythonPlugins/processing")
+    if value == False:
+        settings.setValue("PythonPlugins/processing",True)
 
 
 
