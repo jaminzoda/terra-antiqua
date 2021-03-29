@@ -6,7 +6,8 @@ from qgis.core import (
     QgsVectorLayer,
     QgsRasterLayer,
     QgsExpression,
-    QgsFeatureRequest
+    QgsFeatureRequest,
+    QgsProject
     )
 import shutil
 
@@ -283,6 +284,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                          "haag",
                                          "admundsen"]
                     expression_string = ""
+                    self.feedback.progress = 10
                     for i in names_to_look_for:
                         if len(expression_string)!=0:
                             expression_string+=" OR "
@@ -290,58 +292,22 @@ class TaStandardProcessing(TaBaseAlgorithm):
                     try:
                         expr = QgsExpression(expression_string)
 
-                        features = vlayer.getFeatures(QgsFeatureRequest(expr))
+                        features = list(vlayer.getFeatures(QgsFeatureRequest(expr)))
                         assert any(True for _ in features), "No features with the above names are found in the input mask layer"
                         temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
                         temp_prov = temp_layer.dataProvider()
+                        temp_prov.addAttributes(vlayer.dataProvider().fields().toList())
+                        temp_layer.updateFields()
                         temp_prov.addFeatures(features)
+                        temp_prov = None
 
-                        self.feedback.progress += 5
+                        self.feedback.progress += 10
 
-                        if not self.killed:
-
-                            path = os.path.join(os.path.dirname(self.out_file_path), 'vector_masks')
-                            self.feedback.info(
-                                "Creating a temporary folder to save extracted masks for rasterization at: {}.".format(path))
-                            if not os.path.exists(path):
-                                try:
-                                    os.mkdir(path)
-                                except OSError:
-                                    self.feedback.error("Creation of the directory %s failed" % path)
-                                else:
-                                    self.feedback.info("Successfully created the directory %s " % path)
-
-                            out_file = os.path.join(path, 'isostat_comp_masks.shp')
-                            self.feedback.warning(
-                                "The shapefile {} already exists in the {} folder, therefore it will be deleted.".format(out_file,
-                                                                                                                       path))
-                            if os.path.exists(out_file):
-                                # function deleteShapeFile return bool True iif deleted False if not
-                                deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-                                if deleted:
-                                    self.feedback.info(out_file + "has been deleted.")
-                                else:
-                                    self.feedback.warning(out_file + "is not deleted.")
-
-                            self.feedback.progress += 5
-
-                            error = QgsVectorFileWriter.writeAsVectorFormat(temp_layer, out_file, "UTF-8", vlayer.crs(),
-                                                                            "ESRI Shapefile")
-                            if error[0] == QgsVectorFileWriter.NoError:
-                                self.feedback.info(
-                                    "The  {} shapefile is created successfully.".format(os.path.basename(out_file)))
-                            else:
-                                self.feedback.warning(
-                                    "Failed to create the {} shapefile because {}.".format(
-                                        os.path.basename(out_file), error[1]))
-
-                            v_layer = QgsVectorLayer(out_file, 'extracted_masks', 'ogr')
-                            self.feedback.progress += 5
                     except AssertionError as e:
                         self.feedback.warning(e)
                         self.feedback.warning(
                             "All the polygons inside the input mask layer will be used for topography correction.")
-                        v_layer = vlayer
+                        temp_layer = vlayer
 
                 if not self.killed:
                     self.feedback.info("Rasterizing exrtacted masks.")
@@ -349,7 +315,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
                     geotransform = topo_br_ds.GetGeoTransform()
                     nrows, ncols = np.shape(topo_br_data)
                     r_masks = vectorToRaster(
-                        v_layer,
+                        temp_layer,
                         geotransform,
                         ncols,
                         nrows,
@@ -359,23 +325,6 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
                     self.feedback.progress += 10
 
-                    # Close  the temporary vector layer
-                    v_layer = None
-
-                    # Remove the shapefile of the temporary vector layer from the disk. Also remove the temporary folder created for it.
-                    try:
-                        if os.path.exists(out_file):
-                            deleted = QgsVectorFileWriter.deleteShapeFile(out_file)
-                            if deleted:
-                                if os.path.exists(path):
-                                    shutil.rmtree(path)
-                                else:
-                                    self.feedback.warning('Created a temporary folder with a shapefile at: ' + os.path.join(path))
-                                    self.feedback.warning('But could not delete it. You may need delete it manually.')
-                    except UnboundLocalError:
-                        pass
-
-                    self.feedback.progress += 5
 
             else:
                 if not self.killed:
@@ -418,6 +367,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 self.finished.emit(True, self.out_file_path)
             else:
                 self.finished.emit(False, "")
+
     def setSeaLevel(self):
         progress = TaProgressImitation(100,100, self, self.feedback)
         progress.start()
