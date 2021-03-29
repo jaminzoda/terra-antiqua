@@ -10,7 +10,8 @@ from qgis.core import (QgsExpressionContext,
                        QgsCoordinateReferenceSystem,
                        QgsProject,
                        QgsExpressionContextUtils,
-                       QgsVectorLayer)
+                       QgsVectorLayer,
+                       QgsSettings)
 
 from .utils import isPathValid
 
@@ -38,6 +39,7 @@ class TaBaseAlgorithm(QThread):
         except Exception as e:
            raise e
         self.checkCrs()
+        self.isProcessingPluginEnabled(QgsSettings())
 
     def setName(self, name):
         self.__name__ = name
@@ -64,6 +66,20 @@ class TaBaseAlgorithm(QThread):
         return crs
     def getProjectCrs(self):
         return self.crs
+
+    def isProcessingPluginEnabled(self, settings):
+        value = settings.value("PythonPlugins/processing")
+        if value == 'false' or not value:
+            msg = """The processing plugin, which is essential for Terra Antiqua to function properly, seems to be
+            deactivated in your QGIS installation. Activate it before using Terra Antiqua. It can be activated in the
+            Plugin manager window by following these steps: Plugins -> Manage and install plugins ... -> Installed ->
+            check the checkbox for processing plugin."""
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Warning)
+            msg_box.setText(msg)
+            msg_box.setWindowTitle('Terra Antiqua - Warning')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            retval = msg_box.exec_()
 
     def getOutFilePath(self):
         file_type = None

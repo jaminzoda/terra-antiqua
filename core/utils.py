@@ -1099,16 +1099,6 @@ def loadHelp(dlg):
 def install_package(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-
-
-def isProcessingPluginEnabled(settings):
-    value = settings.value("PythonPlugins/processing")
-    if value == False:
-        settings.setValue("PythonPlugins/processing",True)
-
-
-
-
 class TaProgressImitation(QThread):
     finished = False
 

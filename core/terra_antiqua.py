@@ -32,7 +32,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
 
 import os.path
-from qgis.core import QgsSettings
 
 from .compile_tb import TaCompileTopoBathy
 from .create_tb import TaCreateTopoBathy
@@ -43,7 +42,6 @@ from .modify_tb import TaModifyTopoBathy
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
 from .algorithm_provider import TaAlgorithmProvider, TaRemoveArtefactsAlgProvider
-from .utils import isProcessingPluginEnabled
 
 from ..gui.compile_tb_dlg import  TaCompileTopoBathyDlg
 from ..gui.modify_tb_dlg import  TaModifyTopoBathyDlg
@@ -100,9 +98,6 @@ class TerraAntiqua:
         self.settings = TaSettings()
         self.settings.tempValueChanged.connect(self.updatePluginSettings)
 
-        # Check if the processing plugin is enabled
-        qgis_settings = QgsSettings()
-        isProcessingPluginEnabled(qgis_settings)
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
         self.first_start =None
@@ -276,7 +271,7 @@ class TerraAntiqua:
 
 
     def initCompileTopoBathy(self):
-        """Initializes the Compile Topo/Bathymetry algotithm and loads it"""
+        """Initializes the Compile Topo/Bathymetry algorithm and loads it"""
         self.compileTopoBathy = TaAlgorithmProvider(
                                                         TaCompileTopoBathyDlg,
                                                         TaCompileTopoBathy,
