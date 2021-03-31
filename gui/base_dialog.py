@@ -1,11 +1,16 @@
 import os
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (
+    QVBoxLayout,
     QLabel,
     QShortcut,
     QSizePolicy
 )
-from qgis.gui import QgsFileWidget, QgsMessageBar
+from qgis.gui import (
+    QgsFileWidget,
+    QgsMessageBar,
+    QgsCollapsibleGroupBox
+)
 from ..core.logger import TaFeedback
 from .template_dialog import TaTemplateDialog
 
@@ -21,6 +26,7 @@ class TaBaseDialog(TaTemplateDialog):
         self.parameters = []
         self.mandatory_parameters = []
         self.variant_parameters = []
+        self.advanced_parameters = []
         self.var_index = None
         self.runButton.clicked.connect(self.runEvent)
         self.closeButton.clicked.connect(self.close)
@@ -99,6 +105,26 @@ class TaBaseDialog(TaTemplateDialog):
             return param.getMainWidget()
         else:
             return param
+
+    def addAdvancedParameter(self, param, label = None, widget_type = None):
+        """Adds advanced parameters to the dialog."""
+        if label:
+            try:
+                param = param(label)
+            except Exception:
+                label = QLabel(label)
+                self.advanced_parameters.append(label)
+                param = param()
+        else:
+            param = param()
+        self.advanced_parameters.append(param)
+        if widget_type == 'TaMapLayerComboBox':
+            return param.getMainWidget()
+        else:
+            return param
+
+
+
     def getParameters(self):
         pass
 
@@ -108,6 +134,9 @@ class TaBaseDialog(TaTemplateDialog):
 
         if len(self.variant_parameters)>0:
             self.appendVariantWidgets()
+
+        if len(self.advanced_parameters)>0:
+            self.appendAdvancedWidgets()
 
         if add_output_path:
             self.outputPath = QgsFileWidget()
@@ -125,6 +154,7 @@ class TaBaseDialog(TaTemplateDialog):
     def appendVariantWidgets(self):
         for param, variant_index, mandatory in self.variant_parameters:
             self.paramsLayout.addWidget(param)
+
     def showVariantWidgets(self, index):
         self.var_index = index
         for param, variant_index, mandatory in self.variant_parameters:
@@ -133,6 +163,16 @@ class TaBaseDialog(TaTemplateDialog):
             else:
                 param.show()
 
+    def appendAdvancedWidgets(self):
+        """Appends advanced parameters' widgets to the dialog."""
+        group_box = QgsCollapsibleGroupBox()
+        group_box.setTitle("Advanced parameters")
+        group_box.setCollapsed(True)
+        layout = QVBoxLayout()
+        for widget in self.advanced_parameters:
+            layout.addWidget(widget)
+        group_box.setLayout(layout)
+        self.paramsLayout.addWidget(group_box)
 
     def checkMandatoryParameters(self):
         param_checks = []

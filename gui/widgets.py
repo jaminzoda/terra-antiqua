@@ -345,3 +345,33 @@ class TaExpressionWidget(QtWidgets.QWidget):
         else:
             self.overrideButton.init(0, QgsProperty(), definition)
 
+class TaColorSchemeWidget(QtWidgets.QComboBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.path_to_color_schemes = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/color_schemes"))
+        self.color_scheme_names= []
+        self.populateColorSchemes()
+        self.setDefaultColorScheme()
+
+    def populateColorSchemes(self):
+        file_names = []
+        for (dirpath, dirnames, filenames) in os.walk(self.path_to_color_schemes):
+            file_names.extend(filenames)
+        for file in file_names:
+            with open(os.path.join(self.path_to_color_schemes,file)) as f:
+                lines = f.readlines()
+                color_scheme_name = lines[0].strip()
+                color_scheme_name = color_scheme_name.replace("#", "")
+                self.color_scheme_names.append(color_scheme_name)
+        self.addItems(self.color_scheme_names)
+
+    def setDefaultColorScheme(self):
+        for i in self.color_scheme_names:
+            if i == "Terra Antiqua color scheme":
+                self.setCurrentText(i)
+
+
+
+
+
+

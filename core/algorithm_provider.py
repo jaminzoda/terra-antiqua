@@ -64,16 +64,18 @@ class TaAlgorithmProvider:
             elif ext == '.shp':
                 layer = self.iface.addVectorLayer(output_path, file_name, "ogr")
 
+            if len(self.dlg.advanced_parameters)>0:
+                color_palette= self.dlg.colorPalette.currentText()
             if layer:
                 # Rendering a symbology style for the resulting raster layer.
                 try:
                     if layer.type() == QgsMapLayerType.RasterLayer:
-                        setRasterSymbology(layer)
+                        setRasterSymbology(layer, color_palette)
                     elif layer.type() == QgsMapLayerType.VectorLayer:
                         setVectorSymbology(layer)
                 except Exception:
                     if layer.type() == QgsMapLayer.LayerType.RasterLayer:
-                        setRasterSymbology(layer)
+                        setRasterSymbology(layer, color_palette)
                     elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
                         setVectorSymbology(layer)
                 self.thread.feedback.info("The algorithm finished processing successfully,")
@@ -193,8 +195,10 @@ class TaRemoveArtefactsAlgProvider:
         if finished is True:
             file_name = os.path.splitext(os.path.basename(output_path))[0]
             rlayer = self.iface.addRasterLayer(output_path, file_name, "gdal")
+            if len(self.dlg.advanced_parameters)>0:
+                color_palette= self.dlg.colorPalette.currentText()
             if rlayer:
-                setRasterSymbology(rlayer)
+                setRasterSymbology(rlayer, color_palette)
                 self.thread.feedback.info("The artefacts were removed successfully,")
                 self.thread.feedback.info(
                     "and the resulting layer is added to the map canvas with the following name: {}.".format(file_name))

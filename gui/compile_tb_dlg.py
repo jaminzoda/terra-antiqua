@@ -2,13 +2,15 @@
 import os
 from PyQt5 import QtWidgets, QtCore
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsRasterLayer
-from qgis.gui import QgsMapLayerComboBox
+from qgis.gui import (
+    QgsMapLayerComboBox)
 from .base_dialog import TaBaseDialog
 from .widgets import (
     TaVectorLayerComboBox,
     TaTableWidget,
     TaButtonGroup,
-    TaCheckBox
+    TaCheckBox,
+    TaColorSchemeWidget
 )
 
 class TaCompileTopoBathyDlg(TaBaseDialog):
@@ -46,6 +48,9 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
        self.tableWidget.setMinimumHeight(200)
        self.addRow(0)
+
+       #Add advanced parameters
+       self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
 
     def addRow(self, row):

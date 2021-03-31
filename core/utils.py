@@ -336,11 +336,57 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
     return smoothed_layer
 
 
-def setRasterSymbology(in_layer):
+def setRasterSymbology(in_layer, color_ramp_name):
     """
     Applies a color palette to a raster layer. It does not add the raster layer to the Map canvas. Before passing a layer to this function, it should be added to the map canvas.
 
     """
+    path_to_color_schemes = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/color_schemes"))
+    color_scheme_names = []
+    file_names = []
+    for (dirpath, dirnames, filenames) in os.walk(path_to_color_schemes):
+        file_names.extend(filenames)
+    for file in file_names:
+        with open(os.path.join(path_to_color_schemes,file)) as f:
+            lines = f.readlines()
+            color_scheme_name = lines[0].strip()
+            color_scheme_name = color_scheme_name.replace("#", "")
+            if color_scheme_name == color_ramp_name:
+                color_palette_file = os.path.join(path_to_color_schemes, file)
+
+    def readCpt(file_name):
+        color_lines = []
+        with open(file_name) as file:
+            lines = file.readlines()
+            for line_no, line in enumerate(lines):
+                new_line = line.strip()
+                if new_line and not any([new_line[0]=='#',
+                           new_line[0]=='B',
+                           new_line[0]=='F',
+                           new_line[0]=='N']):
+                    new_line = new_line.split('\t')
+                    new_line = [i for i in new_line if i]
+                    color_lines.append(new_line)
+        return color_lines
+
+    def createColorRamp(ramp_shader:QgsColorRampShader, color_lines, minimum, maximum):
+        color_items_list = []
+        for line_no, line in enumerate(color_lines):
+            r,g,b = line[1].split('/')
+            if line_no==0:
+                color_item = ramp_shader.ColorRampItem(minimum, QColor(int(r),int(g), int(b)), str(round(minimum)))
+            elif line_no == len(color_lines)-1:
+                r_last,g_last,b_last = line[3].split('/')
+                color_item= ramp_shader.ColorRampItem(float(line[0]), QColor(int(r),int(g), int(b)),
+                                                      str(round(float(line[0]))))
+                color_item1 = ramp_shader.ColorRampItem(maximum, QColor(int(r_last),int(g_last), int(b_last)), str(round(maximum)))
+                color_items_list.append(color_item)
+                color_items_list.append(color_item1)
+                continue
+            else:
+                color_item = ramp_shader.ColorRampItem(float(line[0]), QColor(int(r), int(g), int(b)), str(round(float(line[0]))))
+            color_items_list.append(color_item)
+        return color_items_list
 
     stats = in_layer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
     min_elev = stats.minimumValue
@@ -348,21 +394,8 @@ def setRasterSymbology(in_layer):
     ramp_shader = QgsColorRampShader()
     ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
-    lst = [ramp_shader.ColorRampItem(min_elev, QColor(0, 0, 51), str(round(min_elev))),
-           ramp_shader.ColorRampItem(-5000, QColor(0, 51, 102), '-5000'),
-           ramp_shader.ColorRampItem(-3000, QColor(24, 138, 204), '-3000'),
-           ramp_shader.ColorRampItem(-2000, QColor(25, 145, 214), '-2000'),
-           ramp_shader.ColorRampItem(-1000, QColor(25, 151, 219), '-1000'),
-           ramp_shader.ColorRampItem(-200, QColor(121, 187, 224), '-200'),
-           ramp_shader.ColorRampItem(-0.01, QColor(176, 226, 255), '0'),
-           ramp_shader.ColorRampItem(0.01, QColor(0, 97, 71), '1'),
-           ramp_shader.ColorRampItem(200, QColor(16, 123, 48), '200'),
-           ramp_shader.ColorRampItem(1000, QColor(232, 214, 125), '1000'),
-           ramp_shader.ColorRampItem(2000, QColor(163, 68, 0), '2000'),
-           ramp_shader.ColorRampItem(3000, QColor(130, 30, 30), '3000'),
-           ramp_shader.ColorRampItem(5000, QColor(189, 189, 189), '5000'),
-           ramp_shader.ColorRampItem(max_elev, QColor(255, 255, 255), str(round(max_elev)))]
-
+    cpt_data = readCpt(color_palette_file)
+    lst =createColorRamp(ramp_shader, cpt_data, min_elev, max_elev)
     ramp_shader.setColorRampItemList(lst)
 
     # We’ll assign the color ramp to a QgsRasterShader

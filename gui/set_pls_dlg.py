@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets
 from qgis.gui import QgsSpinBox
 from .base_dialog import TaBaseDialog
-from .widgets import TaRasterLayerComboBox, TaVectorLayerComboBox
+from .widgets import TaRasterLayerComboBox, TaVectorLayerComboBox, TaColorSchemeWidget
 
 class TaSetPaleoshorelinesDlg(TaBaseDialog):
     def __init__(self, parent = None):
@@ -51,6 +51,9 @@ class TaSetPaleoshorelinesDlg(TaBaseDialog):
         self.selectModificationModeInterpolate(1)
         self.interpolateCheckBox.stateChanged.connect(self.selectModificationModeInterpolate)
         self.rescaleCheckBox.stateChanged.connect(self.selectModificationModeRescale)
+
+        #Add advanced parameters
+        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
         #Fill the parameters' tab of the Dialog with the defined parameters
         self.fillDialog()

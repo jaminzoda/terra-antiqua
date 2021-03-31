@@ -7,7 +7,8 @@ from .widgets import (
                         TaRasterLayerComboBox,
                         TaVectorLayerComboBox,
                         TaCheckBox,
-                        TaSpinBox
+                        TaSpinBox,
+                        TaColorSchemeWidget
                     )
 
 class TaCreateTopoBathyDlg(TaBaseDialog):
@@ -63,6 +64,9 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
                                                    "Width of mountain slope (in km)")
         self.mountSlope.spinBox.setValue(5)
         self.mountSlope.setAllowedValueRange(0, 500)
+
+        #Add advanced parameters
+        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
         self.fillDialog()
         self.showVariantWidgets(self.featureTypeBox.currentText())

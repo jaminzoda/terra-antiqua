@@ -6,7 +6,9 @@ from .widgets import (
     TaVectorLayerComboBox,
     TaSpinBox,
     TaCheckBox,
-    TaExpressionWidget)
+    TaExpressionWidget,
+    TaColorSchemeWidget
+)
 
 
 class TaModifyTopoBathyDlg(TaBaseDialog):
@@ -67,6 +69,8 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
                                                         "Rescale with final minimum and maximum values",
                                                         "Final maximum:")
 
+        #Add advanced parameters
+        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
 
 

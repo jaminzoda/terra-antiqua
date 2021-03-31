@@ -3,7 +3,7 @@
 from PyQt5.QtWidgets import QComboBox, QPushButton
 
 from .base_dialog import TaBaseDialog
-from .widgets import TaExpressionWidget, TaCheckBox
+from .widgets import TaExpressionWidget, TaCheckBox, TaColorSchemeWidget
 
 
 class TaRemoveArtefactsDlg(TaBaseDialog):
@@ -29,6 +29,10 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
         self.addButton = self.addParameter(QPushButton, "Add more polygons")
         # Elements of dialog are changed appropriately, when a filling type is selected
         self.comparisonTypeBox.currentIndexChanged.connect(self.typeOfComparison)
+
+        #Add advanced parameters
+        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
+
         self.typeOfComparison()
         self.fillDialog()
 
