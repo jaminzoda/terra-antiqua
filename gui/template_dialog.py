@@ -10,7 +10,7 @@ class TaTemplateDialog(QtWidgets.QDialog):
         super(TaTemplateDialog, self).__init__(parent)
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.setGeometry(200, 200, 800, 500)
+        self.setGeometry(200, 200, 900, 600)
         self.tabWidget =QtWidgets.QTabWidget(self)
         self.tabWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
