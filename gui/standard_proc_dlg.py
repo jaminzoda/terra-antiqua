@@ -10,7 +10,8 @@ from .base_dialog import TaBaseDialog
 from .widgets import (
     TaRasterLayerComboBox,
     TaCheckBox,
-    TaVectorLayerComboBox
+    TaVectorLayerComboBox,
+    TaColorSchemeWidget
 )
 
 class TaStandardProcessingDlg(TaBaseDialog):
@@ -115,6 +116,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                           "Calculate bathymetry",
                                                           "Reconstruction time:")
 
+        #Advanced Parameters
+        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
         self.fillDialog()
         self.showVariantWidgets(self.fillingTypeBox.currentText())
