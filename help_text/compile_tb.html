@@ -26,7 +26,14 @@ You must then link the polygons from the <b><i>Mask layer</i></b> to a raster by
 
 <p>
 In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check that box, a buffer zone with a distance of <i>0.5</i> degrees will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
+<p>
+<b><i>Advanced parameters:</i></b><br/>
+<b><i>Color palette:</i></b><br/>
+Here you may choose between the color schemes stored in the corresponding folder in Plugins/Terra Antiqua. By default the <b>Terra Antiqua color scheme</b> is selected. Please refer to the manual for instructions about downloading and saving color palettes.
 </p>
+
+
+
 <p>
 	    
         <b><i>Output file path:</i></b><br/>
