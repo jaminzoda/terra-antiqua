@@ -41,6 +41,19 @@ Documentation
 =================
 You can download the user's manual as a pdf here: (URL)
 
+Versioning and changelog
+==================
+This plugin uses semantic versioning. The versions are numbered following this structure X.Y.Z, where X is the major version, Y the minor version, and Z the patch verion.
+
+<ul>
+<li> Patch version Z is incremented if only backwards compatible bug fixes are introduced.
+<li> Minor version Y is incremented if new, backwards compatible functionality is introduced. Patch version must be reset to 0 when minor version is incremented.
+<li> Major version X is incremented if any changes that are introduced require to modify the minimum QGIS version required. Patch and minor version must be reset to 0 when major version is incremented.
+ </ul>
+   
+The change log will be included in the metadata for the latest version. For more detail about the changes made to previous releases, please refer to the file CHANGELOG.md
+The changes to the Documentation made by other contributors than the original authors (mentioned in the copyright notice) are recorded in the section called "History".
+   
 License
 ====================
 
