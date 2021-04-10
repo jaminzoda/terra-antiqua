@@ -262,3 +262,4 @@ zip_build/
 .DS_Store
 .settings/
 pb_tool.cfg
+*.html
