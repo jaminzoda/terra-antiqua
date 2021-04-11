@@ -41,7 +41,7 @@ Documentation
 =================
 You can download the user's manual as a pdf here: (URL)
 
-Versioning and changelog
+Versioning and changelog (Developers)
 ==================
 This plugin uses semantic versioning. The versions are numbered following this structure X.Y.Z, where X is the major version, Y the minor version, and Z the patch verion.
 
