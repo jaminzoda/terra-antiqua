@@ -2,23 +2,30 @@
 /***************************************************************************
  Terra Antiqua
                                  A QGIS plugin
- The Terra Antiqua plugin creates a paleogeographic map of a specific time.
- It modifies present day topography and bathymetry that is rotated to the time
- of reconstruction in Gplates with a set of masks that are also rotated in Gplates.
 
+Terra Antiqua deals with the reconstruction of paleogeography, simplifying the reconstruction process. The conceptual approach we follow consists of modifying present-day topography, assuming that it is possible to infer the paleogeography based on present-day observations (e.g., fossil data, thermochronological data). Terra Antiqua provides a complete set of tools to edit Digital Elevations Models (DEM) for paleoreconstructions.
                               -------------------
-        begin                : 2019-03-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2019 by Jovid Aminov
-        email                : jovid.aminov@outlook.com
+        begin             : 2019-03-18
+        git sha           : $Format:%H$
+        copyright         : (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
+        email             : jovid.aminov@outlook.com
  ***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program.  If not, see <https://www.gnu.org/licenses/>.*
+ *                                                                         *
  *                                                                         *
  ***************************************************************************/
 """

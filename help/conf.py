@@ -24,8 +24,8 @@ for i in path_list:
 # -- Project information -----------------------------------------------------
 
 project = 'Terra Antiqua'
-copyright = '2021, Jovid Aminov'
-author = 'Jovid Aminov'
+copyright = '2021, Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet. Full copyright notice in file: terra_antiqua.py'
+author = 'Jovid Aminov, Diego Ruiz'
 
 # The short X.Y version
 version = ''

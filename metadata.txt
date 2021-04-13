@@ -10,11 +10,11 @@
 name=Terra Antiqua
 qgisMinimumVersion=3.10
 description=This plugin creates digital elevation models of paleogeographic maps.
-version=0.3
+version=0.4
 author=Jovid Aminov, Diego Ruiz
 email=jovid.aminov@outlook.com
 
-about=Terra Antiqua deals with the reconstruction of paleogeography, simplifying the reconstruction process. It is based on the method used by Baatsten et al. (2016). The conceptual approach we follow consists of modifying present-day topography, assuming that it is possible to infer the paleogeography based on present-day observations (e.g., fossil data, thermochronological data). Terra Antiqua provides a complete set of tools to edit Digital Elevations Models (DEM) for paleoreconstructions.
+about=Terra Antiqua deals with the reconstruction of paleogeography, simplifying the reconstruction process. The conceptual approach we follow consists of modifying present-day topography, assuming that it is possible to infer the paleogeography based on present-day observations (e.g., fossil data, thermochronological data). Terra Antiqua provides a complete set of tools to edit Digital Elevations Models (DEM) for paleoreconstructions.
 tracker=http://bugs
 repository=http://repo
 # End of mandatory metadata
@@ -22,12 +22,17 @@ repository=http://repo
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-# changelog= 
+Changelog= version 0.4
+	- User interface redesigned
+	- New icons for all modules
+	- Increased efficiency of smoothing algorithms
+	- New option to choose the color palette
+	- Other bug fixes and small enhancements
 
 # Tags are comma separated with spaces allowed
-tags=python, paleoreconstruction, DEM, geology, geoscience, topography, paleotopography, bathymetry, paleobathymetry, GPlates, climate modeling
+tags=python, paleoreconstruction, DEM, geology, geoscience, topography, paleotopography, bathymetry, paleobathymetry, GPlates, climate modeling, paleogeography
 
-homepage=http://homepage
+homepage=http://home
 category=Plugins
 icon=icon_main.png
 # experimental flag
@@ -35,4 +40,3 @@ experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
-
