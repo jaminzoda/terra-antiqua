@@ -4,7 +4,8 @@ from qgis.gui import (
     QgsMapLayerComboBox,
     QgsPropertyOverrideButton,
     QgsSpinBox,
-    QgsFilterLineEdit
+    QgsFilterLineEdit,
+    QgsCollapsibleGroupBox
 )
 from qgis.core import (
     QgsMapLayerProxyModel,
@@ -48,17 +49,13 @@ class TaTableWidget(QtWidgets.QTableWidget):
 
     def moveRowDown(self):
         row = self.currentRow()
-        print(f"Current row: {row}")
         column = self.currentColumn()
         if row < self.rowCount()-1 and self.rowCount()>1:
             self.insertRow(row+2)
-            print(f"Inserted a row at {row}")
             for i in range(self.columnCount()):
-                print("Switching widgets")
                 self.setCellWidget(row+2,i,self.cellWidget(row,i))
                 self.setCurrentCell(row+2,column)
             self.removeRow(row)
-            print(f"Removed row at {row}")
 
     def moveRowUp(self):
         row = self.currentRow()
@@ -270,7 +267,7 @@ class TaCheckBox(QtWidgets.QCheckBox):
             self.setChecked(False)
 
     def registerEnabledWidgets(self, widgets:list, natural:bool = False):
-        """Registers widgets that get disabled when the checkbox is checked.
+        """Registers widgets that get enabled when the checkbox is checked.
         If natural is True, the widgets get disabled, when the checkbox is
         checked."""
 
@@ -286,6 +283,7 @@ class TaCheckBox(QtWidgets.QCheckBox):
                 widget.setEnabled(not self.natural_behavior)
             else:
                 widget.setEnabled(self.natural_behavior)
+
 
 
     def enabledWidgets(self):

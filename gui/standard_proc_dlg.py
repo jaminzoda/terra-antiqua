@@ -85,14 +85,23 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                          "Isostatic compensation",
                                                          "Ice topography raster:",
                                                          mandatory = True)
-        self.isostatMaskBox = self.addVariantParameter(TaVectorLayerComboBox,
-                                                       "Isostatic compensation",
-                                                       "Mask layer:",
-                                                       mandatory = True)
-        self.masksFromCoastCheckBox = self.addVariantParameter(
+        self.isostatMaskBox = self.addAdvancedParameter(TaVectorLayerComboBox,
+                                                       label = "Mask layer:",
+                                                       widget_type = "TaMapLayerComboBox",
+                                                       variant_index = "Isostatic compensation")
+        self.isostatMaskSelectedFeaturesCheckBox = self.addAdvancedParameter(TaCheckBox,
+                                                                             label = "Selected features only",
+                                                                             variant_index = "Isostatic compensation")
+        self.isostatMaskSelectedFeaturesCheckBox.registerLinkedWidget(self.isostatMaskBox)
+
+        self.masksFromCoastCheckBox = self.addAdvancedParameter(
                                         TaCheckBox,
-                                        "Isostatic compensation",
-                                        "Get polar regions automatically.")
+                                        label = "Get polar regions automatically.",
+                                        variant_index = "Isostatic compensation")
+        self.isostatMaskSelectedFeaturesCheckBox.registerEnabledWidgets([self.masksFromCoastCheckBox], natural = True)
+
+
+
         self.iceAmountSpinBox = self.addVariantParameter(
                                         QgsSpinBox,
                                         "Isostatic compensation",
@@ -122,6 +131,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.fillDialog()
         self.showVariantWidgets(self.fillingTypeBox.currentText())
         self.fillingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
+        self.group_box.collapsedStateChanged.connect(lambda:self.showAdvancedWidgets(self.fillingTypeBox.currentText()))
 
     def reloadHelp(self):
         """
