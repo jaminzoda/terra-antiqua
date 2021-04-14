@@ -19,6 +19,7 @@ from qgis.gui import (
 from ..core.logger import TaFeedback
 from .template_dialog import TaTemplateDialog
 
+
 class TaBaseDialog(TaTemplateDialog):
     is_run = QtCore.pyqtSignal(bool)
     cancelled = QtCore.pyqtSignal(bool)
@@ -111,18 +112,27 @@ class TaBaseDialog(TaTemplateDialog):
         else:
             return param
 
-    def addAdvancedParameter(self, param, label = None, widget_type = None):
-        """Adds advanced parameters to the dialog."""
+    def addAdvancedParameter(self, param, label = None, widget_type = None, variant_index = None):
+        """Adds advanced parameters to the dialog.
+        param param: A parameter widget to be added.
+        param label: Label for the parameter to be added.
+        param widget_type: Widget type. Currently supports only TaAbstractMapLayerComboBox.
+        If the parameter to be added is of TaAbstractMapLayerComboBox type, the maplayer combobox
+        will be returned by calling parameter.getMainWidget()
+        param variant_index: If this keyword argument is specified the parameter will be shown only case
+        a specified combobox containt the string as the variant_index ->  to be signal connected in the tools dialog
+        i.e. TaStandardProcessingDlg.
+        """
         if label:
             try:
                 param = param(label)
             except Exception:
                 label = QLabel(label)
-                self.advanced_parameters.append(label)
+                self.advanced_parameters.append((label, variant_index))
                 param = param()
         else:
             param = param()
-        self.advanced_parameters.append(param)
+        self.advanced_parameters.append((param, variant_index))
         if widget_type == 'TaMapLayerComboBox':
             return param.getMainWidget()
         else:
@@ -167,17 +177,26 @@ class TaBaseDialog(TaTemplateDialog):
                 param.hide()
             else:
                 param.show()
+        self.showAdvancedWidgets(index)
 
     def appendAdvancedWidgets(self):
         """Appends advanced parameters' widgets to the dialog."""
-        group_box = QgsCollapsibleGroupBox()
-        group_box.setTitle("Advanced parameters")
-        group_box.setCollapsed(True)
+        self.group_box = QgsCollapsibleGroupBox(self)
+        self.group_box.setTitle("Advanced parameters")
+        self.group_box.setCollapsed(True)
         layout = QVBoxLayout()
-        for widget in self.advanced_parameters:
+        for widget, variant_index in self.advanced_parameters:
             layout.addWidget(widget)
-        group_box.setLayout(layout)
-        self.paramsLayout.addWidget(group_box)
+        self.group_box.setLayout(layout)
+        self.paramsLayout.addWidget(self.group_box)
+
+    def showAdvancedWidgets(self, index):
+        for param, variant_index in self.advanced_parameters:
+            if variant_index and variant_index != index:
+                param.hide()
+            else:
+                param.show()
+
 
     def checkMandatoryParameters(self):
         param_checks = []
