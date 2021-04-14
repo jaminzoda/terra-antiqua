@@ -191,39 +191,41 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.finished.emit(False, "")
 
     def isostaticCompensation(self):
-            self.feedback.info("Correcting topography for ice load in Greenland and Antarctic...")
-            # Get the bedrock topography raster
-            if not self.killed:
-                try:
-                    topo_br_layer = self.dlg.baseTopoBox.currentLayer()
-                    topo_br_ds = gdal.Open(topo_br_layer.dataProvider().dataSourceUri())
-                    topo_br_data = topo_br_ds.GetRasterBand(1).ReadAsArray()
-                    assert topo_br_layer, "The Berock topography raster layer is not loaded properly."
-                    assert topo_br_layer.isValid(), "The Bedrock topography raster layer is not valid."
-                except Exception as e:
-                    self.feedback.error(e)
-                    self.kill()
 
-                if not self.killed:
-                    self.feedback.info("Bedrock topography raster layer: {}.".format(topo_br_layer.name()))
-                    self.feedback.progress += 5
+        self.feedback.info("Correcting topography for ice load in Greenland and Antarctic...")
+        # Get the bedrock topography raster
+        if not self.killed:
+            try:
+                topo_br_layer = self.dlg.baseTopoBox.currentLayer()
+                topo_br_ds = gdal.Open(topo_br_layer.dataProvider().dataSourceUri())
+                topo_br_data = topo_br_ds.GetRasterBand(1).ReadAsArray()
+                assert topo_br_layer, "The Berock topography raster layer is not loaded properly."
+                assert topo_br_layer.isValid(), "The Bedrock topography raster layer is not valid."
+            except Exception as e:
+                self.feedback.error(e)
+                self.kill()
 
             if not self.killed:
-                # Get the ice surface topography raster
-                try:
-                    topo_ice_layer = self.dlg.selectIceTopoBox.currentLayer()
-                    topo_ice_ds = gdal.Open(topo_ice_layer.dataProvider().dataSourceUri())
-                    topo_ice_data = topo_ice_ds.GetRasterBand(1).ReadAsArray()
-                    assert topo_ice_layer, "The Ice topography raster layer is not loaded properly."
-                    assert topo_ice_layer.isValid(), "The Ice topography raster layer is not valid."
-                except Exception as e:
-                    self.feedback.error(e)
-                    self.kill()
+                self.feedback.info("Bedrock topography raster layer: {}.".format(topo_br_layer.name()))
+                self.feedback.progress += 5
 
-                if not self.killed:
-                    self.feedback.info("Ice topography raster layer: {}.".format(topo_ice_layer.name()))
-                    self.feedback.progress += 5
+        if not self.killed:
+            # Get the ice surface topography raster
+            try:
+                topo_ice_layer = self.dlg.selectIceTopoBox.currentLayer()
+                topo_ice_ds = gdal.Open(topo_ice_layer.dataProvider().dataSourceUri())
+                topo_ice_data = topo_ice_ds.GetRasterBand(1).ReadAsArray()
+                assert topo_ice_layer, "The Ice topography raster layer is not loaded properly."
+                assert topo_ice_layer.isValid(), "The Ice topography raster layer is not valid."
+            except Exception as e:
+                self.feedback.error(e)
+                self.kill()
 
+            if not self.killed:
+                self.feedback.info("Ice topography raster layer: {}.".format(topo_ice_layer.name()))
+                self.feedback.progress += 5
+
+        if self.dlg.isostatMaskBox.currentLayer():
             if not self.killed:
                 # Get the masks
                 try:
@@ -326,6 +328,30 @@ class TaStandardProcessing(TaBaseAlgorithm):
                     self.feedback.progress += 10
 
 
+            elif self.dlg.isostatMaskSelectedFeaturesCheckBox.isChecked():
+                features = list(vlayer.getSelectedFeatures())
+                assert any(True for _ in features), "No features with the above names are found in the input mask layer"
+                temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+                temp_prov = temp_layer.dataProvider()
+                temp_prov.addAttributes(vlayer.dataProvider().fields().toList())
+                temp_layer.updateFields()
+                temp_prov.addFeatures(features)
+                temp_prov = None
+                if not self.killed:
+                    geotransform = topo_br_ds.GetGeoTransform()
+                    nrows, ncols = np.shape(topo_br_data)
+                    self.feedback.info("Rasterizing the masks.")
+                    r_masks = vectorToRaster(
+                        temp_layer,
+                        geotransform,
+                        ncols,
+                        nrows,
+                        field_to_burn=None,
+                        no_data=0
+                        )
+                    self.feedback.progress += 30
+
+
             else:
                 if not self.killed:
                     geotransform = topo_br_ds.GetGeoTransform()
@@ -341,32 +367,45 @@ class TaStandardProcessing(TaBaseAlgorithm):
                         )
 
                     self.feedback.progress += 30
-            if not self.killed:
-                # Compensate for ice load
-                self.feedback.info("Compensating for ice load.")
-                rem_amount = self.dlg.iceAmountSpinBox.value()  # the amount of ice that needs to be removed.
+        else:
+            r_masks = None
+
+
+        if not self.killed:
+            # Compensate for ice load
+            self.feedback.info("Compensating for ice load.")
+            rem_amount = self.dlg.iceAmountSpinBox.value()  # the amount of ice that needs to be removed.
+            if r_masks is not None:
                 comp_factor = 0.3 * (topo_ice_data[r_masks == 1] - topo_br_data[r_masks == 1]) * rem_amount / 100
                 comp_factor[np.isnan(comp_factor)] = 0
                 comp_factor[comp_factor < 0] = 0
                 topo_br_data[r_masks == 1] = topo_br_data[r_masks == 1] + comp_factor
-                self.feedback.progress += 30
-            if not self.killed:
-                # Create a new raster for the result
-                self.feedback.info("Saving the resulting layer.")
-                output_raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
-                output_raster.SetGeoTransform(geotransform)
-                crs = topo_br_layer.crs()
-                output_raster.SetProjection(crs.toWkt())
-                output_band = output_raster.GetRasterBand(1)
-                output_band.SetNoDataValue(np.nan)
-                output_band.WriteArray(topo_br_data)
-                output_band.FlushCache()
-                output_raster = None
-
-                self.feedback.progress = 100
-                self.finished.emit(True, self.out_file_path)
             else:
-                self.finished.emit(False, "")
+                comp_factor = 0.3 * (topo_ice_data - topo_br_data) * rem_amount / 100
+                comp_factor[np.isnan(comp_factor)] = 0
+                comp_factor[comp_factor < 0] = 0
+                topo_br_data = topo_br_data + comp_factor
+
+            self.feedback.progress += 30
+        if not self.killed:
+            # Create a new raster for the result
+            self.feedback.info("Saving the resulting layer.")
+            geotransform = topo_br_ds.GetGeoTransform()
+            nrows, ncols = np.shape(topo_br_data)
+            output_raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+            output_raster.SetGeoTransform(geotransform)
+            crs = topo_br_layer.crs()
+            output_raster.SetProjection(crs.toWkt())
+            output_band = output_raster.GetRasterBand(1)
+            output_band.SetNoDataValue(np.nan)
+            output_band.WriteArray(topo_br_data)
+            output_band.FlushCache()
+            output_raster = None
+
+            self.feedback.progress = 100
+            self.finished.emit(True, self.out_file_path)
+        else:
+            self.finished.emit(False, "")
 
     def setSeaLevel(self):
         progress = TaProgressImitation(100,100, self, self.feedback)
