@@ -5,7 +5,7 @@
 
 # -*- coding: utf-8 -*-
 import os
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, Qt
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsRasterLayer
 from qgis.gui import (
     QgsMapLayerComboBox)
@@ -31,14 +31,6 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        """ Adds parameters to a list object that is used by the TaBaseDialog
        class to create widgets and place them in parameters tab.
        """
-       self.maskComboBox = self.addParameter(TaVectorLayerComboBox, "Mask layer:", "TaMapLayerComboBox")
-       self.maskComboBox.layerChanged.connect(self.onLayerChange)
-       self.maskComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-       self.removeOverlapBathyCheckBox = self.addParameter(TaCheckBox,
-                                                           'Remove overlapping bathymetry',
-                                                           'CheckBox')
-       self.maskComboBox.layerChanged.connect(self.enableOverlapRemoveCheckBox)
-       self.removeOverlapBathyCheckBox.setEnabled(False)
        self.tableWidget = self.addParameter(TaTableWidget)
        self.itemControlButtons = self.addParameter(TaButtonGroup)
        self.itemControlButtons.add.clicked.connect(self.addRow)
@@ -55,6 +47,16 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        self.addRow(0)
 
        #Add advanced parameters
+       self.removeOverlapBathyCheckBox = self.addAdvancedParameter(TaCheckBox,
+                                                           label='Remove overlapping bathymetry',
+                                                           widget_type='CheckBox')
+       self.maskComboBox = self.addAdvancedParameter(TaVectorLayerComboBox,
+                                                     label="Mask layer:",
+                                                     widget_type="TaMapLayerComboBox")
+       self.maskComboBox.layerChanged.connect(self.onLayerChange)
+       self.maskComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+       self.removeOverlapBathyCheckBox.registerEnabledWidgets([self.maskComboBox])
+       self.removeOverlapBathyCheckBox.stateChanged.connect(self.onRemoveOverlapCheckBoxStateChange)
        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
 
@@ -65,8 +67,13 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
         self.tableWidget.setCellWidget(row, 0, QgsMapLayerComboBox(self))
         self.tableWidget.setCellWidget(row,1, QtWidgets.QToolButton(self))
         if self.tableWidget.columnCount()>2:
-            self.tableWidget.setCellWidget(row, 2, QtWidgets.QComboBox(self))
-            self.tableWidget.cellWidget(row,2).addItems(self.getCategories(self.maskComboBox.currentLayer()))
+            checkBoxWidget = QtWidgets.QWidget()
+            checkBox = TaCheckBox('')
+            layout = QtWidgets.QHBoxLayout(checkBoxWidget)
+            layout.addWidget(checkBox)
+            layout.setAlignment(QtCore.Qt.AlignCenter)
+            layout.setContentsMargins(0,0,0,0)
+            self.tableWidget.setCellWidget(row, 2,checkBoxWidget)
         btn = self.tableWidget.cellWidget(row, 1)
         btn.setText('...')
         btn.setIconSize(QtCore.QSize(10,10))
@@ -98,47 +105,32 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
             QgsProject.instance().addMapLayer(rlayer)
             cmb.setLayer(rlayer)
 
-    def getCategories(self, layer):
-        """Gets category names stored in the attribute table
-        of the input layer. """
-        field_names = layer.fields().names()
-        field_name = None
-        for name in field_names:
-            if name.lower() == 'category':
-                field_name = name
-                break
-        if not field_name:
-            self.msgBar.pushWarning("Warning:",
-                                    "The selected mask layer does not contain a field with name 'category'.")
-            categories = set()
-        else:
-            field_index = layer.fields().indexOf(field_name)
-            categories = layer.uniqueValues(field_index)
-
-        categories.add('')
-        categories.add('All')
-        return categories
-
-    def addColumn(self, layer):
+    def addColumn(self):
         self.tableWidget.insertColumn(2)
-        self.tableWidget.setHorizontalHeaderLabels(["Input layer", "", "Mask Category"])
+        self.tableWidget.setHorizontalHeaderLabels(["Input layer", "", "Apply mask"])
         header = self.tableWidget.horizontalHeader()
         header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         for i in range(self.tableWidget.rowCount()):
-            self.tableWidget.setCellWidget(i, 2, QtWidgets.QComboBox(self))
-            self.tableWidget.cellWidget(i, 2).addItems(self.getCategories(layer))
+            checkBoxWidget = QtWidgets.QWidget()
+            checkBox = TaCheckBox('')
+            layout = QtWidgets.QHBoxLayout(checkBoxWidget)
+            layout.addWidget(checkBox)
+            layout.setAlignment(QtCore.Qt.AlignCenter)
+            layout.setContentsMargins(0,0,0,0)
+            self.tableWidget.setCellWidget(i, 2,checkBoxWidget)
+
 
     def onLayerChange(self, layer):
         if layer and not self.tableWidget.columnCount()>2:
-            self.addColumn(layer)
+            self.addColumn()
         elif not layer and self.tableWidget.columnCount()>2:
             self.tableWidget.removeColumn(2)
             header = self.tableWidget.horizontalHeader()
             header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
 
-    def enableOverlapRemoveCheckBox(self, layer):
-        if layer and layer.featureCount()>0:
-            self.removeOverlapBathyCheckBox.setEnabled(True)
+    def onRemoveOverlapCheckBoxStateChange(self, state):
+        if state == QtCore.Qt.Checked:
+            self.maskComboBox.setLayer(self.maskComboBox.layer(1))
         else:
-            self.removeOverlapBathyCheckBox.setEnabled(False)
+            self.maskComboBox.setLayer(self.maskComboBox.layer(0))
 
