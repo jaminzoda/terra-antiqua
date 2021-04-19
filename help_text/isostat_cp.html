@@ -34,27 +34,32 @@ DEM compiled and rotated to the time of reconstruction).
 <p><b><i>Ice topography raster</i></b><br/>
 Select a raster corresponding to the ice topography (rotated to the time of reconstruction).
 
-<p><b><i>Mask layer</i></b><br/>
-Select a mask layer that contains polygon masks defining the areas to be compensated 
-for the ice load. <br/>
-
-<div>If you select the option <b><i>Get polar regions automatically</i></b>, common 
-    names for polar plates (Antarctica, Greenland, etc...) will be searched among 
-    the masks of continental blocks and those polygons will be used for the
-    isostatic compensation. In this case, you have to select the vector file 
-    containing the continental blocks in the field <b>Mask layer</b>.
-    Make sure you have an attribute field called NAME and that it is populated 
-    with the name of tectonic blocks. <br/>Please refer to the manual for the
-    full list of polar plate names that the algorithm recognizes.<br/>
-If you don't check this box, all the polygons from the mask layer will be used.</div>
 
 <p><b><i>Amount of ice to be removed:</i></b><br/>
     If you enter <i>100%</i>, the isostatic rebound will be calculated assuming all the ice disappears from the poles. With a lower percentage, the isostatic rebound will be smaller and the bedrock topography will not be lifted that much.
     <p>
     <b><i>Advanced parameters:</i></b><br/>
-    <b><i>Color palette:</i></b><br/>
-    Here you may choose between the color schemes stored in the corresponding folder in Plugins/Terra Antiqua. By default the <b>Terra Antiqua color scheme</b> is selected. Please refer to the manual for instructions about downloading and saving color palettes.
-    </p>
+    
+    <p><b><i>Mask layer</i></b><br/>
+    If you want to constrain the isostatic compensation to a certain area, you may select a mask layer that contains polygon masks defining those areas.
+        <br/>
+        If you don't want to use all polygons in the mask layer, you have two options:
+        <br/>
+        If you choose the option <b><i>Selected features only</i></b>, the polygons you  have selected on the map canvas will be used.
+        <br/>
+        If you choose the option <b><i>Get polar regions automatically</i></b>, common
+        names for polar plates (Antarctica, Greenland, etc...) will be searched among
+        the masks of continental blocks and those polygons will be used for the
+        isostatic compensation. In this case, you have to select the vector file
+        containing the continental blocks in the field <b>Mask layer</b>.
+        Make sure you have an attribute field called NAME and that it is populated
+        with the name of tectonic blocks.
+        <br/>
+        Please refer to the manual for the
+        full list of polar plate names that the algorithm recognizes.
+      <p>
+        <b><i>Color palette:</i></b><br/>
+        Here you may choose between the color schemes stored in the corresponding folder in Plugins/Terra Antiqua. By default the <b>Terra Antiqua color scheme</b> is selected. Please refer to the manual for instructions about downloading and saving color palettes. <br/>
 <p>
 <b><i>Output file path:</i></b><br/>
 If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
