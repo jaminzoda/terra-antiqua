@@ -53,10 +53,14 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        self.maskComboBox = self.addAdvancedParameter(TaVectorLayerComboBox,
                                                      label="Mask layer:",
                                                      widget_type="TaMapLayerComboBox")
+       self.selectedFeaturesCheckBox = self.addAdvancedParameter(TaCheckBox,
+                                                                 label = ("Selected features only"),
+                                                                 widget_type = "CheckBox")
        self.maskComboBox.layerChanged.connect(self.onLayerChange)
        self.maskComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
        self.removeOverlapBathyCheckBox.registerEnabledWidgets([self.maskComboBox])
        self.removeOverlapBathyCheckBox.stateChanged.connect(self.onRemoveOverlapCheckBoxStateChange)
+       self.selectedFeaturesCheckBox.registerLinkedWidget(self.maskComboBox)
        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
 
@@ -69,6 +73,7 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
         if self.tableWidget.columnCount()>2:
             checkBoxWidget = QtWidgets.QWidget()
             checkBox = TaCheckBox('')
+            checkBox.setObjectName("apply_mask_checkbox")
             layout = QtWidgets.QHBoxLayout(checkBoxWidget)
             layout.addWidget(checkBox)
             layout.setAlignment(QtCore.Qt.AlignCenter)
@@ -113,6 +118,7 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
         for i in range(self.tableWidget.rowCount()):
             checkBoxWidget = QtWidgets.QWidget()
             checkBox = TaCheckBox('')
+            checkBox.setObjectName("apply_mask_checkbox")
             layout = QtWidgets.QHBoxLayout(checkBoxWidget)
             layout.addWidget(checkBox)
             layout.setAlignment(QtCore.Qt.AlignCenter)
