@@ -28,6 +28,7 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
 
         self.exprLineEdit = self.addMandatoryParameter(TaExpressionWidget,
                                                        "Enter your expression:")
+        self.exprLineEdit.lineEdit.editingFinished.connect(self.formulaValidation)
         self.interpolateCheckBox = self.addParameter(TaCheckBox,
                                                      "Interpolate values for removed cells")
         self.addButton = self.addParameter(QPushButton, "Add more polygons")
@@ -54,9 +55,9 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
         elif current_index==3:
             self.exprLineEdit.lineEdit.setValue("(H> )&(H< )")
 
-
-
-
-
-
-
+    def formulaValidation(self):
+        H = 1000
+        try:
+            eval(self.exprLineEdit.lineEdit.value())
+        except Exception as e:
+            self.msgBar.pushWarning("Warning:", f"The entered expression is invalid: {e}.")

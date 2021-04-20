@@ -151,6 +151,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             total = 100
         mask_number = 0
 
+        x = self.topo
         for feat in self.features:
             if self.killed:
                 break
@@ -167,6 +168,12 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                                    for formula is specified correctly in the plugin dialog.")
                 continue
             else:
+                try:
+                    eval(formula)
+                except Exception as e:
+                    self.feedback.warning(f"Formula for mask {mask_number} \
+                                          is invalid: {formula}.")
+                    continue
                 self.feedback.debug("Formula for mask number {} is:\
                                     {}".format(mask_number, formula))
 
@@ -208,7 +215,6 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 v_layer = None
 
                 # Modify the topography
-                x = self.topo
                 in_array = x[r_masks == 1]
                 x[r_masks == 1] = modFormula(in_array, formula, min_value, max_value)
 
@@ -225,6 +231,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
         else:
             total = 100
         mask_number = 0
+        x = self.topo
         for feat in self.features:
             if self.killed:
                 break
@@ -268,7 +275,6 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             v_layer = None
 
             # Modify the topography
-            x = self.topo
             in_array = x[r_masks == 1]
             x[r_masks == 1] = modRescale(in_array, fmin, fmax)
 
