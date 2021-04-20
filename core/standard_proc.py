@@ -465,6 +465,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             age_raster = gdal.Open(age_layer.dataProvider().dataSourceUri())
             ocean_age = age_raster.GetRasterBand(1).ReadAsArray()
             reconstruction_time = self.dlg.reconstructionTime.value()
+            age_raster_time = self.dlg.ageRasterTime.value()
             self.feedback.info("Calculating ocean depth from its age.")
             self.feedback.info(f"Input layer: {age_layer.name()}.")
             self.feedback.info(f"Reconstruction time: {reconstruction_time} Ma.")
@@ -475,7 +476,9 @@ class TaStandardProcessing(TaBaseAlgorithm):
             ocean_depth = np.empty(ocean_age.shape)
             ocean_depth[:] = np.nan
             # calculate ocean age
-            ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - reconstruction_time
+            time_difference = reconstruction_time - age_raster_time
+
+            ocean_age[ocean_age > 0] = ocean_age[ocean_age > 0] - time_difference
             ocean_depth[ocean_age > 0] = -2620 - 330 * (np.sqrt(ocean_age[ocean_age > 0]))
             ocean_depth[ocean_age > 90] = -5750
             self.feedback.progress +=50

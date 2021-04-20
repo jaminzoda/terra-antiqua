@@ -123,6 +123,10 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.seaLevelShiftBox.setValue(100)
 
         #Parameters for calculating bathymetry from ocean age
+        self.ageRasterTime =  self.addVariantParameter(QgsSpinBox,
+                                                          "Calculate bathymetry",
+                                                          "Time of the age raster:")
+        self.ageRasterTime.setValue(0)
         self.reconstructionTime = self.addVariantParameter(QgsSpinBox,
                                                           "Calculate bathymetry",
                                                           "Reconstruction time:")
