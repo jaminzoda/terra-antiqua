@@ -48,6 +48,7 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
                                     TaExpressionWidget,
                                     "Modify with formula",
                                     "Select the formula field or type the formula:")
+        self.formulaField.lineEdit.editingFinished.connect(self.formulaValidation)
         self.min_maxValueCheckBox = self.addVariantParameter(
                                         TaCheckBox,
                                         "Modify with formula",
@@ -99,3 +100,8 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
         self.newMaxValueSpin.initOverrideButton("newMaxValue",
                                               "Maximum value for rescaling",
                                               self.masksBox.currentLayer())
+    def formulaValidation(self):
+        try:
+            eval(self.formulaField.lineEdit.value())
+        except Exception as e:
+            self.msgBar.pushWarning("Warning:", f"The entered formula is invalid: {e}.")
