@@ -103,7 +103,8 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
             self.msgBar.pushWarning("Warning:", "No row is selected. Click on the row number to select it.")
         else:
             for index in selected_rows:
-                self.tableWidget.removeRow(index.row())
+                if self.tableWidget.rowCount()>1:
+                    self.tableWidget.removeRow(index.row())
 
 
     def openRasterFromDisk(self, cmb):
