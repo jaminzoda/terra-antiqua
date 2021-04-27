@@ -23,6 +23,7 @@ from qgis.gui import (
     )
 
 import numpy as np
+from numpy import *
 
 
 from .utils import (

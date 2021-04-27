@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QComboBox, QPushButton
 
 from .base_dialog import TaBaseDialog
 from .widgets import TaExpressionWidget, TaCheckBox, TaColorSchemeWidget
+from numpy import *
 
 
 class TaRemoveArtefactsDlg(TaBaseDialog):
@@ -56,7 +57,7 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
             self.exprLineEdit.lineEdit.setValue("(H> )&(H< )")
 
     def formulaValidation(self):
-        H = 1000
+        H = random.random((1800,3600))
         try:
             eval(self.exprLineEdit.lineEdit.value())
         except Exception as e:

@@ -13,6 +13,7 @@ from .widgets import (
     TaExpressionWidget,
     TaColorSchemeWidget
 )
+from numpy import * #This is to use math functions for formula validation
 
 
 class TaModifyTopoBathyDlg(TaBaseDialog):
@@ -101,6 +102,7 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
                                               "Maximum value for rescaling",
                                               self.masksBox.currentLayer())
     def formulaValidation(self):
+        H = random.random((1800,3600))
         try:
             eval(self.formulaField.lineEdit.value())
         except Exception as e:
