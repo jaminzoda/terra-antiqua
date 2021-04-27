@@ -127,7 +127,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
 
                 if feature.isValid():
 
-                    temp_layer = QgsVectorLayer("Polygon?crs={}".format(self.vl.crs().toWkt()), "Temporary vector layer for rasterization", "memory")
+                    temp_layer = QgsVectorLayer(f"Polygon?crs={self.crs.authid()}", "Temporary vector layer for rasterization", "memory")
                     temp_layer.dataProvider().addAttributes(feature.fields())
                     temp_layer.updateFields()
                     temp_layer.dataProvider().addFeatures([feature])
@@ -239,10 +239,11 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                 break
         if not layer_found:
             raise Exception("There is no visible raster layer in the project. Please check a raster layer  with topography that you want to modify.")
-        if not topo_layer.crs().authid() == self.crs and self.crs:
-            new_crs = QgsCoordinateReferenceSystem(self.crs)
-            topo_layer.setCrs(new_crs)
-
+        if self.crs and topo_layer.crs().authid() != self.crs.authid():
+            self.feedback.warning("The layer for removing artefacts has a different Coordinate Refernce System (crs) than the\
+                                  current project.")
+            self.feedback.warning("For Terra Antqua to work properly the project and the layers should have the same\
+                                  crs.")
         return topo_layer
 
     def prepareExpression(self, H, expr):
@@ -285,7 +286,7 @@ class TaFeatureSink(QObject):
         self.vl = self.createVectorLayer()
 
     def createVectorLayer(self):
-        vl = QgsVectorLayer("Polygon?crs={}".format(self.crs), "Polygons created", "memory")
+        vl = QgsVectorLayer(f"Polygon?crs={self.crs.authid()}", "Polygons created", "memory")
         expr_field = QgsField("Expression", QVariant.String, "text")
         fields=QgsFields()
         fields.append(expr_field)

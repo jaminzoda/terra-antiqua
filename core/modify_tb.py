@@ -129,9 +129,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
 
                 raster = driver.Create(self.out_file_path, self.ncols, self.nrows, 1, gdal.GDT_Float32)
                 raster.SetGeoTransform(self.geotransform)
-                crs = osr.SpatialReference()
-                crs.ImportFromEPSG(4326)
-                raster.SetProjection(crs.ExportToWkt())
+                raster.SetProjection(self.crs.toWkt())
                 raster.GetRasterBand(1).WriteArray(modified_array)
                 raster = None
                 self.finished.emit(True, self.out_file_path)
@@ -186,7 +184,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 max_value = None
 
             # Create a temporary layer to store the extracted masks
-            temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+            temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
             temp_dp = temp_layer.dataProvider()
             temp_dp.addAttributes(self.fields)
             temp_layer.updateFields()
@@ -247,7 +245,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 continue
 
             # Create a temporary layer to store the extracted masks
-            temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+            temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
             temp_dp = temp_layer.dataProvider()
             temp_dp.addAttributes(self.fields)
             temp_layer.updateFields()

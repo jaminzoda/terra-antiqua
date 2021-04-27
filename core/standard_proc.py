@@ -159,8 +159,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             # Create a new raster for the result
             output_raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
             output_raster.SetGeoTransform(geotransform)
-            crs = to_raster_layer.crs()
-            output_raster.SetProjection(crs.toWkt())
+            output_raster.SetProjection(self.crs.toWkt())
             output_band = output_raster.GetRasterBand(1)
             output_band.SetNoDataValue(np.nan)
             output_band.WriteArray(to_array)
@@ -300,7 +299,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
                         features = list(vlayer.getFeatures(QgsFeatureRequest(expr)))
                         assert any(True for _ in features), "No features with the above names are found in the input mask layer"
-                        temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+                        temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
                         temp_prov = temp_layer.dataProvider()
                         temp_prov.addAttributes(vlayer.dataProvider().fields().toList())
                         temp_layer.updateFields()
@@ -335,7 +334,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             elif self.dlg.isostatMaskSelectedFeaturesCheckBox.isChecked():
                 features = list(vlayer.getSelectedFeatures())
                 assert any(True for _ in features), "No features with the above names are found in the input mask layer"
-                temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+                temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
                 temp_prov = temp_layer.dataProvider()
                 temp_prov.addAttributes(vlayer.dataProvider().fields().toList())
                 temp_layer.updateFields()
@@ -398,8 +397,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             nrows, ncols = np.shape(topo_br_data)
             output_raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
             output_raster.SetGeoTransform(geotransform)
-            crs = topo_br_layer.crs()
-            output_raster.SetProjection(crs.toWkt())
+            output_raster.SetProjection(self.crs.toWkt())
             output_band = output_raster.GetRasterBand(1)
             output_band.SetNoDataValue(np.nan)
             output_band.WriteArray(topo_br_data)
@@ -442,7 +440,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             try:
                 raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
                 raster.SetGeoTransform(geotransform)
-                raster.SetProjection(topo_layer.crs().toWkt())
+                raster.SetProjection(self.crs.toWkt())
                 raster.GetRasterBand(1).WriteArray(modified_topo_array)
                 raster.GetRasterBand(1).SetNoDataValue(np.nan)
                 raster = None
@@ -489,7 +487,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             try:
                 raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
                 raster.SetGeoTransform(geotransform)
-                raster.SetProjection(age_layer.crs().toWkt())
+                raster.SetProjection(self.crs.toWkt())
                 raster.GetRasterBand(1).WriteArray(ocean_depth)
                 raster.GetRasterBand(1).SetNoDataValue(np.nan)
                 raster.GetRasterBand(1).FlushCache()

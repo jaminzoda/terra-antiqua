@@ -136,8 +136,7 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
                     raster = driver.Create(temp_out_file, ncols, nrows, 1, gdal.GDT_Float32)
                     raster.SetGeoTransform(geotransform)
-                    crs = topo_layer.crs().toWkt()
-                    raster.SetProjection(crs)
+                    raster.SetProjection(self.crs.toWkt())
                     raster.GetRasterBand(1).SetNoDataValue(np.nan)
                     raster.GetRasterBand(1).WriteArray(topo)
                     raster = None
@@ -263,9 +262,7 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
                     raster = driver.Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
                     raster.SetGeoTransform(geotransform)
-                    crs = osr.SpatialReference()
-                    crs.ImportFromEPSG(4326)
-                    raster.SetProjection(crs.ExportToWkt())
+                    raster.SetProjection(self.crs.toWkt())
                     raster.GetRasterBand(1).WriteArray(topo)
                     raster = None
 

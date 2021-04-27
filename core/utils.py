@@ -42,6 +42,7 @@ from qgis.core import (
     QgsFeature,
     QgsFields,
     NULL,
+    QgsMapLayer,
     QgsMapLayerType,
     QgsCategorizedSymbolRenderer,
     QgsSymbol,
@@ -833,28 +834,35 @@ def isPathValid(path: str, output_type: str)-> tuple: # for now is used for outp
         else:
             return(False, "Error: The provided path for the output is not correct. Example: {} or {}".format(r'C:\\Users\user_name\Documents\file.tiff', r'C:\\Users\user_name\Documents\file.shp'))
 
-
-
-def addRasterLayerForDebug(array, geotransform, iface):
-    out_path = os.path.join(tempfile.tempdir, "Raster_layer_for_debug.tiff")
-    nrows, ncols = np.shape(array)
-    drv = gdal.GetDriverByName("GTIFF")
-    raster = drv.Create(out_path, ncols, nrows, 1, gdal.GDT_Int32)
-    raster.SetGeoTransform(geotransform)
-    crs = osr.SpatialReference()
-    crs.ImportFromEPSG(4326)
-    raster.SetProjection(crs.ExportToWkt())
-    raster.GetRasterBand(1).WriteArray(array)
-    raster.GetRasterBand(1).SetNoDataValue(np.nan)
-    raster.GetRasterBand(1).FlushCache()
-    raster=None
-
-
-    rlayer = QgsRasterLayer(out_path, "Raster_Layer_For_Debug", "gdal")
-    iface.addRasterLayer(rlayer)
-def addVectorLayerForDebug(vlayer, iface):
-    iface.addVectorLayer(vlayer)
-
+def reprojectVectorLayer(input_layer:QgsVectorLayer,
+                   target_crs:QgsCoordinateReferenceSystem = QgsCoordinateReferenceSystem('EPSG:4326'),
+                   output_path:str = 'TEMPORARY_OUTPUT',
+                   feedback:TaFeedback = None) -> QgsVectorLayer:
+    """
+    Reprojects input vector layers into a different coordinate reference system.
+    :param input_layer: Input layer to be reprojected.
+    :type input_layer: QgsVectorLayer.
+    :param target_crs: The crs of the ouput layer. Defaults to epsg:4326 - WGS84
+    :type target_crs: QgsCoordinateReferenceSystem.
+    :param output_path: Path to save ouput file. Defaults to "TEMPORARY_OUTPUT" and saves the output in the memory.
+    :type output_path: str.
+    """
+    reprojecting_params = {"INPUT":input_layer,
+                           "TARGET_CRS":target_crs.authid(),
+                           "OUTPUT":output_path}
+    if feedback:
+        feedback.info(f"Reprojecting {input_layer.name()} layer from {input_layer.crs().authid()} to {target_crs.authid()}.")
+    try:
+        reprojected_layer = processing.run("native:reprojectlayer", reprojecting_params)['OUTPUT']
+    except Exception as e:
+        if feedback:
+            feedback.warning(f"Reprojection of {input_layer.name()} layer failed due to the following exception:")
+            feedback.warning(f"{e}")
+            return input_layer
+        else:
+            raise e
+    reprojected_layer.setName(input_layer.name())
+    return reprojected_layer
 
 def generateUniqueIds(vlayer, id_field) -> QgsVectorLayer:
     id_found  = False
