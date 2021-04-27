@@ -9,6 +9,7 @@ import tempfile
 import os
 
 import numpy as np
+from numpy import * #This to import math functions to be used in formula (modFormula)
 import subprocess
 from random import randrange
 
@@ -770,30 +771,30 @@ def modFormula(in_array, formula, min=None, max=None):
 
         topo = in_array
 
-        x = np.empty(topo.shape)
-        x.fill(np.nan)
+        H = np.empty(topo.shape)
+        H.fill(np.nan)
         if min != None and max != None:
-            index = 'x[(x>min)*(x<max)==1]'
-            x[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
-            new_formula = formula.replace('x', index)
-            x[(topo > min) * (topo < max) == 1] = eval(new_formula)
+            index = 'H[(H>min)*(H<max)==1]'
+            H[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
+            new_formula = formula.replace('H', index)
+            H[(topo > min) * (topo < max) == 1] = eval(new_formula)
 
         elif min != None and max == None:
-            index = 'x[x>min]'
-            x[topo > min] = topo[topo > min]
-            new_formula = formula.replace('x', index)
-            x[topo > min] = eval(new_formula)
+            index = 'H[H>min]'
+            H[topo > min] = topo[topo > min]
+            new_formula = formula.replace('H', index)
+            H[topo > min] = eval(new_formula)
         elif min == None and max != None:
-            index = 'x[x<max]'
-            x[topo < max] = topo[topo < max]
-            new_formula = formula.replace('x', index)
-            x[topo < max] = eval(new_formula)
+            index = 'H[H<max]'
+            H[topo < max] = topo[topo < max]
+            new_formula = formula.replace('H', index)
+            H[topo < max] = eval(new_formula)
         else:
-            x = topo
+            H = topo
             new_formula = formula
-            x[:] = eval(new_formula)
+            H[:] = eval(new_formula)
 
-        topo[np.isfinite(x)] = x[np.isfinite(x)]
+        topo[np.isfinite(H)] = H[np.isfinite(H)]
 
         return topo
 def isPathValid(path: str, output_type: str)-> tuple: # for now is used for output paths. Modify the raise texts to fit in other contexts.
