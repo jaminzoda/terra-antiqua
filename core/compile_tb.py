@@ -131,6 +131,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                 self.feedback.info(f"Creating buffer around polygon \
                                    geometries for removing overlapping bathymetry, to be applied to \
                                    {item.get('Layer').name()} layer.")
+                buffer_distance = self.dlg.bufferDistanceForRemoveOverlapBath.value()
                 if self.dlg.selectedFeaturesCheckBox.isChecked():
                     features = list(self.mask_layer.getSelectedFeatures())
                     temp_layer = QgsVectorLayer(f"Polygon?crs={self.crs().authid()}",
@@ -141,7 +142,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                     dp.addFeatures(features)
                     dp = None
                     try:
-                        buffer_layer = bufferAroundGeometries(temp_layer, 0.5, 100, self.feedback, 10)
+                        buffer_layer = bufferAroundGeometries(temp_layer, buffer_distance, 100, self.feedback, 10)
                     except Exception as e:
                         self.feedback.error("Something went wrong while creating buffer around polygon \
                                             geometries in the mask layer")
@@ -153,7 +154,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
                 else:
                     try:
-                        buffer_layer = bufferAroundGeometries(self.mask_layer, 0.5, 100, self.feedback, 10)
+                        buffer_layer = bufferAroundGeometries(self.mask_layer, buffer_distance, 100, self.feedback, 10)
                     except Exception as e:
                         self.feedback.error("Something went wrong while creating buffer around polygon \
                                             geometries in the mask layer")

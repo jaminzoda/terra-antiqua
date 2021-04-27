@@ -1007,11 +1007,16 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
 def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_percentage):
     """Creates buffer around polygon geometries.
 
-    :param in_layer: QgsVectorLayer or QgsFeatureItterator
-    :param buf_dist: int Buffer distance
+    :param in_layer: Input vector layer
+    :type in_layer: QgsVectorLayer or QgsFeatureItterator
+    :param buf_dist: Buffer distance in map units.
+    :type buf_dist: float.
     :param num_segments: Number of segments (int) used to approximate curves
-    :param feedback: a TaFeedback object to report feedback into log tab
+    :type num_segments: int.
+    :param feedback: A feedback object to report feedback into log tab.
+    :type feedback: TaFeedback.
     :param runtime_percentage: Percentage of runtime (int) to report progress
+    :type runtime_percentage: int.
     """
 
     feats = in_layer.getFeatures()
