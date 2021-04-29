@@ -1,6 +1,15 @@
 CHANGELOG
 ===========
 
+Version 0.5
+--------------
+* New Advanced Parameters tab
+* Minor GUI improvements for "Compile Topo-/ Bathymetry" and "Prepare Masks"
+* Added support for mathematical functions (such as sqrt, log, sin, etc.) in "Modify Topo-/ Bathymetry"
+* Slight modifications to some tools (Calculate Bathymetry, Isostatic Compensation)
+* Now the plugin checks if all rasters are the same size and if they have the same CRS. If not, it prompts a message.
+* Minor bug fixes
+
 Version 0.4
 -----------
 * New icons for all modules
