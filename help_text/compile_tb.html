@@ -21,7 +21,9 @@ Full copyright notice in file: terra_antiqua.py -->
 <b><i>Color palette:</i></b><br/>
 Here you may choose between the color schemes stored in the corresponding folder in Plugins/Terra Antiqua. By default the <b>Terra Antiqua color scheme</b> is selected. Please refer to the manual for instructions about downloading and saving color palettes.
 <p>
-In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check that box, a buffer zone with a distance of <i>0.5</i> degrees will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. This default value can be edited in the field <b><i>Buffer distance</b></i>. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
+In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of
+artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check that box, a buffer
+zone with a distance of <i>0.5</i> (default, in map units) will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. This default value can be edited in the field <b><i>Buffer distance</b></i>. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
 
 <p>
     
