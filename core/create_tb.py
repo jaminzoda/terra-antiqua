@@ -14,7 +14,8 @@ from qgis.core import (
     QgsField,
     QgsVectorLayer,
     QgsProcessingException,
-    NULL
+    NULL,
+    QgsProject
 )
 
 
@@ -168,7 +169,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 max_shelf_depth = self.dlg.shelfDepth.spinBox.value()
 
             #Create a memory vector layer to store a feature at a time
-            feature_layer = QgsVectorLayer("Polygon?crs=epsg:4326", "Feature layer", "memory")
+            feature_layer = QgsVectorLayer(f"Polygon?crs={self.crs.authid()}", "Feature layer", "memory")
             feature_layer.dataProvider().addAttributes(self.mask_layer.fields())
             feature_layer.updateFields()
             feature_layer.dataProvider().addFeature(feature)
@@ -268,7 +269,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     sampling_params = {
                         'INPUT': r_points_distance_layer,
                         'RASTERCOPY': self.topo_layer,
-                        'COLUMN_PREFIX': 'depth_value',
+                        'COLUMN_PREFIX': 'd_value',
                         'OUTPUT': self.processing_output
                     }
                     points_dist_depth_layer = processing.run("qgis:rastersampling", sampling_params)['OUTPUT']
@@ -310,8 +311,10 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     attr = feat.attributes()
                     dist = feat.attribute("HubDist")
                     try:
-                        in_depth = feat.attribute("depth_value_1")
-                    except Exception:
+                        in_depth = feat.attribute("d_value_1")
+                    except KeyError as e:
+                        in_depth = feat["d_value1"]
+                    except KeyError as e:
                         in_depth = None
 
                     if dist > shelf_width + slope_width:
@@ -325,7 +328,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     elif dist <= shelf_width:
                         depth = max_shelf_depth * dist / shelf_width
                         # if the calculated depth value for a point is shallower than the initial depth, the initial depth will taken.
-                        if depth > in_depth:
+                        if in_depth and depth > in_depth:
                             depth = in_depth
                         attr.append(depth)
                         feat.setAttributes(attr)
@@ -338,7 +341,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
 
 
             if not self.killed:
-                depth_layer = QgsVectorLayer("Point?crs={}".format(self.getProjectCrs().toWkt()), "Depth layer", "memory")
+                depth_layer = QgsVectorLayer(f"Point?crs={self.crs.authid()}", "Depth layer", "memory")
                 depth_layer_dp = depth_layer.dataProvider()
                 fields = points_dist_depth_layer.fields().toList()
                 depth_field = QgsField("Depth", QVariant.Double, "double")
@@ -549,7 +552,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 slope_width = self.dlg.mountSlope.spinBox.value()
 
             #Create a memory vector layer to store a feature at a time
-            feature_layer = QgsVectorLayer("Polygon?crs=epsg:4326", "Feature layer", "memory")
+            feature_layer = QgsVectorLayer(f"Polygon?crs={self.crs.authid()}", "Feature layer", "memory")
             feature_layer.dataProvider().addAttributes(self.mask_layer.fields())
             feature_layer.updateFields()
             feature_layer.dataProvider().addFeature(feature)
@@ -718,7 +721,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
 
 
                 elev_layer = QgsVectorLayer(
-                    "Point?crs={}".format(self.getProjectCrs().toWkt()),
+                    f"Point?crs={self.crs.authid()}",
                     "Topography layer",
                     "memory"
                 )

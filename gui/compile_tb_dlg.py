@@ -8,7 +8,9 @@ import os
 from PyQt5 import QtWidgets, QtCore, Qt
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsRasterLayer
 from qgis.gui import (
-    QgsMapLayerComboBox)
+    QgsMapLayerComboBox,
+    QgsDoubleSpinBox
+)
 from .base_dialog import TaBaseDialog
 from .widgets import (
     TaVectorLayerComboBox,
@@ -56,11 +58,16 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        self.selectedFeaturesCheckBox = self.addAdvancedParameter(TaCheckBox,
                                                                  label = ("Selected features only"),
                                                                  widget_type = "CheckBox")
+       self.bufferDistanceForRemoveOverlapBath = self.addAdvancedParameter(QgsDoubleSpinBox, "Buffer distance (In map units):")
+
        self.maskComboBox.layerChanged.connect(self.onLayerChange)
        self.maskComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-       self.removeOverlapBathyCheckBox.registerEnabledWidgets([self.maskComboBox])
+       self.removeOverlapBathyCheckBox.registerEnabledWidgets([self.maskComboBox,
+                                                               self.bufferDistanceForRemoveOverlapBath])
        self.removeOverlapBathyCheckBox.stateChanged.connect(self.onRemoveOverlapCheckBoxStateChange)
        self.selectedFeaturesCheckBox.registerLinkedWidget(self.maskComboBox)
+       self.bufferDistanceForRemoveOverlapBath.setValue(0.5)
+
        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
 
@@ -96,7 +103,8 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
             self.msgBar.pushWarning("Warning:", "No row is selected. Click on the row number to select it.")
         else:
             for index in selected_rows:
-                self.tableWidget.removeRow(index.row())
+                if self.tableWidget.rowCount()>1:
+                    self.tableWidget.removeRow(index.row())
 
 
     def openRasterFromDisk(self, cmb):

@@ -196,7 +196,7 @@ class TaPrepareMasks(TaBaseAlgorithm):
 
 
         if not self.killed:
-            error = TaVectorFileWriter.writeToShapeFile(final_layer, self.out_file_path, "UTF-8", final_layer.crs(), "ESRI Shapefile")
+            error = TaVectorFileWriter.writeToShapeFile(final_layer, self.out_file_path, "UTF-8", self.crs, "ESRI Shapefile")
             if error[0] == TaVectorFileWriter.NoError:
                 self.feedback.info("All the layers were merged. \
                                    The resulting layer is saved at: {}".format(self.out_file_path))

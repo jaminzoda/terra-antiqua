@@ -18,6 +18,7 @@ from qgis.core import (
 import shutil
 
 import numpy as np
+from numpy import * #This is to import math functions to use in formula
 
 from .utils import (
      vectorToRaster,
@@ -120,7 +121,6 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
 
 
         if not self.killed:
-            # Check if raster was modified. If the x matrix was assigned.
             if ok:
                 # Write the resulting raster array to a raster file
                 driver = gdal.GetDriverByName('GTiff')
@@ -129,9 +129,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
 
                 raster = driver.Create(self.out_file_path, self.ncols, self.nrows, 1, gdal.GDT_Float32)
                 raster.SetGeoTransform(self.geotransform)
-                crs = osr.SpatialReference()
-                crs.ImportFromEPSG(4326)
-                raster.SetProjection(crs.ExportToWkt())
+                raster.SetProjection(self.crs.toWkt())
                 raster.GetRasterBand(1).WriteArray(modified_array)
                 raster = None
                 self.finished.emit(True, self.out_file_path)
@@ -151,6 +149,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             total = 100
         mask_number = 0
 
+        H = self.topo
         for feat in self.features:
             if self.killed:
                 break
@@ -161,12 +160,19 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 formula = self.dlg.formulaField.lineEdit.value()
 
             # Check if the formula field contains the formula
-            if formula == NULL or ('x' in formula) is False:
+            if formula == NULL or ('H' in formula) is False:
                 self.feedback.warning("Mask {} does not contain any formula.".format(mask_number))
                 self.feedback.warning("You might want to check if the field\
                                    for formula is specified correctly in the plugin dialog.")
                 continue
             else:
+                try:
+                    eval(formula)
+                except Exception as e:
+                    self.feedback.warning(f"Formula for mask {mask_number} \
+                                          is invalid: {formula}.")
+                    self.feedback.debug(f"Raised exception: {e}.")
+                    continue
                 self.feedback.debug("Formula for mask number {} is:\
                                     {}".format(mask_number, formula))
 
@@ -186,7 +192,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 max_value = None
 
             # Create a temporary layer to store the extracted masks
-            temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+            temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
             temp_dp = temp_layer.dataProvider()
             temp_dp.addAttributes(self.fields)
             temp_layer.updateFields()
@@ -208,14 +214,13 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 v_layer = None
 
                 # Modify the topography
-                x = self.topo
-                in_array = x[r_masks == 1]
-                x[r_masks == 1] = modFormula(in_array, formula, min_value, max_value)
+                in_array = H[r_masks == 1]
+                H[r_masks == 1] = modFormula(in_array, formula, min_value, max_value)
 
             # Send progress feedback
             self.feedback.progress += total/ self.feats_count
-        if 'x' in locals():
-            return (x, True)
+        if 'H' in locals():
+            return (H, True)
         else:
             return (None, False)
 
@@ -225,6 +230,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
         else:
             total = 100
         mask_number = 0
+        H = self.topo
         for feat in self.features:
             if self.killed:
                 break
@@ -247,7 +253,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 continue
 
             # Create a temporary layer to store the extracted masks
-            temp_layer = QgsVectorLayer('Polygon?crs=epsg:4326', 'extracted_masks', 'memory')
+            temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
             temp_dp = temp_layer.dataProvider()
             temp_dp.addAttributes(self.fields)
             temp_layer.updateFields()
@@ -268,15 +274,14 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             v_layer = None
 
             # Modify the topography
-            x = self.topo
-            in_array = x[r_masks == 1]
-            x[r_masks == 1] = modRescale(in_array, fmin, fmax)
+            in_array = H[r_masks == 1]
+            H[r_masks == 1] = modRescale(in_array, fmin, fmax)
 
             # Send progress feedback
             self.feedback.progress += total/ self.feats_count
 
-        if 'x' in locals():
-            return (x, True)
+        if 'H' in locals():
+            return (H, True)
         else:
             return (None, False)
 

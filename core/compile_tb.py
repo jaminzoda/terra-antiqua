@@ -20,7 +20,8 @@ from .utils import (
     vectorToRaster,
     modRescale,
     bufferAroundGeometries,
-    TaVectorFileWriter
+    TaVectorFileWriter,
+    reprojectVectorLayer
 )
 from .base_algorithm import TaBaseAlgorithm
 
@@ -29,20 +30,18 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
     def __init__(self, dlg):
         super().__init__(dlg)
-        self.crs = None
         self.remove_overlap = None
 
 
     def getParameters(self):
         self.items=[]
-        if not self.killed:
-            self.remove_overlap = self.dlg.removeOverlapBathyCheckBox.isChecked()
-            if self.remove_overlap:
-                self.mask_layer = self.dlg.maskComboBox.currentLayer()
-            else:
-                self.mask_layer = None
         self.feedback.info(f"{self.dlg.tableWidget.rowCount()} layers will be merged in the following order:")
 
+        self.remove_overlap = self.dlg.removeOverlapBathyCheckBox.isChecked()
+        if self.remove_overlap:
+            self.mask_layer = self.dlg.maskComboBox.currentLayer()
+        else:
+            self.mask_layer = None
         for i in range(self.dlg.tableWidget.rowCount()):
             if self.killed:
                 break
@@ -61,6 +60,32 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
             self.feedback.info(f"{i+1}: {layer.name()}")
         self.feedback.info("Note that the overlaping data of a higher order layer will be removed.")
 
+
+        #Check crs of layers
+        if not self.killed:
+            for item in self.items:
+                layer = item.get("Layer")
+                if layer.crs() != self.crs:
+                    self.feedback.warning(f"Layer {layer.name()} has a different Coordinate Reference System than the \
+                                          current project.")
+                    self.feedback.warning(f"For the input raster layers to be properly compiled, they should have the \
+                                          same crs as the current project crs ({self.crs.authid()})")
+                    self.feedback.warning("Consider reprojecting your layers to the project crs using the \
+                                          reprojecting tool of QGIS (Raster -> Projections -> Warp(Reproject)...)")
+
+            if self.mask_layer and self.mask_layer.crs() != self.crs:
+                try:
+                    self.mask_layer = reprojectVectorLayer(self.mask_layer,
+                                                           target_crs = self.crs,
+                                                           feedback = self.feedback)
+                except Exception as e:
+                    self.feedback.warning(f"Layer {self.mask_layer.name()} has a Coordinate Reference System (crs)\
+                    that is  different from your project crs.")
+                    self.feedback.warning("Terra Antiqua tried to reproject it, but did not succeed. You may need to \
+                                          reproject it manually.")
+                    self.feedback.warning(f"Exception raised by reprojecting algorithm: {e}.")
+
+        #Check if all input raster layers have the same size
         raster_sizes = []
         for item in self.items:
             width = item.get("Layer").width()
@@ -80,17 +105,6 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                 self.kill()
                 break
 
-
-        if not self.killed:
-            self.feedback.info(f"The following Coordinate Reference System will be used for the resuling layer:")
-
-            for item in self.items:
-                if item.get("Layer").crs().isValid():
-                    self.crs = item.get("Layer").crs()
-                    self.feedback.info(f"{self.crs.authid()} (Taken from {item.get('Layer').name()})")
-                    break
-
-
     def run(self):
         self.getParameters()
         raster_size = (self.items[0].get('Layer').dataProvider().ySize(),
@@ -108,7 +122,8 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
             data_array = ds.GetRasterBand(1).ReadAsArray()
             # Set nodata values to np.nan
             no_data_value = ds.GetRasterBand(1).GetNoDataValue()
-            data_array[data_array==no_data_value] = np.nan
+            if no_data_value != np.nan:
+                data_array[data_array==no_data_value] = np.nan
             compiled_array[np.isfinite(data_array)] = data_array[np.isfinite(data_array)]
 
             if self.remove_overlap and item.get("Mask_Applied"):
@@ -116,9 +131,10 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                 self.feedback.info(f"Creating buffer around polygon \
                                    geometries for removing overlapping bathymetry, to be applied to \
                                    {item.get('Layer').name()} layer.")
+                buffer_distance = self.dlg.bufferDistanceForRemoveOverlapBath.value()
                 if self.dlg.selectedFeaturesCheckBox.isChecked():
                     features = list(self.mask_layer.getSelectedFeatures())
-                    temp_layer = QgsVectorLayer(f"Polygon?crs={self.mask_layer.crs().authid()}",
+                    temp_layer = QgsVectorLayer(f"Polygon?crs={self.crs().authid()}",
                                                 "Selected mask features", "memory")
                     dp = temp_layer.dataProvider()
                     dp.addAttributes(self.mask_layer.dataProvider().fields().toList())
@@ -126,7 +142,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                     dp.addFeatures(features)
                     dp = None
                     try:
-                        buffer_layer = bufferAroundGeometries(temp_layer, 0.5, 100, self.feedback, 10)
+                        buffer_layer = bufferAroundGeometries(temp_layer, buffer_distance, 100, self.feedback, 10)
                     except Exception as e:
                         self.feedback.error("Something went wrong while creating buffer around polygon \
                                             geometries in the mask layer")
@@ -138,7 +154,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
                 else:
                     try:
-                        buffer_layer = bufferAroundGeometries(self.mask_layer, 0.5, 100, self.feedback, 10)
+                        buffer_layer = bufferAroundGeometries(self.mask_layer, buffer_distance, 100, self.feedback, 10)
                     except Exception as e:
                         self.feedback.error("Something went wrong while creating buffer around polygon \
                                             geometries in the mask layer")

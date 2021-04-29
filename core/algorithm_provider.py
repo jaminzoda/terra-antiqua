@@ -12,7 +12,8 @@ from qgis.core import (
     QgsMapLayer,
     QgsExpressionContext,
     QgsExpressionContextUtils,
-    QgsProject
+    QgsProject,
+    QgsCoordinateReferenceSystem
 )
 
 
@@ -146,6 +147,7 @@ class TaRemoveArtefactsAlgProvider:
             context = QgsExpressionContext()
             context.appendScope(QgsExpressionContextUtils.projectScope(QgsProject.instance()))
             crs = context.variable("project_crs")
+            crs = QgsCoordinateReferenceSystem(crs)
             self.feature_sink = TaFeatureSink(crs)
 
 

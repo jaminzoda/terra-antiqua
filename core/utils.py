@@ -9,6 +9,7 @@ import tempfile
 import os
 
 import numpy as np
+from numpy import * #This to import math functions to be used in formula (modFormula)
 import subprocess
 from random import randrange
 
@@ -42,6 +43,7 @@ from qgis.core import (
     QgsFeature,
     QgsFields,
     NULL,
+    QgsMapLayer,
     QgsMapLayerType,
     QgsCategorizedSymbolRenderer,
     QgsSymbol,
@@ -770,30 +772,30 @@ def modFormula(in_array, formula, min=None, max=None):
 
         topo = in_array
 
-        x = np.empty(topo.shape)
-        x.fill(np.nan)
+        H = np.empty(topo.shape)
+        H.fill(np.nan)
         if min != None and max != None:
-            index = 'x[(x>min)*(x<max)==1]'
-            x[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
-            new_formula = formula.replace('x', index)
-            x[(topo > min) * (topo < max) == 1] = eval(new_formula)
+            index = 'H[(H>min)*(H<max)==1]'
+            H[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
+            new_formula = formula.replace('H', index)
+            H[(topo > min) * (topo < max) == 1] = eval(new_formula)
 
         elif min != None and max == None:
-            index = 'x[x>min]'
-            x[topo > min] = topo[topo > min]
-            new_formula = formula.replace('x', index)
-            x[topo > min] = eval(new_formula)
+            index = 'H[H>min]'
+            H[topo > min] = topo[topo > min]
+            new_formula = formula.replace('H', index)
+            H[topo > min] = eval(new_formula)
         elif min == None and max != None:
-            index = 'x[x<max]'
-            x[topo < max] = topo[topo < max]
-            new_formula = formula.replace('x', index)
-            x[topo < max] = eval(new_formula)
+            index = 'H[H<max]'
+            H[topo < max] = topo[topo < max]
+            new_formula = formula.replace('H', index)
+            H[topo < max] = eval(new_formula)
         else:
-            x = topo
+            H = topo
             new_formula = formula
-            x[:] = eval(new_formula)
+            H[:] = eval(new_formula)
 
-        topo[np.isfinite(x)] = x[np.isfinite(x)]
+        topo[np.isfinite(H)] = H[np.isfinite(H)]
 
         return topo
 def isPathValid(path: str, output_type: str)-> tuple: # for now is used for output paths. Modify the raise texts to fit in other contexts.
@@ -833,28 +835,35 @@ def isPathValid(path: str, output_type: str)-> tuple: # for now is used for outp
         else:
             return(False, "Error: The provided path for the output is not correct. Example: {} or {}".format(r'C:\\Users\user_name\Documents\file.tiff', r'C:\\Users\user_name\Documents\file.shp'))
 
-
-
-def addRasterLayerForDebug(array, geotransform, iface):
-    out_path = os.path.join(tempfile.tempdir, "Raster_layer_for_debug.tiff")
-    nrows, ncols = np.shape(array)
-    drv = gdal.GetDriverByName("GTIFF")
-    raster = drv.Create(out_path, ncols, nrows, 1, gdal.GDT_Int32)
-    raster.SetGeoTransform(geotransform)
-    crs = osr.SpatialReference()
-    crs.ImportFromEPSG(4326)
-    raster.SetProjection(crs.ExportToWkt())
-    raster.GetRasterBand(1).WriteArray(array)
-    raster.GetRasterBand(1).SetNoDataValue(np.nan)
-    raster.GetRasterBand(1).FlushCache()
-    raster=None
-
-
-    rlayer = QgsRasterLayer(out_path, "Raster_Layer_For_Debug", "gdal")
-    iface.addRasterLayer(rlayer)
-def addVectorLayerForDebug(vlayer, iface):
-    iface.addVectorLayer(vlayer)
-
+def reprojectVectorLayer(input_layer:QgsVectorLayer,
+                   target_crs:QgsCoordinateReferenceSystem = QgsCoordinateReferenceSystem('EPSG:4326'),
+                   output_path:str = 'TEMPORARY_OUTPUT',
+                   feedback:TaFeedback = None) -> QgsVectorLayer:
+    """
+    Reprojects input vector layers into a different coordinate reference system.
+    :param input_layer: Input layer to be reprojected.
+    :type input_layer: QgsVectorLayer.
+    :param target_crs: The crs of the ouput layer. Defaults to epsg:4326 - WGS84
+    :type target_crs: QgsCoordinateReferenceSystem.
+    :param output_path: Path to save ouput file. Defaults to "TEMPORARY_OUTPUT" and saves the output in the memory.
+    :type output_path: str.
+    """
+    reprojecting_params = {"INPUT":input_layer,
+                           "TARGET_CRS":target_crs.authid(),
+                           "OUTPUT":output_path}
+    if feedback:
+        feedback.info(f"Reprojecting {input_layer.name()} layer from {input_layer.crs().authid()} to {target_crs.authid()}.")
+    try:
+        reprojected_layer = processing.run("native:reprojectlayer", reprojecting_params)['OUTPUT']
+    except Exception as e:
+        if feedback:
+            feedback.warning(f"Reprojection of {input_layer.name()} layer failed due to the following exception:")
+            feedback.warning(f"{e}")
+            return input_layer
+        else:
+            raise e
+    reprojected_layer.setName(input_layer.name())
+    return reprojected_layer
 
 def generateUniqueIds(vlayer, id_field) -> QgsVectorLayer:
     id_found  = False
@@ -998,11 +1007,16 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
 def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_percentage):
     """Creates buffer around polygon geometries.
 
-    :param in_layer: QgsVectorLayer or QgsFeatureItterator
-    :param buf_dist: int Buffer distance
+    :param in_layer: Input vector layer
+    :type in_layer: QgsVectorLayer or QgsFeatureItterator
+    :param buf_dist: Buffer distance in map units.
+    :type buf_dist: float.
     :param num_segments: Number of segments (int) used to approximate curves
-    :param feedback: a TaFeedback object to report feedback into log tab
+    :type num_segments: int.
+    :param feedback: A feedback object to report feedback into log tab.
+    :type feedback: TaFeedback.
     :param runtime_percentage: Percentage of runtime (int) to report progress
+    :type runtime_percentage: int.
     """
 
     feats = in_layer.getFeatures()

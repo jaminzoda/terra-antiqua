@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QComboBox, QPushButton
 
 from .base_dialog import TaBaseDialog
 from .widgets import TaExpressionWidget, TaCheckBox, TaColorSchemeWidget
+from numpy import *
 
 
 class TaRemoveArtefactsDlg(TaBaseDialog):
@@ -28,6 +29,7 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
 
         self.exprLineEdit = self.addMandatoryParameter(TaExpressionWidget,
                                                        "Enter your expression:")
+        self.exprLineEdit.lineEdit.editingFinished.connect(self.formulaValidation)
         self.interpolateCheckBox = self.addParameter(TaCheckBox,
                                                      "Interpolate values for removed cells")
         self.addButton = self.addParameter(QPushButton, "Add more polygons")
@@ -54,9 +56,9 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
         elif current_index==3:
             self.exprLineEdit.lineEdit.setValue("(H> )&(H< )")
 
-
-
-
-
-
-
+    def formulaValidation(self):
+        H = random.random((1800,3600))
+        try:
+            eval(self.exprLineEdit.lineEdit.value())
+        except Exception as e:
+            self.msgBar.pushWarning("Warning:", f"The entered expression is invalid: {e}.")

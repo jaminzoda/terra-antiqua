@@ -14,9 +14,9 @@ version=0.4
 author=Jovid Aminov, Diego Ruiz
 email=jovid.aminov@outlook.com
 
-about=Terra Antiqua deals with the reconstruction of paleogeography, simplifying the reconstruction process. The conceptual approach we follow consists of modifying present-day topography, assuming that it is possible to infer the paleogeography based on present-day observations (e.g., fossil data, thermochronological data). Terra Antiqua provides a complete set of tools to edit Digital Elevations Models (DEM) for paleoreconstructions.
-tracker=http://bugs
-repository=http://repo
+about=Terra Antiqua deals with the reconstruction of paleogeography, simplifying the reconstruction process. The conceptual approach we follow consists of modifying present-day topography, assuming that it is possible to infer the paleogeography based on present-day observations (e.g., fossil data, thermochronological data). Terra Antiqua provides a complete set of tools to edit Digital Elevation Models (DEM) for paleoreconstructions.
+tracker=https://github.com/jaminzoda/terra-antiqua/issues
+repository=https://github.com/jaminzoda/terra-antiqua
 # End of mandatory metadata
 
 # Recommended items:
@@ -32,11 +32,11 @@ Changelog= version 0.4
 # Tags are comma separated with spaces allowed
 tags=python, paleoreconstruction, DEM, geology, geoscience, topography, paleotopography, bathymetry, paleobathymetry, GPlates, climate modeling, paleogeography
 
-homepage=http://home
+homepage=https://jaminzoda.github.io/terra-antiqua-documentation/
 category=Plugins
 icon=icon_main.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

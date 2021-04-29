@@ -37,53 +37,63 @@ class TaBaseAlgorithm(QThread):
         self.crs = QgsProject.instance().crs()
         self.temp_dir = tempfile.gettempdir()
         self.out_file_path = None
+        self.decisionMessageBox = QMessageBox()
+        self.decisionMessageBox.setIcon(QMessageBox.Warning)
+        self.decisionMessageBox.setWindowTitle('Terra Antiqua - Warning')
+        self.decisionMessageBox.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
         self.processing_output = self.getProcessingOutput()
+        self.informationMessageBox = QMessageBox()
+        self.informationMessageBox.setIcon(QMessageBox.Warning)
+        self.informationMessageBox.setWindowTitle('Terra Antiqua - Warning')
+        self.informationMessageBox.setStandardButtons(QMessageBox.Ok)
         try:
             self.feedback = self.dlg.createFeedback()
         except Exception as e:
            raise e
-        self.checkCrs()
+        self.checkProjectCrs()
+        self.checkLayersCrs()
         self.isProcessingPluginEnabled(QgsSettings())
 
     def setName(self, name):
         self.__name__ = name
         self.out_file_path = self.getOutFilePath()
 
-    def checkCrs(self):
+    def checkProjectCrs(self):
         if not self.crs.isValid():
             msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Refernce System to your project?'
-            msg_box = QMessageBox()
-            msg_box.setIcon(QMessageBox.Warning)
-            msg_box.setText(msg)
-            msg_box.setWindowTitle('Terra Antiqua - Warning')
-            msg_box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
-            retval = msg_box.exec_()
+            self.decisionMessageBox.setText(msg)
+            retval = self.decisionMessageBox.exec_()
             if retval == QMessageBox.Yes:
                 self.crs = self.setProjectCrs()
             else:
                 self.dlg.reject()
+
+    def checkLayersCrs(self):
+        unmaching_crs = []
+        for key, layer in QgsProject.instance().mapLayers().items():
+            if layer.crs() != self.crs:
+                unmaching_crs.append(layer.name())
+        if len(unmaching_crs)>0:
+            msg = f"""{len(unmaching_crs)} layers in your project have different Coordinate Refernce System (crs) from the current project. For Terra Antiqua to work properly all the layers must have the same crs  as the project. Consider reprojecting your layer to the project crs before using Terra Antiqua."""
+            self.informationMessageBox.setText(msg)
+            retval = self.informationMessageBox.exec_()
+
     def setProjectCrs(self,crs:QgsCoordinateReferenceSystem=None)->QgsCoordinateReferenceSystem:
         if not crs:
             crs = QgsCoordinateReferenceSystem('EPSG:4326')
         project = QgsProject.instance()
         project.setCrs(crs)
         return crs
+
     def getProjectCrs(self):
         return self.crs
 
     def isProcessingPluginEnabled(self, settings):
         value = settings.value("PythonPlugins/processing")
         if value == 'false' or not value:
-            msg = """The processing plugin, which is essential for Terra Antiqua to function properly, seems to be
-            deactivated in your QGIS installation. Activate it before using Terra Antiqua. It can be activated in the
-            Plugin manager window by following these steps: Plugins -> Manage and install plugins ... -> Installed ->
-            check the checkbox for processing plugin."""
-            msg_box = QMessageBox()
-            msg_box.setIcon(QMessageBox.Warning)
-            msg_box.setText(msg)
-            msg_box.setWindowTitle('Terra Antiqua - Warning')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            retval = msg_box.exec_()
+            msg = """The processing plugin, which is essential for Terra Antiqua to function properly, seems to be deactivated in your QGIS installation. Activate it before using Terra Antiqua. It can be activated in the Plugin manager window by following these steps: Plugins -> Manage and install plugins ... -> Installed -> check the checkbox for <i>Processing</i> plugin."""
+            self.informationMessageBox.setText(msg)
+            retval = self.informationMessageBox.exec_()
 
     def getOutFilePath(self):
         file_type = None

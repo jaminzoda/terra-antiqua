@@ -13,30 +13,23 @@ Full copyright notice in file: terra_antiqua.py -->
 	The purpose of this tool is to create a raster that combines the topography and the bathymetry at a given time of reconstruction. The combined raster may be compiled from multiple source layers.
 
 <p>
-    
-<b><i>Mask layer:</i></b> You may select a shapefile (a set of vector polygons) that will be used to constrain the spatial extent of the data in the raster layers and limit the compilation to certain areas.
-<br/>
-The <b><i>mask layer</b></i> must have (in the attribute table) a column called "Category" (case insensitive) populated with category names (e.g. "Continents", "Continetal Shelf" etc. ). <br/>
+	<i><b>Input layer</i></b>: in this table, enter the source layers that should be compiled into a combined raster. The arangement of the layers is important. The ones on top will be of higher order and will remove the overlapping data of underlying layers during the compilation.
 
-This <b><i>Mask layer</i></b> may contain several categories of masks that can be applied to different raster layers. Then, during the compilation, only the part of the raster covered by the mask will be used.
-<br/>
-When a <b><i>Mask layer</i></b> is selected, a category column will appear in the table below. Please select the category you want to assign to each raster . Remember these are the categories from the attribute table of your <b><i>Mask layer</i></b>. <br/>
-
-You must then link the polygons from the <b><i>Mask layer</i></b> to a raster by choosing the appropriate category next to the raster.<br/>
- 
-
-<p>
-	<i><b>Input layer</i></b>: in this table, enter the source layers that should be compiled into a combined raster. The arangement of the layers is important. The ones on top will be of higher order and will remove the overlapping data of underlying layers during the compilation. If you have selected a <b>Mask layer</b>, the parameter <b>Category</b> will appear. This associates a mask category to each source layer. The vector polygons of the specified category will be retrieved from the <b>Mask layer</b> and used to compile data from the associated source layer.
-
-<p>
-In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check that box, a buffer zone with a distance of <i>0.5</i> degrees will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
 <p>
 <b><i>Advanced parameters:</i></b><br/>
+<p>
 <b><i>Color palette:</i></b><br/>
 Here you may choose between the color schemes stored in the corresponding folder in Plugins/Terra Antiqua. By default the <b>Terra Antiqua color scheme</b> is selected. Please refer to the manual for instructions about downloading and saving color palettes.
-</p>
+<p>
+In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check that box, a buffer zone with a distance of <i>0.5</i> degrees will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. This default value can be edited in the field <b><i>Buffer distance</b></i>. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
 
+<p>
+    
+<b><i>Mask layer:</i></b> If you activate the option <b>Remove overlapping bathymetry</b>, you must select a shapefile (a set of vector polygons) that will be used to define the continental blocks around which the buffer zone needs to be taken.
+<br/>
+When a <b><i>Mask layer</i></b> is selected, a column will appear in the table above. Please select which raster the <b>Mask layer</b> corresponds to by checking the box next to the raster.<br/>
 
+You must then link the polygons from the <b><i>Mask layer</i></b> to a raster by checking the box next to the raster.<br/>
 
 <p>
 	    
