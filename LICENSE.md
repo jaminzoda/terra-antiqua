@@ -678,9 +678,9 @@ please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 ## CC BY-SA licence  for the icons
 
-All icons used in Terra Antiqua and the main logo are original.
-Copies in editable format (.svg) can be found here: <https://drive.google.com/drive/folders/1KoP4b76QYfGK3lugZ0yEfNqB5yl_hxgt?usp=sharing>.
-Copyright © 2021 Diego Ruiz, Corinna Kallich, Jovid Aminov
-They are licensed under Attribution-ShareAlike 4.0 International. 
-To view a copy of this license, visit <http://creativecommons.org/licenses/by-sa/4.0/>
-This licence is referenced in each file’s metadata.
+All icons used in Terra Antiqua and the main logo are original. <br/>
+Copies in editable format (.svg) can be found here: <https://drive.google.com/drive/folders/1KoP4b76QYfGK3lugZ0yEfNqB5yl_hxgt?usp=sharing>. <br/>
+Copyright © 2021 Diego Ruiz, Corinna Kallich, Jovid Aminov <br/>
+They are licensed under Attribution-ShareAlike 4.0 International. <br/>
+To view a copy of this license, visit <http://creativecommons.org/licenses/by-sa/4.0/> <br/>
+This licence is referenced in each file’s metadata. <br/>
