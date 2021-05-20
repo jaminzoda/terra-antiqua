@@ -57,6 +57,9 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
             self.exprLineEdit.lineEdit.setValue("(H> )&(H< )")
 
     def formulaValidation(self):
+        expression = self.exprLineEdit.lineEdit.value().lower()
+        if expression == 'nodata' or expression == 'no data':
+            return
         H = random.random((1800,3600))
         try:
             eval(self.exprLineEdit.lineEdit.value())
