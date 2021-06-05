@@ -22,6 +22,7 @@ from.utils import (
     vectorToRaster,
     fillNoData,
     fillNoDataInPolygon,
+    setRasterSymbology,
     TaProgressImitation
     )
 from .utils import rasterSmoothing
@@ -43,7 +44,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                 ("Smooth raster", "TaSmoothRaster"),
                                 ("Isostatic compensation", "TaIsostaticCompensation"),
                                 ("Set new sea level", "TaSetSeaLevel"),
-                                ("Calculate bathymetry", "TaCalculateBathymetry")]
+                                ("Calculate bathymetry", "TaCalculateBathymetry"),
+                                ("Change map symbology", "TaChangeMapSymbology")]
         for alg, name in processing_alg_names:
             if alg == self.processing_type:
                 self.setName(name)
@@ -62,6 +64,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.setSeaLevel()
         elif self.processing_type == "Calculate bathymetry":
             self.calculateBathymetry()
+        elif self.processing_type == "Change map symbology":
+            self.changeMapSymbology()
 
 
 
@@ -505,4 +509,18 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.finished.emit(True, self.out_file_path)
         else:
             self.finished.emit(False, '')
+
+    def changeMapSymbology(self):
+        layer = self.dlg.baseTopoBox.currentLayer()
+        self.feedback.info(f"Changing map symbology for layer {layer.name()}.")
+        color_ramp_name = self.dlg.colorPalette.currentText()
+
+        self.feedback.info(f"Color ramp selected: {color_ramp_name}")
+        try:
+            setRasterSymbology(layer, color_ramp_name)
+            self.feedback.info("Map symbology changed successfully.")
+            self.dlg.hide()
+        except Exception as e:
+            self.feedback.warning(f"Changing map symbology failed due to the following exception: {e}")
+
 

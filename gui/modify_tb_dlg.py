@@ -76,7 +76,6 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
                                                         "Final maximum:")
 
         #Add advanced parameters
-        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
 
 

@@ -58,7 +58,6 @@ class TaSetPaleoshorelinesDlg(TaBaseDialog):
         self.rescaleCheckBox.stateChanged.connect(self.selectModificationModeRescale)
 
         #Add advanced parameters
-        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
         #Fill the parameters' tab of the Dialog with the defined parameters
         self.fillDialog()
