@@ -29,7 +29,7 @@ class TaAlgorithmProvider:
         self.settings = settings
         self.dlg.is_run.connect(self.start)
         self.dlg.cancelled.connect(self.stop)
-        self.thread.finished.connect(self.add_result)
+        self.thread.finished.connect(self.finish)
         self.thread.progress.connect(self.dlg.setProgressValue)
 
 
@@ -52,47 +52,50 @@ class TaAlgorithmProvider:
             self.thread.feedback.error("Or something went wrong. Please, refer to the log above for more details.")
 
 
-    def finish(self):
-        self.dlg.finishEvent()
+    def finish(self, finished, output_path):
+        if finished and output_path:
+            self.add_result(output_path)
+            self.dlg.finishEvent()
+        elif finished and not output_path:
+            self.dlg.finishEvent()
 
-
-
-    def add_result(self, finished, output_path):
-        if finished is True:
-            file_name = os.path.splitext(os.path.basename(output_path))[0]
-            ext = os.path.splitext(os.path.basename(output_path))[1]
-            if ext == '.tif' or ext == '.tiff':
-                try:
-                    layer = self.iface.addRasterLayer(output_path, file_name, "gdal")
-                except Exception as e:
-                    self.thread.feedback.warning(e)
-            elif ext == '.shp':
-                layer = self.iface.addVectorLayer(output_path, file_name, "ogr")
-
-            if layer:
-                # Rendering a symbology style for the resulting raster layer.
-                try:
-                    if layer.type() == QgsMapLayerType.RasterLayer:
-                        setRasterSymbology(layer)
-                    elif layer.type() == QgsMapLayerType.VectorLayer:
-                        setVectorSymbology(layer)
-                except Exception:
-                    if layer.type() == QgsMapLayer.LayerType.RasterLayer:
-                        setRasterSymbology(layer)
-                    elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
-                        setVectorSymbology(layer)
-                self.thread.feedback.info("The algorithm finished processing successfully,")
-                self.thread.feedback.info("and added the resulting raster/vector layer to the map canvas.")
-                self.thread.feedback.info(f"The ouput file path is: {output_path}")
-            else:
-                self.thread.feedback.info("The algorithm finished successfully,")
-                self.thread.feedback.info("however the resulting layer did not load. You may need to load it manually.")
-                self.thread.feedback.info(f"The ouput file path is: {output_path}")
-
-            self.finish()
         else:
             if  not self.dlg.isCanceled():
                 self.stop()
+
+
+
+    def add_result(self, output_path):
+        file_name = os.path.splitext(os.path.basename(output_path))[0]
+        ext = os.path.splitext(os.path.basename(output_path))[1]
+        if ext == '.tif' or ext == '.tiff':
+            try:
+                layer = self.iface.addRasterLayer(output_path, file_name, "gdal")
+            except Exception as e:
+                self.thread.feedback.warning(e)
+        elif ext == '.shp':
+            layer = self.iface.addVectorLayer(output_path, file_name, "ogr")
+
+        if layer:
+            # Rendering a symbology style for the resulting raster layer.
+            try:
+                if layer.type() == QgsMapLayerType.RasterLayer:
+                    setRasterSymbology(layer)
+                elif layer.type() == QgsMapLayerType.VectorLayer:
+                    setVectorSymbology(layer)
+            except Exception:
+                if layer.type() == QgsMapLayer.LayerType.RasterLayer:
+                    setRasterSymbology(layer)
+                elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
+                    setVectorSymbology(layer)
+            self.thread.feedback.info("The algorithm finished processing successfully,")
+            self.thread.feedback.info("and added the resulting raster/vector layer to the map canvas.")
+            self.thread.feedback.info(f"The ouput file path is: {output_path}")
+        else:
+            self.thread.feedback.info("The algorithm finished successfully,")
+            self.thread.feedback.info("however the resulting layer did not load. You may need to load it manually.")
+            self.thread.feedback.info(f"The ouput file path is: {output_path}")
+
 
 
 class TaRemoveArtefactsAlgProvider:

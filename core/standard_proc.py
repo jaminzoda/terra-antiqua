@@ -519,8 +519,14 @@ class TaStandardProcessing(TaBaseAlgorithm):
         try:
             setRasterSymbology(layer, color_ramp_name)
             self.feedback.info("Map symbology changed successfully.")
-            self.dlg.hide()
+            self.finished.emit(True, '')
+            #This is not a proper algorithm that processes much data
+            #Therefore we can close it after it is finished
+            #But closing it will delete a refernce to it and the finish event triggered above
+            #will not able to run properly. Therefore we hide it.
+            #self.dlg.hide()
         except Exception as e:
             self.feedback.warning(f"Changing map symbology failed due to the following exception: {e}")
+            self.finished.emit(False, '')
 
 
