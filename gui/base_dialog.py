@@ -278,6 +278,17 @@ class TaBaseDialog(TaTemplateDialog):
         :param outFilePath: default ouput file path. An absolute file path for stroting the results of the tools.
         :type outFilePath: str
         """
+        if len(outFilePath)>68:
+            d_path, f_path = os.path.split(outFilePath)
+            while True:
+                d_path, last_item = os.path.split(d_path)
+                if len(os.path.join(last_item, f_path))<68:
+                    f_path = os.path.join(last_item, f_path)
+                else:
+                    outFilePath = os.path.join('...', f_path)
+                    break
+
+
         self.outputPath.lineEdit().setPlaceholderText(f"{outFilePath}")
 
     def runEvent(self):
