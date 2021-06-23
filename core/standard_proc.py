@@ -32,6 +32,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
     def __init__(self, dlg):
         super().__init__(dlg)
+        self.getParameters()
+        self.dlg.dialog_name_changed.connect(self.getParameters)
 
     def getParameters(self):
         self.processing_type = self.dlg.fillingTypeBox.currentText()

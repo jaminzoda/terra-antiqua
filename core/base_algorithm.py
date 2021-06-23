@@ -36,7 +36,8 @@ class TaBaseAlgorithm(QThread):
         self.qgis_version = self.context.variable("qgis_short_version")
         self.crs = QgsProject.instance().crs()
         self.temp_dir = tempfile.gettempdir()
-        self.out_file_path = None
+        self.out_file_path = self.getOutFilePath()
+        self.dlg.setDefaultOutFilePath(self.out_file_path)
         self.decisionMessageBox = QMessageBox()
         self.decisionMessageBox.setIcon(QMessageBox.Warning)
         self.decisionMessageBox.setWindowTitle('Terra Antiqua - Warning')
@@ -57,6 +58,7 @@ class TaBaseAlgorithm(QThread):
     def setName(self, name):
         self.__name__ = name
         self.out_file_path = self.getOutFilePath()
+        self.dlg.setDefaultOutFilePath(self.out_file_path)
 
     def checkProjectCrs(self):
         if not self.crs.isValid():

@@ -23,6 +23,7 @@ from .template_dialog import TaTemplateDialog
 class TaBaseDialog(TaTemplateDialog):
     is_run = QtCore.pyqtSignal(bool)
     cancelled = QtCore.pyqtSignal(bool)
+    dialog_name_changed = QtCore.pyqtSignal()
     RUNNING = False
     CANCELED = False
     def __init__(self, parent=None):
@@ -50,6 +51,9 @@ class TaBaseDialog(TaTemplateDialog):
 
     def setDialogName(self, name):
         self.dlg_name = name
+        self.dialog_name_changed.emit()
+
+
 
 
     def createFeedback(self):
@@ -157,7 +161,6 @@ class TaBaseDialog(TaTemplateDialog):
             self.outputPath = QgsFileWidget()
             self.outputPath.setStorageMode(self.outputPath.SaveFile)
             self.outputPath.setFilter('*.tif;;*.tiff')
-            self.outputPath.lineEdit().setPlaceholderText("[Create temporary layer]")
             self.paramsLayout.addWidget(QLabel('Output file path:'))
             self.paramsLayout.addWidget(self.outputPath)
         self.paramsLayout.addStretch()
@@ -268,6 +271,25 @@ class TaBaseDialog(TaTemplateDialog):
         with open(path_to_file, 'r', encoding='utf-8') as help_file:
             help_text = help_file.read()
         self.helpTextBox.setHtml(help_text)
+
+    def setDefaultOutFilePath(self, outFilePath):
+        """Sets the default output file path for each tool. For now the default folder for storing
+        the output files is the OS's temporary folder.
+        :param outFilePath: default ouput file path. An absolute file path for stroting the results of the tools.
+        :type outFilePath: str
+        """
+        if len(outFilePath)>68:
+            d_path, f_path = os.path.split(outFilePath)
+            while True:
+                d_path, last_item = os.path.split(d_path)
+                if len(os.path.join(last_item, f_path))<68:
+                    f_path = os.path.join(last_item, f_path)
+                else:
+                    outFilePath = os.path.join('...', f_path)
+                    break
+
+
+        self.outputPath.lineEdit().setPlaceholderText(f"{outFilePath}")
 
     def runEvent(self):
         if self.checkMandatoryParameters() and not self.RUNNING:
