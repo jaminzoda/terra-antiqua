@@ -68,7 +68,6 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
         self.mountSlope.setAllowedValueRange(0, 500)
 
         #Add advanced parameters
-        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
         self.fillDialog()
         self.showVariantWidgets(self.featureTypeBox.currentText())

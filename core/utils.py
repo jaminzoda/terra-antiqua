@@ -343,23 +343,25 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
     return smoothed_layer
 
 
-def setRasterSymbology(in_layer, color_ramp_name):
+def setRasterSymbology(in_layer, color_ramp_name=None):
     """
     Applies a color palette to a raster layer. It does not add the raster layer to the Map canvas. Before passing a layer to this function, it should be added to the map canvas.
 
     """
     path_to_color_schemes = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/color_schemes"))
-    color_scheme_names = []
-    file_names = []
-    for (dirpath, dirnames, filenames) in os.walk(path_to_color_schemes):
-        file_names.extend(filenames)
-    for file in file_names:
-        with open(os.path.join(path_to_color_schemes,file)) as f:
-            lines = f.readlines()
-            color_scheme_name = lines[0].strip()
-            color_scheme_name = color_scheme_name.replace("#", "")
-            if color_scheme_name == color_ramp_name:
-                color_palette_file = os.path.join(path_to_color_schemes, file)
+    if color_ramp_name:
+        file_names = []
+        for (dirpath, dirnames, filenames) in os.walk(path_to_color_schemes):
+            file_names.extend(filenames)
+        for file in file_names:
+            with open(os.path.join(path_to_color_schemes,file)) as f:
+                lines = f.readlines()
+                color_scheme_name = lines[0].strip()
+                color_scheme_name = color_scheme_name.replace("#", "")
+                if color_scheme_name == color_ramp_name:
+                    color_palette_file = os.path.join(path_to_color_schemes, file)
+    else:
+        color_palette_file = os.path.join(path_to_color_schemes, "TerraAntiqua_color_ramp.cpt")
 
     def readCpt(file_name):
         color_lines = []

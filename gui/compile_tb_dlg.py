@@ -68,7 +68,6 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        self.selectedFeaturesCheckBox.registerLinkedWidget(self.maskComboBox)
        self.bufferDistanceForRemoveOverlapBath.setValue(0.5)
 
-       self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
 
     def addRow(self, row):

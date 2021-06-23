@@ -22,6 +22,7 @@ from.utils import (
     vectorToRaster,
     fillNoData,
     fillNoDataInPolygon,
+    setRasterSymbology,
     TaProgressImitation
     )
 from .utils import rasterSmoothing
@@ -32,6 +33,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
     def __init__(self, dlg):
         super().__init__(dlg)
+        self.getParameters()
+        self.dlg.dialog_name_changed.connect(self.getParameters)
 
     def getParameters(self):
         self.processing_type = self.dlg.fillingTypeBox.currentText()
@@ -41,7 +44,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                 ("Smooth raster", "TaSmoothRaster"),
                                 ("Isostatic compensation", "TaIsostaticCompensation"),
                                 ("Set new sea level", "TaSetSeaLevel"),
-                                ("Calculate bathymetry", "TaCalculateBathymetry")]
+                                ("Calculate bathymetry", "TaCalculateBathymetry"),
+                                ("Change map symbology", "TaChangeMapSymbology")]
         for alg, name in processing_alg_names:
             if alg == self.processing_type:
                 self.setName(name)
@@ -60,6 +64,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.setSeaLevel()
         elif self.processing_type == "Calculate bathymetry":
             self.calculateBathymetry()
+        elif self.processing_type == "Change map symbology":
+            self.changeMapSymbology()
 
 
 
@@ -130,7 +136,17 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                                                                              to_raster_layer.name()))
         if not self.killed:
             # Get a vector containing masks
-            mask_vector_layer = self.dlg.copyFromMaskBox.currentLayer()
+            if self.dlg.copyPasteSelectedFeaturesOnlyCheckBox.isChecked():
+                features = self.dlg.copyFromMaskBox.currentLayer().getSelectedFeatures()
+                fields = self.dlg.copyFromMaskBox.currentLayer().fields().toList()
+                layer_name = self.dlg.copyFromMaskBox.currentLayer().name()
+                mask_vector_layer = QgsVectorLayer(f"Polygon?crs={self.crs.authid()}", layer_name, "memory")
+                mask_vector_layer.dataProvider().addAttributes(fields)
+                mask_vector_layer.updateFields()
+                mask_vector_layer.dataProvider().addFeatures(features)
+            else:
+                mask_vector_layer = self.dlg.copyFromMaskBox.currentLayer()
+
             self.feedback.info("{} layer is used for masking the pixels to be copied.".format(mask_vector_layer.name()))
 
             self.feedback.info("Rasterizing the masks from the vector layer.")
@@ -503,4 +519,24 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.finished.emit(True, self.out_file_path)
         else:
             self.finished.emit(False, '')
+
+    def changeMapSymbology(self):
+        layer = self.dlg.baseTopoBox.currentLayer()
+        self.feedback.info(f"Changing map symbology for layer {layer.name()}.")
+        color_ramp_name = self.dlg.colorPalette.currentText()
+
+        self.feedback.info(f"Color ramp selected: {color_ramp_name}")
+        try:
+            setRasterSymbology(layer, color_ramp_name)
+            self.feedback.info("Map symbology changed successfully.")
+            self.finished.emit(True, '')
+            #This is not a proper algorithm that processes much data
+            #Therefore we can close it after it is finished
+            #But closing it will delete a refernce to it and the finish event triggered above
+            #will not able to run properly. Therefore we hide it.
+            #self.dlg.hide()
+        except Exception as e:
+            self.feedback.warning(f"Changing map symbology failed due to the following exception: {e}")
+            self.finished.emit(False, '')
+
 

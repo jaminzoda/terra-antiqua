@@ -30,7 +30,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                       "Smooth raster",
                                       "Isostatic compensation",
                                       "Set new sea level",
-                                      "Calculate bathymetry"])
+                                      "Calculate bathymetry",
+                                      "Change map symbology"])
         self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox,
                                                       "Raster to be modified:",
                                                       "TaMapLayerComboBox")
@@ -69,6 +70,10 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                         "Mask layer:",
                                                         "TaMapLayerComboBox",
                                                         mandatory = True)
+        self.copyPasteSelectedFeaturesOnlyCheckBox = self.addVariantParameter(TaCheckBox,
+                                                                              "Copy/Paste raster",
+                                                                              "Selected features only")
+        self.copyPasteSelectedFeaturesOnlyCheckBox.registerLinkedWidget(self.copyFromMaskBox)
 
         #Parameters for smothing rasters
         self.smoothingTypeBox2 = self.addVariantParameter(QComboBox,
@@ -131,8 +136,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                           "Calculate bathymetry",
                                                           "Reconstruction time:")
 
-        #Advanced Parameters
-        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
+        #Parameters for changing map symbology
+        self.colorPalette = self.addVariantParameter(TaColorSchemeWidget, "Change map symbology", "Color palette:")
 
         self.fillDialog()
         self.showVariantWidgets(self.fillingTypeBox.currentText())
@@ -148,8 +153,15 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                 ("Smooth raster", "TaSmoothRaster"),
                                 ("Isostatic compensation", "TaIsostaticCompensation"),
                                 ("Set new sea level", "TaSetSeaLevel"),
-                                ("Calculate bathymetry", "TaCalculateBathymetry")]
+                                ("Calculate bathymetry", "TaCalculateBathymetry"),
+                                ("Change map symbology", "TaChangeMapSymbology")]
         for alg, name in processing_alg_names:
             if self.fillingTypeBox.currentText() == alg:
                 self.setDialogName(name)
+        if self.fillingTypeBox.currentText() == "Change map symbology":
+            self.outputPath.hide()
+            self.outputPathLabel.hide()
+        else:
+            self.outputPath.show()
+            self.outputPathLabel.show()
         self.loadHelp()

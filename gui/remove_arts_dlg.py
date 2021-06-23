@@ -37,7 +37,6 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
         self.comparisonTypeBox.currentIndexChanged.connect(self.typeOfComparison)
 
         #Add advanced parameters
-        self.colorPalette = self.addAdvancedParameter(TaColorSchemeWidget, "Color palette:")
 
         self.typeOfComparison()
         self.fillDialog()

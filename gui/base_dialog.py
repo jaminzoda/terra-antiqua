@@ -23,6 +23,7 @@ from .template_dialog import TaTemplateDialog
 class TaBaseDialog(TaTemplateDialog):
     is_run = QtCore.pyqtSignal(bool)
     cancelled = QtCore.pyqtSignal(bool)
+    dialog_name_changed = QtCore.pyqtSignal()
     RUNNING = False
     CANCELED = False
     def __init__(self, parent=None):
@@ -50,6 +51,9 @@ class TaBaseDialog(TaTemplateDialog):
 
     def setDialogName(self, name):
         self.dlg_name = name
+        self.dialog_name_changed.emit()
+
+
 
 
     def createFeedback(self):
@@ -155,10 +159,10 @@ class TaBaseDialog(TaTemplateDialog):
 
         if add_output_path:
             self.outputPath = QgsFileWidget()
+            self.outputPathLabel = QLabel('Output file path:')
             self.outputPath.setStorageMode(self.outputPath.SaveFile)
             self.outputPath.setFilter('*.tif;;*.tiff')
-            self.outputPath.lineEdit().setPlaceholderText("[Create temporary layer]")
-            self.paramsLayout.addWidget(QLabel('Output file path:'))
+            self.paramsLayout.addWidget(self.outputPathLabel)
             self.paramsLayout.addWidget(self.outputPath)
         self.paramsLayout.addStretch()
 
@@ -177,7 +181,8 @@ class TaBaseDialog(TaTemplateDialog):
                 param.hide()
             else:
                 param.show()
-        self.showAdvancedWidgets(index)
+        if len(self.advanced_parameters)>0:
+            self.showAdvancedWidgets(index)
 
     def appendAdvancedWidgets(self):
         """Appends advanced parameters' widgets to the dialog."""
@@ -191,11 +196,17 @@ class TaBaseDialog(TaTemplateDialog):
         self.paramsLayout.addWidget(self.group_box)
 
     def showAdvancedWidgets(self, index):
+        widgets_to_show = 0
         for param, variant_index in self.advanced_parameters:
             if variant_index and variant_index != index:
                 param.hide()
             else:
                 param.show()
+                widgets_to_show+=1
+        if widgets_to_show==0:
+            self.group_box.hide()
+        else:
+            self.group_box.show()
 
 
     def checkMandatoryParameters(self):
@@ -259,7 +270,8 @@ class TaBaseDialog(TaTemplateDialog):
                 ('TaSmoothRaster', 'smoothing'),
                 ('TaIsostaticCompensation', 'isostat_cp'),
                 ('TaSetSeaLevel', 'set_sl'),
-                ('TaCalculateBathymetry', 'calc_bathy')
+                ('TaCalculateBathymetry', 'calc_bathy'),
+                ('TaChangeMapSymbology', 'change_symbology')
                 ]
         for class_name, file_name in files:
             if class_name    == self.dlg_name:
@@ -268,6 +280,25 @@ class TaBaseDialog(TaTemplateDialog):
         with open(path_to_file, 'r', encoding='utf-8') as help_file:
             help_text = help_file.read()
         self.helpTextBox.setHtml(help_text)
+
+    def setDefaultOutFilePath(self, outFilePath):
+        """Sets the default output file path for each tool. For now the default folder for storing
+        the output files is the OS's temporary folder.
+        :param outFilePath: default ouput file path. An absolute file path for stroting the results of the tools.
+        :type outFilePath: str
+        """
+        if len(outFilePath)>68:
+            d_path, f_path = os.path.split(outFilePath)
+            while True:
+                d_path, last_item = os.path.split(d_path)
+                if len(os.path.join(last_item, f_path))<68:
+                    f_path = os.path.join(last_item, f_path)
+                else:
+                    outFilePath = os.path.join('...', f_path)
+                    break
+
+
+        self.outputPath.lineEdit().setPlaceholderText(f"{outFilePath}")
 
     def runEvent(self):
         if self.checkMandatoryParameters() and not self.RUNNING:
