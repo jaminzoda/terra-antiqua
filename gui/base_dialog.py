@@ -159,9 +159,10 @@ class TaBaseDialog(TaTemplateDialog):
 
         if add_output_path:
             self.outputPath = QgsFileWidget()
+            self.outputPathLabel = QLabel('Output file path:')
             self.outputPath.setStorageMode(self.outputPath.SaveFile)
             self.outputPath.setFilter('*.tif;;*.tiff')
-            self.paramsLayout.addWidget(QLabel('Output file path:'))
+            self.paramsLayout.addWidget(self.outputPathLabel)
             self.paramsLayout.addWidget(self.outputPath)
         self.paramsLayout.addStretch()
 
@@ -180,7 +181,8 @@ class TaBaseDialog(TaTemplateDialog):
                 param.hide()
             else:
                 param.show()
-        self.showAdvancedWidgets(index)
+        if len(self.advanced_parameters)>0:
+            self.showAdvancedWidgets(index)
 
     def appendAdvancedWidgets(self):
         """Appends advanced parameters' widgets to the dialog."""
@@ -194,11 +196,17 @@ class TaBaseDialog(TaTemplateDialog):
         self.paramsLayout.addWidget(self.group_box)
 
     def showAdvancedWidgets(self, index):
+        widgets_to_show = 0
         for param, variant_index in self.advanced_parameters:
             if variant_index and variant_index != index:
                 param.hide()
             else:
                 param.show()
+                widgets_to_show+=1
+        if widgets_to_show==0:
+            self.group_box.hide()
+        else:
+            self.group_box.show()
 
 
     def checkMandatoryParameters(self):
@@ -262,7 +270,8 @@ class TaBaseDialog(TaTemplateDialog):
                 ('TaSmoothRaster', 'smoothing'),
                 ('TaIsostaticCompensation', 'isostat_cp'),
                 ('TaSetSeaLevel', 'set_sl'),
-                ('TaCalculateBathymetry', 'calc_bathy')
+                ('TaCalculateBathymetry', 'calc_bathy'),
+                ('TaChangeMapSymbology', 'change_symbology')
                 ]
         for class_name, file_name in files:
             if class_name    == self.dlg_name:
