@@ -70,6 +70,10 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                         "Mask layer:",
                                                         "TaMapLayerComboBox",
                                                         mandatory = True)
+        self.copyPasteSelectedFeaturesOnlyCheckBox = self.addVariantParameter(TaCheckBox,
+                                                                              "Copy/Paste raster",
+                                                                              "Selected features only")
+        self.copyPasteSelectedFeaturesOnlyCheckBox.registerLinkedWidget(self.copyFromMaskBox)
 
         #Parameters for smothing rasters
         self.smoothingTypeBox2 = self.addVariantParameter(QComboBox,

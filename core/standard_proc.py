@@ -136,7 +136,17 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                                                                              to_raster_layer.name()))
         if not self.killed:
             # Get a vector containing masks
-            mask_vector_layer = self.dlg.copyFromMaskBox.currentLayer()
+            if self.dlg.copyPasteSelectedFeaturesOnlyCheckBox.isChecked():
+                features = self.dlg.copyFromMaskBox.currentLayer().getSelectedFeatures()
+                fields = self.dlg.copyFromMaskBox.currentLayer().fields().toList()
+                layer_name = self.dlg.copyFromMaskBox.currentLayer().name()
+                mask_vector_layer = QgsVectorLayer(f"Polygon?crs={self.crs.authid()}", layer_name, "memory")
+                mask_vector_layer.dataProvider().addAttributes(fields)
+                mask_vector_layer.updateFields()
+                mask_vector_layer.dataProvider().addFeatures(features)
+            else:
+                mask_vector_layer = self.dlg.copyFromMaskBox.currentLayer()
+
             self.feedback.info("{} layer is used for masking the pixels to be copied.".format(mask_vector_layer.name()))
 
             self.feedback.info("Rasterizing the masks from the vector layer.")
