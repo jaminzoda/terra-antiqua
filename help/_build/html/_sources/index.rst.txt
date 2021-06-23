@@ -11,6 +11,8 @@ The Terra Antiqua plugin creates a paleogeographic map of a specific time. It mo
    :maxdepth: 2
    :caption: Contents:
 
+   terra_antiqua.rst
+
 
 
 
