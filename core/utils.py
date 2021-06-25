@@ -253,14 +253,21 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
     return out_file_path
 
 
-def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None, runtime_percentage=None):
+def rasterSmoothing(in_layer, filter_type, factor, mask_layer = None, out_file=None, feedback=None, runtime_percentage=None):
     """
     Smoothes values of pixels in a raster  by implementing a low-pass filter  such as gaussian or uniform (mean filter)
 
-    :param in_layer: input raster layer (QgsRasterLayer) for smoothing
+    :param in_layer: input raster layer for smoothing
+    :type in_layer: QgsRasterLayer
     :param factor: factor that is used define the size of a kernel used (e.g. 3x3, 5x5 etc).
-    :param out_file: String - output file to save the smoothed raster [Optional]. If the out_file argument is specified the smoothed raster will be written in a new raster, otherwise the old raster will be updated.
-    :return:QgsRasterLayer. Smoothed raster layer.
+    :type factor: int
+    :param out_file: output file path to save the smoothed raster. If the out_file argument is specified the smoothed raster will be written in a new raster, otherwise the old raster will be updated.
+    :type out_file_path: str
+    :param mask_layer: a vector layer containing mask for smoothing only inside polygons.
+    :type mask_layer: QgsVectorLayer.
+
+    :return: Smoothed raster layer.
+    :rtype: QgsRasterLayer
     """
 
     raster_ds = gdal.Open(in_layer.source(), gdalconst.GA_Update)
@@ -281,6 +288,7 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
         raster_ds_filled = None
         in_band_filled = None
 
+
     if runtime_percentage:
         total = runtime_percentage
     else:
@@ -292,11 +300,17 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
 
     rows = in_array.shape[0]
     cols = in_array.shape[1]
+    geotransform = raster_ds.GetGeoTransform()
     if filter_type == 'Gaussian filter':
         out_array = gaussian_filter(in_array, factor / 2, mode="wrap")
     elif filter_type == 'Uniform filter':
         out_array = uniform_filter(in_array, factor*3-(factor-1))
 
+    #Rasterize mask layer and restore the initial values outside poligons if the smoothing is
+    #set to be done only inside  polygons
+    if mask_layer:
+        mask_array = vectorToRaster(mask_layer, geotransform, cols, rows)
+        out_array[mask_array!=1]=in_array[mask_array!=1]
 
     #set the initial nan values back to nan
     out_array[nan_mask]=np.nan
@@ -310,7 +324,6 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
                 driver.Delete(out_file)
         except Exception as e:
             raise e
-        geotransform = raster_ds.GetGeoTransform()
         smoothed_raster = gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Float32)
         smoothed_raster.SetGeoTransform(geotransform)
         crs = in_layer.crs()
@@ -346,6 +359,11 @@ def rasterSmoothing(in_layer, filter_type, factor, out_file=None, feedback=None,
 def setRasterSymbology(in_layer, color_ramp_name=None):
     """
     Applies a color palette to a raster layer. It does not add the raster layer to the Map canvas. Before passing a layer to this function, it should be added to the map canvas.
+
+    :param in_layer: A raster layer to apply a new color palette to.
+    :type in_layer: QgsRasterLayer
+    :param color_ramp_name: name of the color ramp to apply to in_layer.
+    :type color_ramp_name: str
 
     """
     path_to_color_schemes = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/color_schemes"))
@@ -419,6 +437,8 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
     renderer = QgsSingleBandPseudoColorRenderer(in_layer.dataProvider(), 1, shader)
     in_layer.setRenderer(renderer)
     in_layer.triggerRepaint()
+
+
 
 
 def setVectorSymbology(in_layer):
@@ -625,9 +645,12 @@ def polylinesToPolygons(in_layer:QgsVectorLayer, feedback:TaFeedback)->QgsVector
     """Creates polygon feature from the points of line features.
 
     :param in_layer: Input vector layer.
+    :type in_layer: QgsVectorLayer
     :param feedback: A feedback object to show progress and log info.
-    :type: TaFeedback
-    :return: QgsVectorLayer
+    :type feedback: TaFeedback
+
+    :return: Vector layer containing polygonized polylines.
+    :rtype: QgsVectorLayer
     """
     features = in_layer.getFeatures()
     assert in_layer.featureCount() >0, "The input layer is empty."
