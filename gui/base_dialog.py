@@ -4,6 +4,7 @@
 
 
 import os
+import webbrowser as wb
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (
     QVBoxLayout,
@@ -38,6 +39,7 @@ class TaBaseDialog(TaTemplateDialog):
         self.runButton.clicked.connect(self.runEvent)
         self.closeButton.clicked.connect(self.close)
         self.cancelButton.clicked.connect(self.cancelEvent)
+        self.helpButton.clicked.connect(self.openManual)
         self.msgBar = QgsMessageBar(self)
         self.msgBar.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.layout().insertWidget(0,self.msgBar)
@@ -280,6 +282,9 @@ class TaBaseDialog(TaTemplateDialog):
         with open(path_to_file, 'r', encoding='utf-8') as help_file:
             help_text = help_file.read()
         self.helpTextBox.setHtml(help_text)
+
+    def openManual(self):
+        wb.open('https://docs.google.com/document/d/1YauPn7iQ0677rOtbOIaBTwIBDpbLUAMyk4xwNpCGcGU/edit?usp=sharing')
 
     def setDefaultOutFilePath(self, outFilePath):
         """Sets the default output file path for each tool. For now the default folder for storing
