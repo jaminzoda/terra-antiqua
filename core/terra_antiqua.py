@@ -37,6 +37,7 @@ from PyQt5.QtCore import (
                         )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QToolBar
+from qgis.core import QgsSettings
 
 import os.path
 
@@ -102,7 +103,7 @@ class TerraAntiqua:
             self.ta_toolBar.setObjectName(u'Terra Antiqua')
 
         # Load the settings object. Read settings and passes them to the plugin
-        self.settings = TaSettings()
+        self.settings = TaSettings("TerraAntiqua", "Terra Antiqua")
         self.settings.tempValueChanged.connect(self.updatePluginSettings)
 
         # Check if plugin was started the first time in current QGIS session
@@ -262,6 +263,7 @@ class TerraAntiqua:
 
         # will be set False in run()
         self.first_start = True
+        self.settings.setTempValue("first_start", True)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

@@ -1,2 +1,4 @@
 REMOVE_ARTEFACTS
 first_help:show
+WELCOME_PAGE
+show_again:show

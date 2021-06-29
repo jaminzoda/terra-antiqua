@@ -6,8 +6,8 @@ from PyQt5.QtCore import QSettings, pyqtSignal
 
 class TaSettings(QSettings):
     tempValueChanged = pyqtSignal(str, object)
-    def __init__(self):
-        super().__init__()
+    def __init__(self, company_name, application_name):
+        super().__init__(company_name, application_name)
         self.removeArtefactsChecked = False
         #Temporary settings that will be reset, when Qgis closes
         self.temporarySettings = {}
