@@ -1,5 +1,15 @@
 CHANGELOG
 ===========
+Version 0.6
+------------
+* New secondary tools
+    * Set New Sea Level
+    * Calculate Bathymetry
+    * Change Map Symbology
+* General functionality improvements
+* Preparations for upcoming v1.0 and public release
+* More bugfixes and updates
+
 
 Version 0.5
 --------------
