@@ -284,7 +284,8 @@ class TaBaseDialog(TaTemplateDialog):
         self.helpTextBox.setHtml(help_text)
 
     def openManual(self):
-        wb.open('https://docs.google.com/document/d/1YauPn7iQ0677rOtbOIaBTwIBDpbLUAMyk4xwNpCGcGU/edit?usp=sharing')
+        path_to_manual = 'https://jaminzoda.github.io/terra-antiqua-documentation/'
+        wb.open(path_to_manual)
 
     def setDefaultOutFilePath(self, outFilePath):
         """Sets the default output file path for each tool. For now the default folder for storing
