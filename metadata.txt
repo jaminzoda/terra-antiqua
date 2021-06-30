@@ -12,7 +12,7 @@ qgisMinimumVersion=3.10
 description=This plugin creates digital elevation models of paleogeographic maps.
 version=1.0
 author=Jovid Aminov, Diego Ruiz
-email=jovid.aminov@outlook.com
+email=terraantiqua.qgis@gmail.com
 
 about=Terra Antiqua deals with the reconstruction of paleogeography, simplifying the reconstruction process. The conceptual approach we follow consists of modifying present-day topography, assuming that it is possible to infer the paleogeography based on present-day observations (e.g., fossil data, thermochronological data). Terra Antiqua provides a complete set of tools to edit Digital Elevation Models (DEM) for paleoreconstructions.
 tracker=https://github.com/jaminzoda/terra-antiqua/issues
