@@ -101,8 +101,12 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 sm_type = self.dlg.smoothingTypeBox.currentText()
 
                 # Smooth the raster
-                rasterSmoothing(interpolated_raster_layer, sm_type, sm_factor, feedback=self.feedback,
-                                runtime_percentage=68)
+                if self.dlg.interpInsidePolygonCheckBox.isChecked():
+                    rasterSmoothing(interpolated_raster_layer, sm_type, sm_factor, mask_layer, feedback=self.feedback,
+                                    runtime_percentage=68)
+                else:
+                    rasterSmoothing(interpolated_raster_layer, sm_type, sm_factor, feedback=self.feedback,
+                                    runtime_percentage=68)
 
                 self.feedback.info("Smoothing has finished.")
 
