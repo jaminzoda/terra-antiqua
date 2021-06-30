@@ -3,21 +3,19 @@
 	<qresource>
 		<file alias="removeButton.png">resources/removeButton.png</file>
 		<file alias="arrow_down.png">resources/arrow_down.png</file>
-		<file alias="addButton.svg">resources/addButton.svg</file>
+		<file alias="logo.png">resources/logo.png</file>
 		<file alias="arrow_right.png">resources/arrow_right.png</file>
 		<file alias="addButton.png">resources/addButton.png</file>
-		<file alias="Ocean_Land_3.cpt">resources/Ocean_Land_3.cpt</file>
 		<file alias="compile_tb_icon.png">resources/compile_tb_icon.png</file>
 		<file alias="arrow_left.png">resources/arrow_left.png</file>
 		<file alias="modify_tb_icon.png">resources/modify_tb_icon.png</file>
-		<file alias="TerraAntiqua_color_ramp.cpt">resources/TerraAntiqua_color_ramp.cpt</file>
 		<file alias="colour ramp TopoBathym_DRuiz.txt">resources/colour ramp TopoBathym_DRuiz.txt</file>
+		<file alias="color_schemes">resources/color_schemes</file>
 		<file alias="remove_arts_icon.png">resources/remove_arts_icon.png</file>
 		<file alias="arrow_up.png">resources/arrow_up.png</file>
 		<file alias="prepare_masks_icon.png">resources/prepare_masks_icon.png</file>
 		<file alias="settings.txt">resources/settings.txt</file>
 		<file alias="naming_conventions.xls">resources/naming_conventions.xls</file>
-		<file alias="removeButton.svg">resources/removeButton.svg</file>
 		<file alias="set_pls_icon.png">resources/set_pls_icon.png</file>
 		<file alias="feat_create_icon.png">resources/feat_create_icon.png</file>
 		<file alias="std_proc_icon.png">resources/std_proc_icon.png</file>
