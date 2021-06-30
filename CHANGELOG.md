@@ -1,5 +1,13 @@
 CHANGELOG
 ===========
+Version 1.0
+------------
+* The first public release
+* Welcome page is added that shows up at first start
+* A user manual is added to the plugin
+* Help button that opens user manual
+* General functionality enhancement and bug fixes
+
 Version 0.6
 ------------
 * New secondary tools
