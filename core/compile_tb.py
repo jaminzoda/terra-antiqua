@@ -21,7 +21,8 @@ from .utils import (
     modRescale,
     bufferAroundGeometries,
     TaVectorFileWriter,
-    reprojectVectorLayer
+    reprojectVectorLayer,
+    polygonsToPolylines
 )
 from .base_algorithm import TaBaseAlgorithm
 
@@ -141,7 +142,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                 buffer_distance = self.dlg.bufferDistanceForRemoveOverlapBath.value()
                 if self.dlg.selectedFeaturesCheckBox.isChecked():
                     features = list(self.mask_layer.getSelectedFeatures())
-                    temp_layer = QgsVectorLayer(f"Polygon?crs={self.crs().authid()}",
+                    temp_layer = QgsVectorLayer(f"Polygon?crs={self.crs.authid()}",
                                                 "Selected mask features", "memory")
                     dp = temp_layer.dataProvider()
                     dp.addAttributes(self.mask_layer.dataProvider().fields().toList())
@@ -159,6 +160,9 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                         self.kill()
                         continue
 
+                    #Get polygon borders for removing artefats beneath them
+                    polyline_layer = polygonsToPolylines(temp_layer)
+
                 else:
                     try:
                         buffer_layer = bufferAroundGeometries(self.mask_layer, buffer_distance, 100, self.feedback, 10)
@@ -170,6 +174,8 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                         self.feedback.error(e)
                         self.kill()
                         continue
+                    #Get polygon borders for removing artefats beneath them
+                    polyline_layer = polygonsToPolylines(self.mask_layer)
 
                 buffer_array = vectorToRaster(
                     buffer_layer,
@@ -180,9 +186,21 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                     no_data = 0
                     )
 
+                #Rasterize polygon borders for removing negative (artefact) values beneath them.
+                masks_border_array = vectorToRaster(
+                    polyline_layer,
+                    geotransform,
+                    raster_size[1],
+                    raster_size[0],
+                    field_to_burn=None,
+                    no_data = 0
+                    )
+
+
                 #Remove negative values inside the buffered regions
                 self.feedback.info("Removing bathymetry values from the gaps between continental blocks." )
                 compiled_array[(buffer_array == 1)*(compiled_array< -1000)==1] = np.nan
+                compiled_array[(masks_border_array== 1)*(compiled_array< -1000)==1] = np.nan
 
             self.feedback.progress += unit_progress
 

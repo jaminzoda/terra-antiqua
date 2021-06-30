@@ -7,11 +7,15 @@
 import sys
 import tempfile
 import os
+import time
+
 
 import numpy as np
 from numpy import * #This to import math functions to be used in formula (modFormula)
 import subprocess
+import random
 from random import randrange
+from typing import Union
 
 try:
     from scipy.ndimage.filters import gaussian_filter, uniform_filter
@@ -19,11 +23,9 @@ except Exception:
     install_package('scipy')
     from scipy.ndimage.filters import gaussian_filter, uniform_filter
 
-import time
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
 
-import random
 from osgeo import gdal, osr, ogr
 from osgeo import gdalconst
 from qgis.core import (
@@ -41,6 +43,7 @@ from qgis.core import (
     QgsPointXY,
     QgsSpatialIndex,
     QgsFeature,
+    QgsFeatureIterator,
     QgsFields,
     NULL,
     QgsMapLayer,
@@ -616,13 +619,17 @@ def vectorToRasterOld(in_layer, geotransform, ncols, nrows):
 
     return raster_array
 
-def polygonsToPolylines(in_layer, out_layer_path: str):
+def polygonsToPolylines(in_layer):
     """
     Converts polygons to polylines.
 
-    :param out_layer_path: the path to store the layer with polylines.
-    :return: QgsVectorLayer.
+    :param in_layer: Vector layer with polygons to be converted into polylines.
+    :type in_layer: QgsVectorLayer
+
+    :return: Vector layer containing polylines
+    :rtype: QgsVectorLayer
     """
+
     polygons_layer = in_layer
     try:
         fixed_polygons = processing.run('native:fixgeometries',
@@ -632,14 +639,13 @@ def polygonsToPolylines(in_layer, out_layer_path: str):
     except Exception as e:
         raise e
     try:
-        polylines = processing.run("qgis:polygonstolines", {'INPUT': fixed_polygons, 'OUTPUT': 'memory:polylines_from_prolygons'})
+        polylines = processing.run("qgis:polygonstolines",
+                                   {'INPUT': fixed_polygons,
+                                    'OUTPUT': 'memory:polylines_from_prolygons'})
     except Exception as e:
         raise e
 
-
-    polylines_layer = polylines['OUTPUT']
-
-    return polylines_layer
+    return polylines['OUTPUT']
 
 def polylinesToPolygons(in_layer:QgsVectorLayer, feedback:TaFeedback)->QgsVectorLayer:
     """Creates polygon feature from the points of line features.
@@ -1029,19 +1035,26 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
 
     return points_layer
 
-def bufferAroundGeometries(in_layer, buf_dist, num_segments, feedback, runtime_percentage):
+def bufferAroundGeometries(in_layer:Union[QgsVectorLayer, QgsFeatureIterator],
+                           buf_dist: int,
+                           num_segments: int,
+                           feedback:TaFeedback,
+                           runtime_percentage:int) -> QgsVectorLayer:
     """Creates buffer around polygon geometries.
 
     :param in_layer: Input vector layer
-    :type in_layer: QgsVectorLayer or QgsFeatureItterator
+    :type in_layer: QgsVectorLayer or QgsFeatureIterator
     :param buf_dist: Buffer distance in map units.
-    :type buf_dist: float.
+    :type buf_dist: float
     :param num_segments: Number of segments (int) used to approximate curves
-    :type num_segments: int.
+    :type num_segments: int
     :param feedback: A feedback object to report feedback into log tab.
-    :type feedback: TaFeedback.
+    :type feedback: TaFeedback
     :param runtime_percentage: Percentage of runtime (int) to report progress
-    :type runtime_percentage: int.
+    :type runtime_percentage: int
+
+    :return: Vector layer that contain created buffer polygons.
+    :rtype: QgsVectorLayer
     """
 
     feats = in_layer.getFeatures()
