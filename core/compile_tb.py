@@ -118,8 +118,15 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
             item = self.items[i-1]
             self.feedback.info(f"Compiling {item.get('Layer').name()} raster layer.")
 
-            ds = gdal.Open(item.get("Layer").source())
-            data_array = ds.GetRasterBand(1).ReadAsArray()
+            try:
+                ds = gdal.Open(item.get("Layer").source())
+                data_array = ds.GetRasterBand(1).ReadAsArray()
+            except Exception as e:
+                self.feedback.error(f"Compiling {item.get('Layer').name()} failed.")
+                self.feedback.error("You need to check, if you have access to this layer's storage location (should not\
+                                    be stored on the cloud.")
+                self.kill()
+                continue
             # Set nodata values to np.nan
             no_data_value = ds.GetRasterBand(1).GetNoDataValue()
             if no_data_value != np.nan:
