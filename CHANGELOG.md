@@ -1,5 +1,11 @@
 CHANGELOG
 ===========
+
+Version 1.0.1
+---------------
+* Bug fixes
+* Link to the Sample Data Bundle
+
 Version 1.0
 ------------
 * The first public release
