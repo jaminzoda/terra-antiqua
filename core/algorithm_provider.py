@@ -13,12 +13,14 @@ from qgis.core import (
     QgsExpressionContext,
     QgsExpressionContextUtils,
     QgsProject,
-    QgsCoordinateReferenceSystem
+    QgsCoordinateReferenceSystem,
+    QgsSettings
 )
 
 
 from . utils import setRasterSymbology, setVectorSymbology
 from .remove_arts import TaRemoveArtefacts, TaPolygonCreator, TaFeatureSink
+from ..gui.welcome_dialog import TaWelcomeDialog
 
 class TaAlgorithmProvider:
 
@@ -31,12 +33,14 @@ class TaAlgorithmProvider:
         self.dlg.cancelled.connect(self.stop)
         self.thread.finished.connect(self.finish)
         self.thread.progress.connect(self.dlg.setProgressValue)
-
+        self.welcome_page = TaWelcomeDialog()
 
     def load(self):
-        self.dlg.show()
         if self.settings.temporarySettings.get("first_start") != False:
             self.settings.setTempValue("first_start", False)
+            if self.welcome_page.showAgain:
+                result = self.welcome_page.exec_()
+        self.dlg.show()
 
 
     def start(self):

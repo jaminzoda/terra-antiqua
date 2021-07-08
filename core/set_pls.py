@@ -70,9 +70,8 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
 
             if not self.killed:
                 # Converting polygons to polylines in order to set the shoreline values to 0
-                path_to_polylines = os.path.join(os.path.dirname(self.out_file_path), "polylines_from_polygons.shp")
                 try:
-                    pshoreline = polygonsToPolylines(vlayer, path_to_polylines)
+                    pshoreline = polygonsToPolylines(vlayer)
                 except Exception as e:
                     self.feedback.error(e)
                     self.kill()
