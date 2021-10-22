@@ -409,9 +409,10 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
                 r_last,g_last,b_last = line[3].split('/')
                 color_item= ramp_shader.ColorRampItem(float(line[0]), QColor(int(r),int(g), int(b)),
                                                       str(round(float(line[0]))))
-                color_item1 = ramp_shader.ColorRampItem(maximum, QColor(int(r_last),int(g_last), int(b_last)), str(round(maximum)))
                 color_items_list.append(color_item)
-                color_items_list.append(color_item1)
+                if not maximum<=float(line[0]):
+                    color_item1 = ramp_shader.ColorRampItem(maximum, QColor(int(r_last),int(g_last), int(b_last)), str(round(maximum)))
+                    color_items_list.append(color_item1)
                 continue
             else:
                 color_item = ramp_shader.ColorRampItem(float(line[0]), QColor(int(r), int(g), int(b)), str(round(float(line[0]))))
