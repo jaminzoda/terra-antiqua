@@ -26,8 +26,7 @@ except Exception:
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
 
-from osgeo import gdal, osr, ogr
-from osgeo import gdalconst
+from osgeo import gdal, osr, ogr, gdalconst
 from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
@@ -297,8 +296,7 @@ def rasterSmoothing(in_layer, filter_type, factor, mask_layer = None, out_file=N
     else:
         total = 100
     total_time = (in_array.size * 0.32 / 6485401) * factor
-    fdbck = TaFeedbackOld()
-    imit_progress = TaProgressImitation(total, total_time, fdbck, feedback)
+    imit_progress = TaProgressImitation(total, total_time, feedback)
     imit_progress.start()
 
     rows = in_array.shape[0]
@@ -352,12 +350,53 @@ def rasterSmoothing(in_layer, filter_type, factor, mask_layer = None, out_file=N
         # Get the resulting layer to return
         smoothed_layer = QgsRasterLayer(in_layer.dataProvider().dataSourceUri(), 'Smoothed paleoDEM', 'gdal')
 
-    fdbck.finished.emit(True)
+    imit_progress.processingFinished.emit(True)
     while not imit_progress.isFinished():
         time.sleep(2)
 
     return smoothed_layer
 
+
+def rasterSmoothingInPolygon(in_array:np.ndarray,
+                             filter_type:str,
+                             factor:int,
+                             mask_array:np.ndarray,
+                             feedback:TaFeedback = None,
+                             runtime_percentage:int = None) -> np.ndarray:
+    """
+    Smoothes values of an array by implementing a low-pass filter  such as gaussian or uniform (mean filter)
+
+    :param in_array: input array or smoothing
+    :type in_layer: Numpy n-dimensional array
+    :param factor: factor that is used to define the size of a kernel used (e.g. 3x3, 5x5 etc).
+    :type factor: int
+    :param mask_array: a vector layer containing mask for smoothing only inside polygons.
+    :type mask_array: np.ndarray.
+
+    :return: Smoothed raster array.
+    :rtype: np.ndarray
+    """
+
+    if runtime_percentage:
+        total = runtime_percentage
+    else:
+        total = 100
+    total_time = (in_array.size * 0.32 / 6485401) * factor
+    imit_progress = TaProgressImitation(total, total_time, feedback)
+    imit_progress.start()
+
+    if filter_type == 'Gaussian filter':
+        out_array = gaussian_filter(in_array, factor / 2, mode="wrap")
+    elif filter_type == 'Uniform filter':
+        out_array = uniform_filter(in_array, factor*3-(factor-1))
+
+    out_array[mask_array!=1]=in_array[mask_array!=1]
+
+    imit_progress.processingFinished.emit(True)
+    while not imit_progress.isFinished():
+        time.sleep(2)
+
+    return out_array
 
 def setRasterSymbology(in_layer, color_ramp_name=None):
     """
@@ -1191,18 +1230,19 @@ def install_package(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 class TaProgressImitation(QThread):
-    finished = False
+    ProgressStoped = False
+    processingFinished = pyqtSignal(bool)
 
-    def __init__(self, total,total_time, finish_signal, feedback):
+
+    def __init__(self, total,total_time, feedback):
         super().__init__()
         self.total = total
-        self.signal = finish_signal.finished
-        self.signal.connect(self.finish)
+        self.processingFinished.connect(self.finish)
         self.unit_time = total_time/self.total
         self.feedback = feedback
     def run(self):
         for i in range(round(self.total)):
-            if self.finished:
+            if self.ProgressStoped:
                 break
             self.feedback.progress = self.feedback.progress+i
             time.sleep(self.unit_time)
@@ -1211,7 +1251,7 @@ class TaProgressImitation(QThread):
 
 
     def finish(self):
-        self.finished=True
+        self.ProgressStoped=True
 
 
 

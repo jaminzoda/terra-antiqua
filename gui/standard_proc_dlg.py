@@ -7,11 +7,12 @@ from PyQt5.QtWidgets import (
     QComboBox
 )
 from qgis.gui import QgsSpinBox
-
+from qgis.core import QgsMapLayerProxyModel
 from .base_dialog import TaBaseDialog
 from .widgets import (
     TaRasterLayerComboBox,
     TaCheckBox,
+    TaSpinBox,
     TaVectorLayerComboBox,
     TaColorSchemeWidget
 )
@@ -56,6 +57,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                         "Smoothing factor (in grid cells):")
         self.smFactorSpinBox.setMinimum(1)
         self.smFactorSpinBox.setMaximum(5)
+
         self.smoothingBox.registerEnabledWidgets([self.smoothingTypeBox,
                                                   self.smFactorSpinBox])
 
@@ -76,16 +78,25 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.copyPasteSelectedFeaturesOnlyCheckBox.registerLinkedWidget(self.copyFromMaskBox)
 
         #Parameters for smothing rasters
+        self.smoothInPolygonCheckBox = self.addVariantParameter(TaCheckBox,
+                                                       "Smooth raster",
+                                                       "Smooth inside polygon(s) only.")
+        self.smoothingMaskBox = self.addVariantParameter(TaVectorLayerComboBox,
+                                                       "Smooth raster",
+                                                       "Mask layer:",
+                                                       "TaMapLayerComboBox")
+        self.smoothingMaskBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.smoothingMaskBox.layerChanged.connect(self.setFieldsInLayer)
+        self.smoothInPolygonCheckBox.registerEnabledWidgets([self.smoothingMaskBox])
         self.smoothingTypeBox2 = self.addVariantParameter(QComboBox,
                                                           "Smooth raster",
                                                           "Smoothing type:")
-        self.smFactorSpinBox2 = self.addVariantParameter(QgsSpinBox,
+        self.smFactorSpinBox2 = self.addVariantParameter(TaSpinBox,
                                                          "Smooth raster",
                                                          "Smoothing factor (in grid cells):")
         self.smoothingTypeBox2.addItems(["Gaussian filter",
                                          "Uniform filter"])
-        self.smFactorSpinBox2.setMinimum(1)
-        self.smFactorSpinBox2.setMaximum(5)
+        self.smFactorSpinBox2.setAllowedValueRange(1,5)
 
         #Parameters for Isostatic compensation
         self.selectIceTopoBox = self.addVariantParameter(TaRasterLayerComboBox,
@@ -144,6 +155,10 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.fillingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
         self.group_box.collapsedStateChanged.connect(lambda:self.showAdvancedWidgets(self.fillingTypeBox.currentText()))
 
+
+    def setFieldsInLayer(self):
+        self.smFactorSpinBox2.initOverrideButton("Smoothing factor","Smoothing factor for each mask",
+                                             self.smoothingMaskBox.currentLayer())
     def reloadHelp(self):
         """
         Sets the name of the chosen processing algorithm (e.g. Smooth raster) to the dialog so that it can load the help

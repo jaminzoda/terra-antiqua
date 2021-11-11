@@ -3,7 +3,7 @@
 #Full copyright notice in file: terra_antiqua.py
 
 import os
-from osgeo import gdal
+from osgeo import gdal, gdalconst
 
 from qgis.core import (
     QgsVectorFileWriter,
@@ -11,7 +11,8 @@ from qgis.core import (
     QgsRasterLayer,
     QgsExpression,
     QgsFeatureRequest,
-    QgsProject
+    QgsProject,
+    NULL
     )
 import shutil
 
@@ -25,7 +26,7 @@ from.utils import (
     setRasterSymbology,
     TaProgressImitation
     )
-from .utils import rasterSmoothing
+from .utils import rasterSmoothing, rasterSmoothingInPolygon
 from .base_algorithm import TaBaseAlgorithm
 
 
@@ -195,18 +196,113 @@ class TaStandardProcessing(TaBaseAlgorithm):
     def smoothRaster(self):
         if not self.killed:
             raster_to_smooth_layer = self.dlg.baseTopoBox.currentLayer()
+            raster_to_smooth_ds = gdal.Open(raster_to_smooth_layer.source())
             self.feedback.info("Smoothing toporaphy in the {} raster layer.".format(raster_to_smooth_layer))
-            smoothing_factor = self.dlg.smFactorSpinBox2.value()
             smoothing_type = self.dlg.smoothingTypeBox2.currentText()
             self.feedback.info("Using {} for smoothing the elevation/bathymetry values.".format(smoothing_type))
-            self.feedback.info("Smoothing factor: {}.".format(smoothing_factor))
+
+
+        # Check if data contains NaN values. If it contains, interpolate values for them first
+        # If the pixels with NaN values are left empty they will cause part of the smoothed raster to get empty.
+        # Gaussian filter removes all values under the kernel, which contain at least one NaN ValueError
+        if not self.killed:
+            in_array = raster_to_smooth_ds.GetRasterBand(1).ReadAsArray()
+            if np.isnan(in_array).any():
+                nan_mask = np.ones(in_array.shape)
+                nan_mask[np.isnan(in_array)] = 0
+                filled_raster = fillNoData(raster_to_smooth_layer)
+                raster_to_smooth_ds = gdal.Open(filled_raster, gdalconst.GA_ReadOnly)
+                in_array = raster_to_smooth_ds.GetRasterBand(1).ReadAsArray()
+
 
         if not self.killed:
-            try:
-                smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_type, smoothing_factor,
-                                                        out_file=self.out_file_path, feedback = self.feedback)
-            except Exception as e:
-                self.feedback.warning(e)
+            in_raster_extent = raster_to_smooth_layer.extent()
+            xres = raster_to_smooth_layer.rasterUnitsPerPixelX()
+            yres = raster_to_smooth_layer.rasterUnitsPerPixelY()
+        if not self.killed:
+            if self.dlg.smoothInPolygonCheckBox.isChecked():
+                mask_layer = self.dlg.smoothingMaskBox.currentLayer()
+                self.context = self.getExpressionContext(mask_layer)
+                features = mask_layer.getFeatures()
+                progress_unit = 100/mask_layer.featureCount()
+                for feature in features:
+                    if self.killed:
+                        break
+                    try:
+                        self.feedback.info(
+                            f"<b><i> Smoothing raster with \
+                            {feature.attribute('name') if feature.attribute('name')!=NULL else 'NoName'}\
+                            polygon")
+                    except Exception as e:
+                        self.feedback.info(f"<b><i>Smoothing raster with polygon {feature.id()}")
+                        self.feedback.debug(e)
+
+                    self.context.setFeature(feature)
+                    bounding_box = feature.geometry().boundingBox()
+                    xdistance = np.sqrt(pow((bounding_box.xMinimum() - in_raster_extent.xMinimum()),2))
+                    ydistance = np.sqrt(pow((bounding_box.yMaximum() - in_raster_extent.yMaximum()),2))
+                    xoff = int(round(xdistance/xres))
+                    yoff = int(round(ydistance/yres))
+                    x_diff = (xoff-xdistance/xres)*xres
+                    y_diff = (yoff-ydistance/yres)*yres
+                    win_xsize = round((bounding_box.xMaximum()-bounding_box.xMinimum())/xres)
+                    win_ysize = round((bounding_box.yMaximum()-bounding_box.yMinimum())/yres)
+                    geotransform = (xoff*xres-180-(xres/2), xres, 0, 90-(yoff*yres)+(yres/2), 0, (yres*-1))
+                    array_to_smooth = in_array[yoff:yoff+win_ysize,xoff:xoff+win_xsize]
+                    #convert feature polygon into an array mask
+                    feature_layer = QgsVectorLayer("Polygon?crs={self.crs.authid()}", "Smoothing mask layer", "memory")
+                    feature_layer.dataProvider().addAttributes(mask_layer.fields())
+                    feature_layer.updateFields()
+                    feature_layer.dataProvider().addFeature(feature)
+                    mask_array = vectorToRaster(feature_layer, geotransform,win_xsize, win_ysize,feedback=self.feedback)
+                    smoothing_factor, ok = self.dlg.smFactorSpinBox2.overrideButton.toProperty().valueAsInt(self.context)
+                    if not ok:
+                        smoothing_factor = self.dlg.smFactorSpinBox2.spinBox.value()
+                        self.feedback.warning(f"Mask polygon {feature.id()} has no smoothing factor.")
+                        self.feedback.warning("Therefore default smoothing value will be used.")
+
+                    self.feedback.info(f"Smoothing factor: {smoothing_factor}.")
+                    try:
+                        smoothed_array = rasterSmoothingInPolygon(array_to_smooth, smoothing_type, smoothing_factor, mask_array,
+                                                              self.feedback, runtime_percentage = progress_unit)
+                    except Exception as e:
+                        self.feedback.warning(f"Smoothing failed for the mask polygon with id {feature.id()}")
+                        self.feedback.error(f"Error: {e}")
+
+                    array_to_smooth[mask_array==1] = smoothed_array[mask_array==1]
+                    in_array[yoff:yoff+win_ysize,xoff:xoff+win_xsize] = array_to_smooth
+                    #set initial nan values back to nan
+                    in_array[nan_mask==0] = np.nan
+                # Write the smoothed raster
+                # If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
+                try:
+                    if os.path.exists(self.out_file_path):
+                        driver = gdal.GetDriverByName('GTiff')
+                        driver.Delete(self.out_file_path)
+                except Exception as e:
+                    self.feedback.error(e)
+
+                smoothed_raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, in_array.shape[1],
+                                                                       in_array.shape[0], 1, gdal.GDT_Float32)
+                smoothed_raster.SetGeoTransform(raster_to_smooth_ds.GetGeoTransform())
+                smoothed_raster.SetProjection(self.crs.toWkt())
+                smoothed_band = smoothed_raster.GetRasterBand(1)
+                smoothed_band.WriteArray(in_array)
+                smoothed_band.FlushCache()
+
+                # Close datasets
+                raster_to_smooth_ds = None
+                smoothed_band = None
+                smoothed_raster = None
+
+            else:
+                if not self.killed:
+                    try:
+                        smoothing_factor = self.dlg.smFactorSpinBox2.spinBox.value()
+                        smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_type, smoothing_factor,
+                                                                out_file=self.out_file_path, feedback = self.feedback)
+                    except Exception as e:
+                        self.feedback.warning(e)
 
             self.feedback.progress = 100
             self.finished.emit(True, self.out_file_path)
