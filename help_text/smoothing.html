@@ -13,17 +13,29 @@ Full copyright notice in file: terra_antiqua.py -->
         <b><i>How would you like to process the input DEM:</i></b><br/>
             Choose the processing tool you want to use.
             
-   <p> <b>Smoothing</b> is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after the primary tools in a map without gaps.
+   <p> <b>Smoothing</b> is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after the
+       primary tools in a map without gaps. This algorithms handles the boundaries automatically: if the raster covers
+       the entire globe, the raster is wrapped around to the opposite side. 
    <p>
    <b><i>Raster to be modified:</i></b><br/>You need to choose a raster (DEM) where you want to perform the smoothing.
    <p>
-       <b><i>Smoothing type:</i></b></br>
+   <b><i>Smooth inside polygon(s) only</i></b> can be checked to smooth only parts of the raster layer that are
+   highlighted by the mask polygons.
+   <p>
+   <b><i>Mask layer:</i></b> <br/> Select a layer that contains mask polygons for smoothin. This layer can have
+       smoothing factor in the attribute table that can be used for smoothing parts of the raster layer with different smoothing factors.
+   <p>
+       <b><i>Smoothing type:</i></b><br>
    Select a Smoothing type: Gaussian filter or Uniform filter. Please refer to the manual for details about these.
    <p>
    <b><i>Smoothing factor:</i></b><br/>
    You may specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. The greater the factor, the smoother will the resulting raster be.
-      <div>Please be aware that a higher smoothing factor will increase the processing time.</div>
+   <div>Please be aware that a higher smoothing factor will increase the processing time.</div> <br/>
+      <div>Smoothing factor can also be retrieved from the attribute table (in case if different parts of the raster are
+          to be smoothed with a different smoothing factor). For this you need to press the button from the right side
+          of the smoothing factor field, then chose an appropriate field name under the menu "Field type:..." </div>
      
+
    <p>
    <b><i>Output file path:</i></b><br/>
    If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.

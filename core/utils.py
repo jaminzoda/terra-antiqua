@@ -255,7 +255,13 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
     return out_file_path
 
 
-def rasterSmoothing(in_layer, filter_type, factor, mask_layer = None, out_file=None, feedback=None, runtime_percentage=None):
+def rasterSmoothing(in_layer, filter_type,
+                    factor,
+                    mask_layer = None,
+                    smoothing_mode = 'reflect',
+                    out_file=None,
+                    feedback=None,
+                    runtime_percentage=None):
     """
     Smoothes values of pixels in a raster  by implementing a low-pass filter  such as gaussian or uniform (mean filter)
 
@@ -303,9 +309,9 @@ def rasterSmoothing(in_layer, filter_type, factor, mask_layer = None, out_file=N
     cols = in_array.shape[1]
     geotransform = raster_ds.GetGeoTransform()
     if filter_type == 'Gaussian filter':
-        out_array = gaussian_filter(in_array, factor / 2, mode="wrap")
+        out_array = gaussian_filter(in_array, factor / 2, mode=smoothing_mode)
     elif filter_type == 'Uniform filter':
-        out_array = uniform_filter(in_array, factor*3-(factor-1))
+        out_array = uniform_filter(in_array, factor*3-(factor-1), mode=smoothing_mode)
 
     #Rasterize mask layer and restore the initial values outside poligons if the smoothing is
     #set to be done only inside  polygons
@@ -360,18 +366,25 @@ def rasterSmoothing(in_layer, filter_type, factor, mask_layer = None, out_file=N
 def rasterSmoothingInPolygon(in_array:np.ndarray,
                              filter_type:str,
                              factor:int,
-                             mask_array:np.ndarray,
+                             mask_array:np.ndarray = None,
+                             smoothing_mode:str = 'reflect',
                              feedback:TaFeedback = None,
                              runtime_percentage:int = None) -> np.ndarray:
     """
     Smoothes values of an array by implementing a low-pass filter  such as gaussian or uniform (mean filter)
 
     :param in_array: input array or smoothing
-    :type in_layer: Numpy n-dimensional array
+    :type in_array: Numpy n-dimensional array
+    :param filter_type: Smoothing filter type (for now accepts only "Uniform" and "Gaussian").
+    :type filter_type: str.
     :param factor: factor that is used to define the size of a kernel used (e.g. 3x3, 5x5 etc).
     :type factor: int
-    :param mask_array: a vector layer containing mask for smoothing only inside polygons.
+    :param mask_array: an array containing mask for smoothing only inside polygons.
     :type mask_array: np.ndarray.
+    :param feedback: A feedback object to report progress and log info.
+    :type feedback: TaFeedback.
+    :param runtime_percentage: Percentage of the total algorithm run time that smoothing takes.
+    :type runtime_percentage: int.
 
     :return: Smoothed raster array.
     :rtype: np.ndarray
@@ -386,11 +399,12 @@ def rasterSmoothingInPolygon(in_array:np.ndarray,
     imit_progress.start()
 
     if filter_type == 'Gaussian filter':
-        out_array = gaussian_filter(in_array, factor / 2, mode="wrap")
+        out_array = gaussian_filter(in_array, factor / 2, mode=smoothing_mode)
     elif filter_type == 'Uniform filter':
-        out_array = uniform_filter(in_array, factor*3-(factor-1))
+        out_array = uniform_filter(in_array, factor*3-(factor-1), mode=smoothing_mode)
 
-    out_array[mask_array!=1]=in_array[mask_array!=1]
+    if mask_array is not None:
+        out_array[mask_array!=1]=in_array[mask_array!=1]
 
     imit_progress.processingFinished.emit(True)
     while not imit_progress.isFinished():
@@ -1204,7 +1218,63 @@ def assignUniqueIds(vlayer, feedback, run_time):
         return (None, False)
 
 
+def smoothArrayWithWrapping(input_array:np.ndarray,
+                            index:list,
+                            side:str,
+                            wrapping_size:tuple,
+                            filter_type:str,
+                            smoothing_factor:int,
+                            mask_array:np.ndarray,
+                            feedback:TaFeedback=None,
+                            runtime_percentage:int=None)->np.ndarray:
+    """ Reads a subset of a 2-dimensional numpy array, wrapping it around the edges to opposite side.
 
+    :prarm input_array: Input numpy array to read a subset from.
+    :type input_array: np.ndarray.
+    :param index: A list of tuples with indices for reading the input array. Each tuple in the list contains two
+    addresses - from and to for each axis (rows, columns).
+    :type index: list.
+    :param side: Side of the array for wrapping (E or W).
+    :type side: str.
+    :param wrapping_size: Number of rows and columns (integer) to read from the opposite side of the array.
+    :type wrapping_size: tuple.
+
+    :return: A subset of the input array wrapped around the specified edges by the specified size.
+    :rtype: np.ndarray
+    """
+    row_from, row_to = index[0]
+    col_from, col_to = index[1]
+    subset_array = input_array[row_from:row_to, col_from:col_to]
+    if side =='E':
+        wrapping_array = input_array[row_from:row_to,0:wrapping_size]
+        wrapped_array = np.concatenate((subset_array, wrapping_array), axis=1)
+    elif side == 'W':
+        wrapping_array = input_array[row_from:row_to,wrapping_size*(-1):]
+        wrapped_array = np.concatenate((wrapping_array, subset_array), axis=1)
+    else:
+        raise ValueError("Wrapping side is neither W nor E.")
+
+    try:
+        smoothed_array = rasterSmoothingInPolygon(wrapped_array,
+                                                  filter_type,
+                                                  smoothing_factor,
+                                                  feedback = feedback,
+                                                  runtime_percentage = runtime_percentage
+                                                  )
+    except Exception as e:
+        raise e
+    if side == "E":
+        output_array = np.delete(smoothed_array, np.s_[0:wrapping_size], axis=1)
+    else:
+        output_array = np.delete(smoothed_array, np.s_[wrapping_size*(-1):], axis=1)
+
+    try:
+        output_array[mask_array!=1]=subset_array[mask_array!=1]
+    except Exception as e:
+        feedback.warning("Failed to apply a mask array to the wrapped and smoothed array.")
+        feedback.error(e)
+
+    return output_array
 
 
 def loadHelp(dlg):

@@ -24,7 +24,8 @@ from.utils import (
     fillNoData,
     fillNoDataInPolygon,
     setRasterSymbology,
-    TaProgressImitation
+    TaProgressImitation,
+    smoothArrayWithWrapping
     )
 from .utils import rasterSmoothing, rasterSmoothingInPolygon
 from .base_algorithm import TaBaseAlgorithm
@@ -202,14 +203,15 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.feedback.info("Using {} for smoothing the elevation/bathymetry values.".format(smoothing_type))
 
 
-        # Check if data contains NaN values. If it contains, interpolate values for them first
-        # If the pixels with NaN values are left empty they will cause part of the smoothed raster to get empty.
-        # Gaussian filter removes all values under the kernel, which contain at least one NaN ValueError
         if not self.killed:
             in_array = raster_to_smooth_ds.GetRasterBand(1).ReadAsArray()
+
+            # Check if data contains NaN values. If it contains, interpolate values for them first
+            # If the pixels with NaN values are left empty they will cause part of the smoothed raster to get empty.
+            # Gaussian filter removes all values under the kernel, which contain at least one NaN ValueError
+            nan_mask = np.zeros(in_array.shape)
             if np.isnan(in_array).any():
-                nan_mask = np.ones(in_array.shape)
-                nan_mask[np.isnan(in_array)] = 0
+                nan_mask[np.isnan(in_array)] = 1
                 filled_raster = fillNoData(raster_to_smooth_layer)
                 raster_to_smooth_ds = gdal.Open(filled_raster, gdalconst.GA_ReadOnly)
                 in_array = raster_to_smooth_ds.GetRasterBand(1).ReadAsArray()
@@ -237,42 +239,133 @@ class TaStandardProcessing(TaBaseAlgorithm):
                         self.feedback.info(f"<b><i>Smoothing raster with polygon {feature.id()}")
                         self.feedback.debug(e)
 
+                    #Set feature to context to be able to retrieve smoothing factor for each feature
                     self.context.setFeature(feature)
-                    bounding_box = feature.geometry().boundingBox()
-                    xdistance = np.sqrt(pow((bounding_box.xMinimum() - in_raster_extent.xMinimum()),2))
-                    ydistance = np.sqrt(pow((bounding_box.yMaximum() - in_raster_extent.yMaximum()),2))
-                    xoff = int(round(xdistance/xres))
-                    yoff = int(round(ydistance/yres))
-                    x_diff = (xoff-xdistance/xres)*xres
-                    y_diff = (yoff-ydistance/yres)*yres
-                    win_xsize = round((bounding_box.xMaximum()-bounding_box.xMinimum())/xres)
-                    win_ysize = round((bounding_box.yMaximum()-bounding_box.yMinimum())/yres)
-                    geotransform = (xoff*xres-180-(xres/2), xres, 0, 90-(yoff*yres)+(yres/2), 0, (yres*-1))
-                    array_to_smooth = in_array[yoff:yoff+win_ysize,xoff:xoff+win_xsize]
-                    #convert feature polygon into an array mask
-                    feature_layer = QgsVectorLayer("Polygon?crs={self.crs.authid()}", "Smoothing mask layer", "memory")
-                    feature_layer.dataProvider().addAttributes(mask_layer.fields())
-                    feature_layer.updateFields()
-                    feature_layer.dataProvider().addFeature(feature)
-                    mask_array = vectorToRaster(feature_layer, geotransform,win_xsize, win_ysize,feedback=self.feedback)
+
+                    #Retrieve the smoothing factor for the feature
                     smoothing_factor, ok = self.dlg.smFactorSpinBox2.overrideButton.toProperty().valueAsInt(self.context)
                     if not ok:
                         smoothing_factor = self.dlg.smFactorSpinBox2.spinBox.value()
                         self.feedback.warning(f"Mask polygon {feature.id()} has no smoothing factor.")
                         self.feedback.warning("Therefore default smoothing value will be used.")
-
                     self.feedback.info(f"Smoothing factor: {smoothing_factor}.")
-                    try:
-                        smoothed_array = rasterSmoothingInPolygon(array_to_smooth, smoothing_type, smoothing_factor, mask_array,
-                                                              self.feedback, runtime_percentage = progress_unit)
-                    except Exception as e:
-                        self.feedback.warning(f"Smoothing failed for the mask polygon with id {feature.id()}")
-                        self.feedback.error(f"Error: {e}")
 
-                    array_to_smooth[mask_array==1] = smoothed_array[mask_array==1]
-                    in_array[yoff:yoff+win_ysize,xoff:xoff+win_xsize] = array_to_smooth
-                    #set initial nan values back to nan
-                    in_array[nan_mask==0] = np.nan
+                    #Define the area of the subset array
+                    bounding_box = feature.geometry().boundingBox()
+                    feat_xmin = bounding_box.xMinimum()
+                    feat_xmax = bounding_box.xMaximum()
+                    feat_ymin = bounding_box.yMinimum()
+                    feat_ymax = bounding_box.yMaximum()
+                    rl_xmin = in_raster_extent.xMinimum()
+                    rl_xmax = in_raster_extent.xMaximum()
+                    rl_ymin = in_raster_extent.yMinimum()
+                    rl_ymax = in_raster_extent.yMaximum()
+
+                    #Find the distances` between the edges of the raster layer and the extent of the mask polygon
+                    if feat_xmin<rl_xmin:
+                        xdistance = 0
+                    else:
+                        xdistance = np.sqrt(pow((feat_xmin - rl_xmin),2))
+
+                    if feat_ymax>rl_ymax:
+                        ydistance = 0
+                    else:
+                        ydistance = np.sqrt(pow((feat_ymax - rl_ymax),2))
+
+                    #Column number for the upper left corner of the polygon mask extent
+                    xoff = int(round(xdistance/xres))
+                    #Row number for the upper left corner of the polygon mask extent
+                    yoff = int(round(ydistance/yres))
+
+                    #Check if the extent of the polygon mask does not go beyond the extent of the raster layer
+                    #and calculate the size of the subset array to be smoothed (<=polygon extent size)
+                    #TODO handle the negative values
+                    if feat_xmax>rl_xmax and feat_xmin<rl_xmin:
+                        win_xsize = round((rl_xmax-rl_xmin)/xres)
+                    elif feat_xmax > rl_xmax and not feat_xmin<rl_xmin:
+                        win_xsize = round((rl_xmax-feat_xmin)/xres)
+                    elif not feat_xmax > rl_xmax and feat_xmin<rl_xmin:
+                        win_xsize = int(round(np.sqrt(pow((rl_xmin-feat_xmax),2))/xres))
+                    else:
+                        win_xsize = round((feat_xmax-feat_xmin)/xres)
+
+                    if feat_ymin<rl_ymin and feat_ymax>rl_ymax:
+                        win_ysize = round((rl_ymax-rl_ymin)/yres)
+                    elif feat_ymin<rl_ymin and not feat_ymax>rl_ymax:
+                        win_ysize = round((feat_ymax-rl_ymin)/yres)
+                    elif not feat_ymin<rl_ymin and feat_ymax>rl_ymax:
+                        win_ysize = int(round(np.sqrt(pow((feat_ymin-rl_ymax),2))/yres))
+                    else:
+                        win_ysize = round((feat_ymax-feat_ymin)/yres)
+
+
+                    # extend the subset array for smoothing pixel at its edges
+                    if yoff-smoothing_factor>=0:
+                        yoff = yoff-smoothing_factor
+                        win_ysize += smoothing_factor
+
+                    if yoff+win_ysize+smoothing_factor<=in_array.shape[0]:
+                        ymax = yoff+win_ysize+smoothing_factor
+                        win_ysize += smoothing_factor
+                    else:
+                        ymax = yoff+win_ysize
+
+                    if xoff-smoothing_factor>=0:
+                        xoff = xoff-smoothing_factor
+                        win_xsize += smoothing_factor
+
+                    if xoff+win_xsize+smoothing_factor<=in_array.shape[1]:
+                         xmax = xoff+win_xsize+smoothing_factor
+                         win_xsize += smoothing_factor
+                    else:
+                        xmax =  xoff+win_xsize
+
+                    #convert mask feature polygon into an array mask
+                    geotransform = (xoff*xres-180-(xres/2), xres, 0, 90-(yoff*yres)+(yres/2), 0, (yres*-1))
+                    feature_layer = QgsVectorLayer("Polygon?crs={self.crs.authid()}", "Smoothing mask layer", "memory")
+                    feature_layer.dataProvider().addAttributes(mask_layer.fields())
+                    feature_layer.updateFields()
+                    feature_layer.dataProvider().addFeature(feature)
+                    mask_array = vectorToRaster(feature_layer, geotransform,win_xsize, win_ysize,feedback=self.feedback)
+
+
+
+                    #Check if the subset array lies at the left or right edges and that the raster is a global one
+                    #If so, the subset raster will be extended by wrapping around the edges
+                    if xoff<=0 or xmax>=in_array.shape[1]:
+                        if in_raster_extent.xMinimum()<(-179.95) and in_raster_extent.xMaximum()>=179.95:
+                            try:
+                                smoothed_array = smoothArrayWithWrapping(in_array,
+                                                                     [(yoff, ymax), (xoff, xmax)],
+                                                                         "W" if xoff<=0 else "E",
+                                                                         smoothing_factor,
+                                                                         smoothing_type,
+                                                                         smoothing_factor,
+                                                                         mask_array,
+                                                                         self.feedback,
+                                                                         progress_unit)
+                            except Exception as e:
+                                self.feedback.warning(f"Smoothing failed for the mask polygon with id {feature.id()}")
+                                self.feedback.error(f"Error: {e}")
+                    else:
+                        array_to_smooth = in_array[yoff:ymax,xoff:xmax]
+                        try:
+                            smoothed_array = rasterSmoothingInPolygon(array_to_smooth,
+                                                                      smoothing_type,
+                                                                      smoothing_factor,
+                                                                      mask_array = mask_array,
+                                                                      smoothing_mode = 'reflect',
+                                                                      feedback = self.feedback,
+                                                                      runtime_percentage = progress_unit)
+                        except Exception as e:
+                            self.feedback.warning(f"Smoothing failed for the mask polygon with id {feature.id()}")
+                            self.feedback.error(f"Error: {e}")
+
+                    in_array[yoff:ymax,xoff:xmax] = smoothed_array
+
+                #set initial nan values back to nan
+                in_array[nan_mask==1] = np.nan
+
                 # Write the smoothed raster
                 # If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
                 try:
@@ -299,8 +392,15 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 if not self.killed:
                     try:
                         smoothing_factor = self.dlg.smFactorSpinBox2.spinBox.value()
+                        #check if the raster is global
+                        if in_raster_extent.xMinimum()<(-179.95) and in_raster_extent.xMaximum()>=179.95:
+                            smoothing_mode = 'wrap'
+                        else:
+                            smoothing_mode = 'reflect'
+
                         smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_type, smoothing_factor,
-                                                                out_file=self.out_file_path, feedback = self.feedback)
+                                                                smoothing_mode = smoothing_mode, out_file=self.out_file_path,
+                                                                feedback = self.feedback)
                     except Exception as e:
                         self.feedback.warning(e)
 
