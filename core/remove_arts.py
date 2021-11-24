@@ -5,6 +5,7 @@
 from PyQt5.QtCore import QObject, QVariant, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 import os
+import tempfile
 from osgeo import gdal
 from qgis.core import (
     QgsVectorLayer,
@@ -28,7 +29,8 @@ from numpy import *
 
 from .utils import (
     vectorToRaster,
-    fillNoDataInPolygon)
+    fillNoDataInPolygon,
+    TaVectorFileWriter)
 from qgis._core import QgsRasterLayer
 from .base_algorithm import TaBaseAlgorithm
 
@@ -113,6 +115,22 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
             self.feedback.info("{} polygons are found in the input layer.".format(self.vl.featureCount()))
 
 
+        #Save the vector layer with mask polygons onto the disk
+        if not self.dlg.masksOutputPath.filePath():
+            outputFilePath = os.path.join(tempfile.gettempdir(),
+                                          "remove_artefacts_polygons.shp")
+        else:
+            outputFilePath = self.dlg.masksOutputPath.filePath()
+        error = TaVectorFileWriter.writeToShapeFile(self.vl,
+                                                    outputFilePath,
+                                                    "UTF-8",
+                                                    self.crs,
+                                                    "ESRI Shapefile" )
+        if error[0] == TaVectorFileWriter.NoError:
+            self.feedback.info(f"Mask layer saved at: {outputFilePath}")
+        else:
+            self.feedback.warning("Failed to save mask layer onto the disk because of the following error:")
+            self.feedback.warning(error[1])
         if not self.killed:
             topo_raster = gdal.Open(topo_layer.source())
             H=topo_raster.GetRasterBand(1).ReadAsArray()

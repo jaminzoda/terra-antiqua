@@ -3,9 +3,11 @@
 #Full copyright notice in file: terra_antiqua.py
 
 
-
+import os
+import tempfile
 from PyQt5.QtWidgets import QComboBox, QPushButton
 
+from qgis.gui import QgsFileWidget
 from .base_dialog import TaBaseDialog
 from .widgets import TaExpressionWidget, TaCheckBox, TaColorSchemeWidget
 from numpy import *
@@ -37,6 +39,26 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
         self.comparisonTypeBox.currentIndexChanged.connect(self.typeOfComparison)
 
         #Add advanced parameters
+        self.savePolygonsCheckBox = self.addAdvancedParameter(TaCheckBox,
+                                                              label = "Save mask layer.")
+
+        self.masksOutputPath = self.addAdvancedParameter(QgsFileWidget,
+                                                    label = "Output file path:")
+        self.masksOutputPath.setStorageMode(self.masksOutputPath.SaveFile)
+        self.masksOutputPath.setFilter('*.shp')
+        default_file_path = os.path.join(tempfile.gettempdir(),"remove_artefacts_polygons.shp")
+        if len(default_file_path)>68:
+            d_path, f_path = os.path.split(default_file_path)
+            while True:
+                d_path, last_item = os.path.split(d_path)
+                if len(os.path.join(last_item, f_path))<68:
+                    f_path = os.path.join(last_item, f_path)
+                else:
+                    default_file_path = os.path.join('...', f_path)
+                    break
+        self.masksOutputPath.lineEdit().setPlaceholderText(f"{default_file_path}")
+
+        self.savePolygonsCheckBox.registerEnabledWidgets([self.masksOutputPath])
 
         self.typeOfComparison()
         self.fillDialog()
