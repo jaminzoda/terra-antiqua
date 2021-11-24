@@ -22,7 +22,7 @@ Full copyright notice in file: terra_antiqua.py -->
    <b><i>Smooth inside polygon(s) only</i></b> can be checked to smooth only parts of the raster layer that are
    highlighted by the mask polygons.
    <p>
-   <b><i>Mask layer:</i></b> <br/> Select a layer that contains mask polygons for smoothin. This layer can have
+   <b><i>Mask layer:</i></b> <br/> Select a layer that contains mask polygons for smoothing. This layer can have
        smoothing factor in the attribute table that can be used for smoothing parts of the raster layer with different smoothing factors.
    <p>
        <b><i>Smoothing type:</i></b><br>
@@ -32,8 +32,13 @@ Full copyright notice in file: terra_antiqua.py -->
    You may specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. The greater the factor, the smoother will the resulting raster be.
    <div>Please be aware that a higher smoothing factor will increase the processing time.</div> <br/>
       <div>Smoothing factor can also be retrieved from the attribute table (in case if different parts of the raster are
-          to be smoothed with a different smoothing factor). For this you need to press the button from the right side
+          to be smoothed with a different smoothing factor). For this, you need to press the button from the right side
           of the smoothing factor field, then chose an appropriate field name under the menu "Field type:..." </div>
+   <p>
+       <b><i>Advanced parameters:</i></b><br/>
+       <b><i>Set Paleoshorelines fixed</i></b> can be checked to keep paleoshorelines fixed during smoothing. <br/><br/>
+       <b><i>Rotated paleoshorelines:</i></b><br/>
+       You need to select a vector layer containing paleoshoreline polygons. 
      
 
    <p>
