@@ -182,10 +182,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
                            new_line[0]=='B',
                            new_line[0]=='F',
                            new_line[0]=='N']):
-                    new_line = new_line.split('\t')
-                    #Check if spaces are used instead of tabs
-                    if len(new_line) == 1:
-                        new_line = new_line[0].split()
+                    new_line = new_line.split()
                     new_line = [i for i in new_line if i]
                     color_lines.append(new_line)
                 elif new_line and new_line[0] =='#':
@@ -243,6 +240,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                     "A color palette with this name is already added.")
         self.colorPalette.setCurrentText(color_scheme_name)
         return True
+
 
     def reloadHelp(self):
         """
