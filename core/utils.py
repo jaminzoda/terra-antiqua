@@ -33,6 +33,8 @@ from qgis.core import (
     QgsVectorLayer,
     QgsRasterBandStats,
     QgsColorRampShader,
+    QgsGradientColorRamp,
+    QgsGradientStop,
     QgsRasterShader,
     QgsSingleBandPseudoColorRenderer,
     QgsProject,
@@ -399,7 +401,7 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
                     color_lines.append(new_line)
         return color_lines
 
-    def createColorRamp(ramp_shader:QgsColorRampShader, color_lines, minimum, maximum):
+    def getColorRampItems(ramp_shader:QgsColorRampShader, color_lines, minimum, maximum):
         color_items_list = []
         for line_no, line in enumerate(color_lines):
             r,g,b = line[1].split('/')
@@ -419,6 +421,30 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
             color_items_list.append(color_item)
         return color_items_list
 
+    def createColorRamp(color_ramp_items:list) -> QgsGradientColorRamp:
+        """Creates a QgsGradient color ramp from ColorRampItem list.
+        :param color_ramp_items: A list of color ramp items.
+        :type color_ramp_items: QgsColorRampShader.ColorRampItem.
+
+        :return: Color ramp.
+        :rtype: QgsGradientColorRamp
+        """
+        color_ramp = QgsGradientColorRamp()
+        color1 = color_ramp_items[0].color
+        color2 = color_ramp_items[-1].color
+        color_ramp.setColor1(color1)
+        color_ramp.setColor2(color2)
+        stops = []
+        maximum_value = color_ramp_items[-1].value
+        minimum_value = color_ramp_items[0].value
+        for item in color_ramp_items[1:len(color_ramp_items)-1]:
+            max_min_distance = np.sqrt(pow(maximum_value-minimum_value,2))
+            stop_distance = np.sqrt(pow(item.value - minimum_value, 2))
+            stop = stop_distance/max_min_distance
+            stops.append(QgsGradientStop(stop, item.color))
+        color_ramp.setStops(stops)
+        return color_ramp
+
     stats = in_layer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
     min_elev = stats.minimumValue
     max_elev = stats.maximumValue
@@ -426,8 +452,10 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
     ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
     cpt_data = readCpt(color_palette_file)
-    lst =createColorRamp(ramp_shader, cpt_data, min_elev, max_elev)
+    lst =getColorRampItems(ramp_shader, cpt_data, min_elev, max_elev)
     ramp_shader.setColorRampItemList(lst)
+    ramp_shader.setSourceColorRamp(createColorRamp(lst))
+    #ramp_shader.classifyColorRamp()
 
     # We’ll assign the color ramp to a QgsRasterShader
     # so it can be used to symbolize a raster layer.
@@ -439,6 +467,8 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
     #Then we’ll Assign the renderer to our raster layer.
 
     renderer = QgsSingleBandPseudoColorRenderer(in_layer.dataProvider(), 1, shader)
+    renderer.setClassificationMax(max_elev)
+    renderer.setClassificationMin(min_elev)
     in_layer.setRenderer(renderer)
     in_layer.triggerRepaint()
 
