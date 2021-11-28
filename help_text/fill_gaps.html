@@ -13,11 +13,17 @@ Full copyright notice in file: terra_antiqua.py -->
         <b><i>How would you like to process the input DEM:</i></b><br/>
         Choose the processing tool you want to use.
         <p>
-<b>Fill gaps</b> is intended to interpolate values for gaps between rotated tectonic blocks. It generates elevation data
-in each empty pixel by interpolating from pixel values around it, using inverse distance weighting.
+<b>Fill gaps</b> is intended to fill values for gaps between rotated tectonic blocks. 
 <p>
-<b><i>Raster to be modified (Input):</i></b><br/> Choose the raster (DEM) where you want to perform the interpolation.
+<b><i>Raster to be modified (Input):</i></b><br/> Choose a raster (DEM) layer, which you want to fill gaps in.
+<p>
+<b><i>Filling type</i></b><br/> Choose  a filling type. If the "Interpolation type" is selected, it generates elevation data
+in each empty pixel by interpolating from pixel values around it, using inverse distance weighting. Otherwise a fixed
+value is filled in.
 
+<p>
+<b><i>Filling value</i></b><br/> Enter a filling value to fill the empty pixels (NoData values) with. The filling value
+is applied only to the "Fixed value" filling type.
 <p>If you check the box <i><b>Interpolate inside polygon(s) only</b></i>, you have to enter a <b><i>Mask layer</i></b> and the interpolation will be constrained to the mask(s) from this layer.
 <p>
 <b><i>Smooth resulting raster:</i></b><br/>
