@@ -1228,7 +1228,7 @@ class TaVectorFileWriter(QgsVectorFileWriter):
                          fileName:str,
                          fileEncoding:str,
                          destCRS:QgsCoordinateReferenceSystem,
-                         driverName:str) -> (QgsVectorFileWriter.WriterError, str):
+                         driverName:str) -> tuple(QgsVectorFileWriter.WriterError, str):
         """This function is used to make writing to shapefiles compatible beteen Qgis version >3.10 and <3.10."""
 
         # Check if the file is already created. Acts like overwrite

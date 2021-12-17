@@ -46,12 +46,15 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
                                                     label = "Output file path:")
         self.masksOutputPath.setStorageMode(self.masksOutputPath.SaveFile)
         self.masksOutputPath.setFilter('*.shp')
-        default_file_path = os.path.join(tempfile.gettempdir(),"remove_artefacts_polygons.shp")
+        default_file_path = os.path.join(tempfile.gettempdir(),
+                                            "remove_artefacts_polygons.shp")
         if len(default_file_path)>68:
             d_path, f_path = os.path.split(default_file_path)
-            while True:
+            for i in range(30):
                 d_path, last_item = os.path.split(d_path)
                 if len(os.path.join(last_item, f_path))<68:
+                    if not last_item:
+                        break
                     f_path = os.path.join(last_item, f_path)
                 else:
                     default_file_path = os.path.join('...', f_path)
