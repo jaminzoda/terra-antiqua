@@ -14,31 +14,37 @@ Full copyright notice in file: terra_antiqua.py -->
             Choose the processing tool you want to use.
             
    <p> <b>Smoothing</b> is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after the
-       primary tools in a map without gaps. This algorithms handles the boundaries automatically: if the raster covers
-       the entire globe, the raster is wrapped around to the opposite side. 
+       primary tools in a map without gaps. 
+    
+    <!-- this technical info belongs to the manual. This algorithms handles the boundaries automatically: if the raster covers
+       the entire globe, the raster is wrapped around to the opposite side. -->
    <p>
    <b><i>Raster to be modified:</i></b><br/>You need to choose a raster (DEM) where you want to perform the smoothing.
    <p>
-   <b><i>Smooth inside polygon(s) only</i></b> can be checked to smooth only parts of the raster layer that are
-   highlighted by the mask polygons.
+   Check the option <b><i>Smooth inside polygon(s) only</i></b> to smooth only parts of the raster layer that are marked by the mask polygons.
    <p>
-   <b><i>Mask layer:</i></b> <br/> Select a layer that contains mask polygons for smoothing. This layer can have
-       smoothing factor in the attribute table that can be used for smoothing parts of the raster layer with different smoothing factors.
+
+   <b><i>Mask layer:</i></b> <br/> Select a layer that contains mask polygons for smoothing. 
+
    <p>
        <b><i>Smoothing type:</i></b><br>
    Select a Smoothing type: Gaussian filter or Uniform filter. Please refer to the manual for details about these.
    <p>
    <b><i>Smoothing factor:</i></b><br/>
    You may specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. The greater the factor, the smoother will the resulting raster be.
+    This factor will be 
    <div>Please be aware that a higher smoothing factor will increase the processing time.</div> <br/>
-      <div>Smoothing factor can also be retrieved from the attribute table (in case if different parts of the raster are
-          to be smoothed with a different smoothing factor). For this, you need to press the button from the right side
-          of the smoothing factor field, then chose an appropriate field name under the menu "Field type:..." </div>
+
+         <div>If you have different smoothing factors for each polygon, select the corresponding field from the attribute
+    table using the override button on the right.<br/>
+       The <b>smoothing factor<b> specified above will be used as default for the polygons that do not have an individual smoothing factor on the attribute table.</div>
+    <div><a>More information on the User's Manual</a> </div>
    <p>
        <b><i>Advanced parameters:</i></b><br/>
        <b><i>Set Paleoshorelines fixed</i></b> can be checked to keep paleoshorelines fixed during smoothing. <br/><br/>
        <b><i>Rotated paleoshorelines:</i></b><br/>
        You need to select a vector layer containing paleoshoreline polygons. 
+
      
 
    <p>
@@ -46,7 +52,7 @@ Full copyright notice in file: terra_antiqua.py -->
    If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
 
    <div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
-       <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
+       <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time.</div>
 
    </p>
    </body>
