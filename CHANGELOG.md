@@ -1,6 +1,14 @@
 CHANGELOG
 ===========
 
+Version 1.0.3
+---------------
+* Bug fixes 
+
+Version 1.0.2
+---------------
+* Updated welcome message for web manual
+
 Version 1.0.1
 ---------------
 * Bug fixes

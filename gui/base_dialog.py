@@ -307,9 +307,11 @@ class TaBaseDialog(TaTemplateDialog):
         """
         if len(outFilePath)>68:
             d_path, f_path = os.path.split(outFilePath)
-            while True:
+            for i in range(30):
                 d_path, last_item = os.path.split(d_path)
                 if len(os.path.join(last_item, f_path))<68:
+                    if not last_item:
+                        break
                     f_path = os.path.join(last_item, f_path)
                 else:
                     outFilePath = os.path.join('...', f_path)
