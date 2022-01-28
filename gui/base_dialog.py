@@ -7,6 +7,7 @@ import os
 import webbrowser as wb
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (
+    QWidget,
     QVBoxLayout,
     QLabel,
     QShortcut,
@@ -118,16 +119,27 @@ class TaBaseDialog(TaTemplateDialog):
         else:
             return param
 
-    def addAdvancedParameter(self, param, label = None, widget_type = None, variant_index = None):
+    def addAdvancedParameter(self,
+                             param:QWidget,
+                             label:str = None,
+                             widget_type:str = None,
+                             variant_index:str = None) -> QWidget:
         """Adds advanced parameters to the dialog.
-        param param: A parameter widget to be added.
-        param label: Label for the parameter to be added.
-        param widget_type: Widget type. Currently supports only TaAbstractMapLayerComboBox.
+        :param param: A parameter widget to be added.
+        :type param: QWidget.
+        :param label: Label for the parameter to be added.
+        :type label: str.
+        :param widget_type: Widget type. Currently supports only TaAbstractMapLayerComboBox.
         If the parameter to be added is of TaAbstractMapLayerComboBox type, the maplayer combobox
         will be returned by calling parameter.getMainWidget()
-        param variant_index: If this keyword argument is specified the parameter will be shown only case
+        :type widget_type: str.
+        :param variant_index: If this keyword argument is specified the parameter will be shown only case
         a specified combobox containt the string as the variant_index ->  to be signal connected in the tools dialog
         i.e. TaStandardProcessingDlg.
+        :type variant_index: str.
+
+        :return: Handle to the newly added widget.
+        :rtype: QWidget
         """
         if label:
             try:

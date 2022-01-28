@@ -73,14 +73,20 @@ from .logger import TaFeedback
 
 
 
-def fillNoData(in_layer, out_file_path=None, no_data_value=None):
+def fillNoData(in_layer: QgsRasterLayer,
+               out_file_path: str=None,
+               no_data_value: Union[float, int]=None) -> str:
     """
     Fills the missing data by interpolating from edges.
 
-    :param in_layer: QgsRasterLayer
+    :param in_layer: A raster layer to fill gaps in.
+    :type in_layer: QgsRasterLayer.
     :param no_data_value: NoDataValue of the input layer. These values to be set to np.nan   during the interpolation.
+    :type no_data_value: float|int
     :param vlayer: A vector layer with masks for interpolating only inside masks
-    :return: String - the path of the output file.
+
+    :return: The path of the output file.
+    :rtype: str.
 
     """
     temp_dir = tempfile.gettempdir()
@@ -157,6 +163,7 @@ def fillNoData(in_layer, out_file_path=None, no_data_value=None):
         driver.Delete(mask_path)
 
     return out_file_path
+
 def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=None):
     """
     Fills the missing data by interpolating from edges.
@@ -850,7 +857,7 @@ def modMinMax(in_array, fmin: int, fmax: int):
     out_array[out_array >= fmin] = fmin + (in_array[in_array >= fmin] - fmin) / ratio
     return out_array
 
-def modRescale(in_array, min: int, max: int):
+def modRescale(in_array: np.ndarray, min: int, max: int) -> np.ndarray:
     """
     Modifies the elevation/bathimetry
     values based on the current and provided
@@ -858,9 +865,14 @@ def modRescale(in_array, min: int, max: int):
     This is basically flattening and roughening.
 
     :param in_array: input numpy array for modification.
+    :type in_array: np.ndarray.
     :param fmin: final minimum value of elevation/bathymetry.
+    :type fmin: int.
     :param fmax: final maximum value of elevation/bathymetry.
-    :return: numpy.array
+    :type fmax: int.
+
+    :return:rescaled array.
+    :rtype:np.ndarray.
     """
 
     # Define the initial minimum and maximum values of the array

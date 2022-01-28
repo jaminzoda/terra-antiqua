@@ -25,7 +25,9 @@ from.utils import (
     fillNoDataInPolygon,
     setRasterSymbology,
     TaProgressImitation,
-    smoothArrayWithWrapping
+    smoothArrayWithWrapping,
+    polygonsToPolylines,
+    modRescale
     )
 from .utils import rasterSmoothing, rasterSmoothingInPolygon
 from .base_algorithm import TaBaseAlgorithm
@@ -210,6 +212,14 @@ class TaStandardProcessing(TaBaseAlgorithm):
             # If the pixels with NaN values are left empty they will cause part of the smoothed raster to get empty.
             # Gaussian filter removes all values under the kernel, which contain at least one NaN ValueError
             nan_mask = np.zeros(in_array.shape)
+            no_data_value = raster_to_smooth_ds.GetRasterBand(1).GetNoDataValue()
+            #if the no_data_value is np.nan, band.GetNoDataValue returns nan,
+            #which is !=np.nan but np.isnan(no_data_value) returns True
+            if in_array[in_array==no_data_value].size == 0:
+                in_array[np.isnan(in_array)]=np.nan
+            else:
+                in_array[in_array==no_data_value]=np.nan
+
             if np.isnan(in_array).any():
                 nan_mask[np.isnan(in_array)] = 1
                 filled_raster = fillNoData(raster_to_smooth_layer)
@@ -384,25 +394,71 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 smoothed_band.FlushCache()
 
                 # Close datasets
-                raster_to_smooth_ds = None
                 smoothed_band = None
                 smoothed_raster = None
+                in_array = None
 
             else:
-                if not self.killed:
-                    try:
-                        smoothing_factor = self.dlg.smFactorSpinBox2.spinBox.value()
-                        #check if the raster is global
-                        if in_raster_extent.xMinimum()<(-179.95) and in_raster_extent.xMaximum()>=179.95:
-                            smoothing_mode = 'wrap'
-                        else:
-                            smoothing_mode = 'reflect'
+                try:
+                    smoothing_factor = self.dlg.smFactorSpinBox2.spinBox.value()
+                    #check if the raster is global
+                    if in_raster_extent.xMinimum()<(-179.95) and in_raster_extent.xMaximum()>=179.95:
+                        smoothing_mode = 'wrap'
+                    else:
+                        smoothing_mode = 'reflect'
 
-                        smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_type, smoothing_factor,
-                                                                smoothing_mode = smoothing_mode, out_file=self.out_file_path,
-                                                                feedback = self.feedback)
-                    except Exception as e:
-                        self.feedback.warning(e)
+                    smoothed_raster_layer = rasterSmoothing(raster_to_smooth_layer, smoothing_type, smoothing_factor,
+                                                            smoothing_mode = smoothing_mode, out_file=self.out_file_path,
+                                                            feedback = self.feedback)
+                except Exception as e:
+                    self.feedback.warning(e)
+
+            if not self.killed:
+                #Set paleoshorelines fixed
+                if self.dlg.fixedPaleoShorelinesCheckBox.isChecked() and self.dlg.paleoshorelinesMask.currentLayer():
+                    pls_vlayer = self.dlg.paleoshorelinesMask.currentLayer()
+                    shorelines = polygonsToPolylines(pls_vlayer)
+                    shorelines_array = vectorToRaster(shorelines,
+                                                     raster_to_smooth_ds.GetGeoTransform(),
+                                                      raster_to_smooth_ds.RasterXSize,
+                                                      raster_to_smooth_ds.RasterYSize)
+                    shorelines_mask_array = vectorToRaster(pls_vlayer,
+                                                           raster_to_smooth_ds.GetGeoTransform(),
+                                                           raster_to_smooth_ds.RasterXSize,
+                                                           raster_to_smooth_ds.RasterYSize)
+                    smoothed_raster = gdal.Open(self.out_file_path, gdalconst.GA_Update)
+                    smoothed_array = smoothed_raster.GetRasterBand(1).ReadAsArray()
+                    #map NoData values to reset them after interpolation
+                    nan_mask = np.zeros(smoothed_array.shape,dtype=np.int8)
+                    nan_mask[np.isnan(smoothed_array)]=1
+                    #set paleoshorelines
+                    smoothed_array[shorelines_array==1]=0
+                    smoothed_array[(shorelines_mask_array==1)*(smoothed_array<0)==1] = np.nan
+                    smoothed_array[(shorelines_mask_array!=1)*(smoothed_array>0)==1] = np.nan
+                    smoothed_raster.GetRasterBand(1).WriteArray(smoothed_array)
+                    smoothed_array = None
+                    shorelines_array = None
+                    smoothed_raster = None
+                    #fill the resulting gaps
+                    layer_to_fill = QgsRasterLayer(self.out_file_path, "Smoothed raster", "gdal")
+                    self.out_file_path = fillNoData(layer_to_fill, self.out_file_path)
+                    #Make sure that values close to the shorelnes are interpolated correctly
+                    #Pixels in touch with the shorelines can get wrong value if they diagonally touch
+                    #any pixel on the other side of the shoreline
+                    final_raster = gdal.Open(self.out_file_path, gdalconst.GA_Update)
+                    final_array = final_raster.GetRasterBand(1).ReadAsArray()
+                    array_to_rescale_asl = final_array[(shorelines_mask_array==1)*(final_array<0)==1]
+                    rescaled = modRescale(array_to_rescale_asl, 0.1, 5)
+                    final_array[(shorelines_mask_array==1)*(final_array<0)==1] = rescaled
+                    array_to_rescale_bsl = final_array[(shorelines_mask_array!=1)*(final_array>=0)==1]
+                    rescaled = modRescale(array_to_rescale_bsl, -5, -0.1)
+                    final_array[(shorelines_mask_array!=1)*(final_array>=0)==1] = rescaled
+                    final_array[nan_mask==1]=np.nan
+                    final_raster.GetRasterBand(1).WriteArray(final_array)
+                    final_array = None
+                    shorelines_mask_array = None
+            else:
+                self.finished.emit(False, "")
 
             self.feedback.progress = 100
             self.finished.emit(True, self.out_file_path)

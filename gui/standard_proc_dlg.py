@@ -3,13 +3,16 @@
 #Full copyright notice in file: terra_antiqua.py
 
 
+
+from PyQt5 import QtCore, QtWidgets
+
 import os
 import shutil
 from PyQt5.QtWidgets import (
     QComboBox,
     QPushButton,
     QFileDialog
-)
+
 from qgis.gui import QgsSpinBox
 from qgis.core import QgsMapLayerProxyModel
 from .base_dialog import TaBaseDialog
@@ -29,7 +32,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.fillingTypeBox.currentTextChanged.connect(self.reloadHelp)
 
     def defineParameters(self):
-        self.fillingTypeBox = self.addParameter(QComboBox, "How would you like to process the input DEM?")
+        self.fillingTypeBox = self.addParameter(QtWidgets.QComboBox, "How would you like to process the input DEM?")
         self.fillingTypeBox.addItems(["Fill gaps",
                                       "Copy/Paste raster",
                                       "Smooth raster",
@@ -51,7 +54,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.interpInsidePolygonCheckBox.registerEnabledWidgets([self.masksBox])
         self.smoothingBox = self.addVariantParameter(TaCheckBox, "Fill gaps",
                                                      "Smooth the resulting raster")
-        self.smoothingTypeBox = self.addVariantParameter(QComboBox,
+        self.smoothingTypeBox = self.addVariantParameter(QtWidgets.QComboBox,
                                                          "Fill gaps",
                                                          "Smoothing type:")
         self.smoothingTypeBox.addItems(["Gaussian filter",
@@ -85,6 +88,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.smoothInPolygonCheckBox = self.addVariantParameter(TaCheckBox,
                                                        "Smooth raster",
                                                        "Smooth inside polygon(s) only.")
+        self.smoothInPolygonCheckBox.stateChanged.connect(self.onSmoothInPolygonCheckBoxStateChange)
         self.smoothingMaskBox = self.addVariantParameter(TaVectorLayerComboBox,
                                                        "Smooth raster",
                                                        "Mask layer:",
@@ -92,7 +96,8 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.smoothingMaskBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.smoothingMaskBox.layerChanged.connect(self.setFieldsInLayer)
         self.smoothInPolygonCheckBox.registerEnabledWidgets([self.smoothingMaskBox])
-        self.smoothingTypeBox2 = self.addVariantParameter(QComboBox,
+
+        self.smoothingTypeBox2 = self.addVariantParameter(QtWidgets.QComboBox,
                                                           "Smooth raster",
                                                           "Smoothing type:")
         self.smFactorSpinBox2 = self.addVariantParameter(TaSpinBox,
@@ -101,6 +106,16 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.smoothingTypeBox2.addItems(["Gaussian filter",
                                          "Uniform filter"])
         self.smFactorSpinBox2.setAllowedValueRange(1,5)
+        self.fixedPaleoShorelinesCheckBox = self.addAdvancedParameter(TaCheckBox,
+                                                                      label = "Set paleoshorelines fixed.",
+                                                                      variant_index = "Smooth raster")
+        self.fixedPaleoShorelinesCheckBox.stateChanged.connect(self.onFixedPaleoshorelinesCheckBoxStateChange)
+        self.paleoshorelinesMask = self.addAdvancedParameter(TaVectorLayerComboBox,
+                                                              label = "Rotated paleoshorelines:",
+                                                              widget_type = "TaMapLayerComboBox",
+                                                              variant_index = "Smooth raster")
+        self.paleoshorelinesMask.setLayerType("Polygon")
+        self.fixedPaleoShorelinesCheckBox.registerEnabledWidgets([self.paleoshorelinesMask])
 
         #Parameters for Isostatic compensation
         self.selectIceTopoBox = self.addVariantParameter(TaRasterLayerComboBox,
@@ -168,6 +183,19 @@ class TaStandardProcessingDlg(TaBaseDialog):
     def setFieldsInLayer(self):
         self.smFactorSpinBox2.initOverrideButton("Smoothing factor","Smoothing factor for each mask",
                                              self.smoothingMaskBox.currentLayer())
+
+
+    def onSmoothInPolygonCheckBoxStateChange(self, state):
+        if state == QtCore.Qt.Checked:
+            self.smoothingMaskBox.setLayer(self.smoothingMaskBox.layer(1))
+        else:
+            self.smoothingMaskBox.setLayer(self.smoothingMaskBox.layer(0))
+
+    def onFixedPaleoshorelinesCheckBoxStateChange(self, state):
+        if state == QtCore.Qt.Checked:
+            self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(1))
+        else:
+            self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(0))
 
     def addColorPalette(self) -> bool:
         """Adds a custom color palette to TA resources folder and to displays its name in the color palettes' combobox.
@@ -257,6 +285,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                     "A color palette with this name is already added.")
         self.colorPalette.setCurrentText(color_scheme_name)
         return True
+
 
 
 
