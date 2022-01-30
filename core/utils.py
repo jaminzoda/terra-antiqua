@@ -1,32 +1,11 @@
 
-#Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
+# Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
-#Full copyright notice in file: terra_antiqua.py
+# Full copyright notice in file: terra_antiqua.py
 
 # -*- coding: utf-8 -*-
-import sys
-import tempfile
-import os
-import time
-
-
-import numpy as np
-from numpy import * #This to import math functions to be used in formula (modFormula)
-import subprocess
-import random
-from random import randrange
-from typing import Union
-
-try:
-    from scipy.ndimage.filters import gaussian_filter, uniform_filter
-except Exception:
-    install_package('scipy')
-    from scipy.ndimage.filters import gaussian_filter, uniform_filter
-
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
-
-from osgeo import gdal, osr, ogr, gdalconst
+from .logger import TaFeedback
+from qgis.gui import QgsMessageBar
 from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
@@ -59,9 +38,36 @@ from qgis.core import (
     QgsSimpleFillSymbolLayer,
     QgsProcessingException
 
-    )
+)
+from osgeo import gdal, osr, ogr, gdalconst
+from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
+from PyQt5.QtGui import QColor
+import sys
+import tempfile
+import os
+import time
 
-from qgis.gui import QgsMessageBar
+
+import numpy as np
+# This to import math functions to be used in formula (modFormula)
+from numpy import *
+import subprocess
+import random
+from random import randrange
+from typing import Tuple, Union
+
+
+def install_package(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+
+try:
+    from scipy.ndimage.filters import gaussian_filter, uniform_filter
+except Exception:
+    install_package('scipy')
+    from scipy.ndimage.filters import gaussian_filter, uniform_filter
+
+
 try:
     from plugins import processing
     from plugins.processing.tools import vector
@@ -69,13 +75,10 @@ except Exception:
     import processing
     from processing.tools import vector
 
-from .logger import TaFeedback
-
-
 
 def fillNoData(in_layer: QgsRasterLayer,
-               out_file_path: str=None,
-               no_data_value: Union[float, int]=None) -> str:
+               out_file_path: str = None,
+               no_data_value: Union[float, int] = None) -> str:
     """
     Fills the missing data by interpolating from edges.
 
@@ -112,16 +115,15 @@ def fillNoData(in_layer: QgsRasterLayer,
         if no_data_value != np.nan:
             in_array[in_array == no_data_value] = np.nan
 
-
     # (2) Define the parameters for creating a mask raster of valid values.
     # TODO move this mask into the temporary directory of the OS
-    mask_path = os.path.join(temp_dir, "Valid_data_mask_for_interpolation.tiff")
+    mask_path = os.path.join(
+        temp_dir, "Valid_data_mask_for_interpolation.tiff")
     geotransform = raster_ds.GetGeoTransform()
     width = in_layer.width()
     height = in_layer.height()
 
     raster_ds = None
-
 
     out_array = np.ones(in_array.shape)
 
@@ -129,7 +131,8 @@ def fillNoData(in_layer: QgsRasterLayer,
     out_array[np.isfinite(in_array)] = 1
 
     # Create Target - TIFF
-    out_raster = gdal.GetDriverByName('GTiff').Create(mask_path, width, height, 1, gdal.GDT_Byte)
+    out_raster = gdal.GetDriverByName('GTiff').Create(
+        mask_path, width, height, 1, gdal.GDT_Byte)
     out_raster.SetGeoTransform(geotransform)
     crs = in_layer.crs().toWkt()
     out_raster.SetProjection(crs)
@@ -156,13 +159,13 @@ def fillNoData(in_layer: QgsRasterLayer,
 
     processing.run("gdal:fillnodata", fill_params)
 
-
     # (4) delete the validity mask file
     driver = gdal.GetDriverByName('GTiff')
     if os.path.exists(mask_path):
         driver.Delete(mask_path)
 
     return out_file_path
+
 
 def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=None):
     """
@@ -184,7 +187,8 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
         raise TypeError("The input layer must be QgsRasterLayer")
 
     try:
-        raster_ds = gdal.Open(in_layer.dataProvider().dataSourceUri(), gdal.GA_Update)
+        raster_ds = gdal.Open(
+            in_layer.dataProvider().dataSourceUri(), gdal.GA_Update)
     except FileNotFoundError:
         print("Could not open the provided raster layer.")
     else:
@@ -205,7 +209,8 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
 
     # (2) Define the parameters for creating a mask raster of valid values.
 
-    mask_path = os.path.join(temp_dir, "Valid_data_mask_for_interpolation.tiff")
+    mask_path = os.path.join(
+        temp_dir, "Valid_data_mask_for_interpolation.tiff")
 
     out_array = np.ones(in_array.shape)
 
@@ -213,7 +218,8 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
     out_array[np.isfinite(in_array)] = 1
 
     # Create Target - TIFF
-    out_raster = gdal.GetDriverByName('GTiff').Create(mask_path, width, height, 1, gdal.GDT_Byte)
+    out_raster = gdal.GetDriverByName('GTiff').Create(
+        mask_path, width, height, 1, gdal.GDT_Byte)
     out_raster.SetGeoTransform(geotransform)
     crs = in_layer.crs().toWkt()
     out_raster.SetProjection(crs)
@@ -224,10 +230,10 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
     out_raster = None
 
     # Set the no_data values outside the polygon to -99999
-    ## Rasterize the input vector layer with polygon masks
+    # Rasterize the input vector layer with polygon masks
     poly_array = vectorToRaster(poly_layer, geotransform, width, height)
     mapped_array = np.zeros((height, width))
-    mapped_array[np.isnan(in_array)*(poly_array != 1)==1] = 1
+    mapped_array[np.isnan(in_array)*(poly_array != 1) == 1] = 1
     raster_ds = None
     in_array = None
 
@@ -244,17 +250,16 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
 
     processing.run("gdal:fillnodata", fill_params)
 
-    ## Output raster
+    # Output raster
     raster_ds = gdal.Open(out_file_path, gdal.GA_Update)
     raster_array = raster_ds.GetRasterBand(1).ReadAsArray()
-    raster_array[mapped_array==1] = np.nan
+    raster_array[mapped_array == 1] = np.nan
     raster_ds.GetRasterBand(1).WriteArray(raster_array)
     raster_ds.GetRasterBand(1).FlushCache()
     raster_ds = None
     raster_array = None
     mapped_array = None
     poly_array = None
-
 
     # (4) delete the validity mask file
     driver = gdal.GetDriverByName('GTiff')
@@ -266,8 +271,8 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
 
 def rasterSmoothing(in_layer, filter_type,
                     factor,
-                    mask_layer = None,
-                    smoothing_mode = 'reflect',
+                    mask_layer=None,
+                    smoothing_mode='reflect',
                     out_file=None,
                     feedback=None,
                     runtime_percentage=None):
@@ -286,7 +291,8 @@ def rasterSmoothing(in_layer, filter_type,
     :return: Smoothed raster layer.
     :rtype: QgsRasterLayer
     """
-
+    assert factor > 0, "The smoothing factor cannot be negative."
+    assert factor <= 5, "The smoothing factor currently cannot be more than >5."
     raster_ds = gdal.Open(in_layer.source(), gdalconst.GA_Update)
     in_band = raster_ds.GetRasterBand(1)
     no_data_value = in_band.GetNoDataValue()
@@ -305,7 +311,6 @@ def rasterSmoothing(in_layer, filter_type,
         raster_ds_filled = None
         in_band_filled = None
 
-
     if runtime_percentage:
         total = runtime_percentage
     else:
@@ -320,16 +325,17 @@ def rasterSmoothing(in_layer, filter_type,
     if filter_type == 'Gaussian filter':
         out_array = gaussian_filter(in_array, factor / 2, mode=smoothing_mode)
     elif filter_type == 'Uniform filter':
-        out_array = uniform_filter(in_array, factor*3-(factor-1), mode=smoothing_mode)
+        out_array = uniform_filter(
+            in_array, factor*3-(factor-1), mode=smoothing_mode)
 
-    #Rasterize mask layer and restore the initial values outside poligons if the smoothing is
-    #set to be done only inside  polygons
+    # Rasterize mask layer and restore the initial values outside poligons if the smoothing is
+    # set to be done only inside  polygons
     if mask_layer:
         mask_array = vectorToRaster(mask_layer, geotransform, cols, rows)
-        out_array[mask_array!=1]=in_array[mask_array!=1]
+        out_array[mask_array != 1] = in_array[mask_array != 1]
 
-    #set the initial nan values back to nan
-    out_array[nan_mask]=np.nan
+    # set the initial nan values back to nan
+    out_array[nan_mask] = np.nan
 
     # Write the smoothed raster
     # If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
@@ -340,7 +346,8 @@ def rasterSmoothing(in_layer, filter_type,
                 driver.Delete(out_file)
         except Exception as e:
             raise e
-        smoothed_raster = gdal.GetDriverByName('GTiff').Create(out_file, cols, rows, 1, gdal.GDT_Float32)
+        smoothed_raster = gdal.GetDriverByName('GTiff').Create(
+            out_file, cols, rows, 1, gdal.GDT_Float32)
         smoothed_raster.SetGeoTransform(geotransform)
         crs = in_layer.crs()
         smoothed_raster.SetProjection(crs.toWkt())
@@ -363,7 +370,8 @@ def rasterSmoothing(in_layer, filter_type,
         raster_ds = None
 
         # Get the resulting layer to return
-        smoothed_layer = QgsRasterLayer(in_layer.dataProvider().dataSourceUri(), 'Smoothed paleoDEM', 'gdal')
+        smoothed_layer = QgsRasterLayer(
+            in_layer.dataProvider().dataSourceUri(), 'Smoothed paleoDEM', 'gdal')
 
     imit_progress.processingFinished.emit(True)
     while not imit_progress.isFinished():
@@ -372,13 +380,13 @@ def rasterSmoothing(in_layer, filter_type,
     return smoothed_layer
 
 
-def rasterSmoothingInPolygon(in_array:np.ndarray,
-                             filter_type:str,
-                             factor:int,
-                             mask_array:np.ndarray = None,
-                             smoothing_mode:str = 'reflect',
-                             feedback:TaFeedback = None,
-                             runtime_percentage:int = None) -> np.ndarray:
+def rasterSmoothingInPolygon(in_array: np.ndarray,
+                             filter_type: str,
+                             factor: int,
+                             mask_array: np.ndarray = None,
+                             smoothing_mode: str = 'reflect',
+                             feedback: TaFeedback = None,
+                             runtime_percentage: int = None) -> np.ndarray:
     """
     Smoothes values of an array by implementing a low-pass filter  such as gaussian or uniform (mean filter)
 
@@ -399,6 +407,8 @@ def rasterSmoothingInPolygon(in_array:np.ndarray,
     :rtype: np.ndarray
     """
 
+    assert factor > 0, "Smoothing factor cannot be negative."
+    assert factor <= 5, "Smoothing factor cannot currently be >5."
     if runtime_percentage:
         total = runtime_percentage
     else:
@@ -410,16 +420,18 @@ def rasterSmoothingInPolygon(in_array:np.ndarray,
     if filter_type == 'Gaussian filter':
         out_array = gaussian_filter(in_array, factor / 2, mode=smoothing_mode)
     elif filter_type == 'Uniform filter':
-        out_array = uniform_filter(in_array, factor*3-(factor-1), mode=smoothing_mode)
+        out_array = uniform_filter(
+            in_array, factor*3-(factor-1), mode=smoothing_mode)
 
     if mask_array is not None:
-        out_array[mask_array!=1]=in_array[mask_array!=1]
+        out_array[mask_array != 1] = in_array[mask_array != 1]
 
     imit_progress.processingFinished.emit(True)
     while not imit_progress.isFinished():
         time.sleep(2)
 
     return out_array
+
 
 def setRasterSymbology(in_layer, color_ramp_name=None):
     """
@@ -431,20 +443,23 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
     :type color_ramp_name: str
 
     """
-    path_to_color_schemes = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/color_schemes"))
+    path_to_color_schemes = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "../resources/color_schemes"))
     if color_ramp_name:
         file_names = []
         for (dirpath, dirnames, filenames) in os.walk(path_to_color_schemes):
             file_names.extend(filenames)
         for file in file_names:
-            with open(os.path.join(path_to_color_schemes,file)) as f:
+            with open(os.path.join(path_to_color_schemes, file)) as f:
                 lines = f.readlines()
                 color_scheme_name = lines[0].strip()
                 color_scheme_name = color_scheme_name.replace("#", "")
                 if color_scheme_name == color_ramp_name:
-                    color_palette_file = os.path.join(path_to_color_schemes, file)
+                    color_palette_file = os.path.join(
+                        path_to_color_schemes, file)
     else:
-        color_palette_file = os.path.join(path_to_color_schemes, "TerraAntiqua_color_ramp.cpt")
+        color_palette_file = os.path.join(
+            path_to_color_schemes, "TerraAntiqua_color_ramp.cpt")
 
     def readCpt(file_name):
         color_lines = []
@@ -452,36 +467,39 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
             lines = file.readlines()
             for line_no, line in enumerate(lines):
                 new_line = line.strip()
-                if new_line and not any([new_line[0]=='#',
-                           new_line[0]=='B',
-                           new_line[0]=='F',
-                           new_line[0]=='N']):
+                if new_line and not any([new_line[0] == '#',
+                                         new_line[0] == 'B',
+                                         new_line[0] == 'F',
+                                         new_line[0] == 'N']):
                     new_line = new_line.split('\t')
                     new_line = [i for i in new_line if i]
                     color_lines.append(new_line)
         return color_lines
 
-    def getColorRampItems(ramp_shader:QgsColorRampShader, color_lines, minimum, maximum):
+    def getColorRampItems(ramp_shader: QgsColorRampShader, color_lines, minimum, maximum):
         color_items_list = []
         for line_no, line in enumerate(color_lines):
-            r,g,b = line[1].split('/')
-            if line_no==0:
-                color_item = ramp_shader.ColorRampItem(minimum, QColor(int(r),int(g), int(b)), str(round(minimum)))
+            r, g, b = line[1].split('/')
+            if line_no == 0:
+                color_item = ramp_shader.ColorRampItem(
+                    minimum, QColor(int(r), int(g), int(b)), str(round(minimum)))
             elif line_no == len(color_lines)-1:
-                r_last,g_last,b_last = line[3].split('/')
-                color_item= ramp_shader.ColorRampItem(float(line[0]), QColor(int(r),int(g), int(b)),
-                                                      str(round(float(line[0]))))
+                r_last, g_last, b_last = line[3].split('/')
+                color_item = ramp_shader.ColorRampItem(float(line[0]), QColor(int(r), int(g), int(b)),
+                                                       str(round(float(line[0]))))
                 color_items_list.append(color_item)
-                if not maximum<=float(line[0]):
-                    color_item1 = ramp_shader.ColorRampItem(maximum, QColor(int(r_last),int(g_last), int(b_last)), str(round(maximum)))
+                if not maximum <= float(line[0]):
+                    color_item1 = ramp_shader.ColorRampItem(maximum, QColor(
+                        int(r_last), int(g_last), int(b_last)), str(round(maximum)))
                     color_items_list.append(color_item1)
                 continue
             else:
-                color_item = ramp_shader.ColorRampItem(float(line[0]), QColor(int(r), int(g), int(b)), str(round(float(line[0]))))
+                color_item = ramp_shader.ColorRampItem(float(line[0]), QColor(
+                    int(r), int(g), int(b)), str(round(float(line[0]))))
             color_items_list.append(color_item)
         return color_items_list
 
-    def createColorRamp(color_ramp_items:list) -> QgsGradientColorRamp:
+    def createColorRamp(color_ramp_items: list) -> QgsGradientColorRamp:
         """Creates a QgsGradient color ramp from ColorRampItem list.
         :param color_ramp_items: A list of color ramp items.
         :type color_ramp_items: QgsColorRampShader.ColorRampItem.
@@ -498,7 +516,7 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
         maximum_value = color_ramp_items[-1].value
         minimum_value = color_ramp_items[0].value
         for item in color_ramp_items[1:len(color_ramp_items)-1]:
-            max_min_distance = np.sqrt(pow(maximum_value-minimum_value,2))
+            max_min_distance = np.sqrt(pow(maximum_value-minimum_value, 2))
             stop_distance = np.sqrt(pow(item.value - minimum_value, 2))
             stop = stop_distance/max_min_distance
             stops.append(QgsGradientStop(stop, item.color))
@@ -512,27 +530,26 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
     ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
     cpt_data = readCpt(color_palette_file)
-    lst =getColorRampItems(ramp_shader, cpt_data, min_elev, max_elev)
+    lst = getColorRampItems(ramp_shader, cpt_data, min_elev, max_elev)
     ramp_shader.setColorRampItemList(lst)
     ramp_shader.setSourceColorRamp(createColorRamp(lst))
-    #ramp_shader.classifyColorRamp()
+    # ramp_shader.classifyColorRamp()
 
     # We’ll assign the color ramp to a QgsRasterShader
     # so it can be used to symbolize a raster layer.
     shader = QgsRasterShader()
     shader.setRasterShaderFunction(ramp_shader)
 
-    #Finally, we need to apply the symbology we’ve created to the raster layer.
-    #First, we’ll create a renderer using our raster shader.
-    #Then we’ll Assign the renderer to our raster layer.
+    # Finally, we need to apply the symbology we’ve created to the raster layer.
+    # First, we’ll create a renderer using our raster shader.
+    # Then we’ll Assign the renderer to our raster layer.
 
-    renderer = QgsSingleBandPseudoColorRenderer(in_layer.dataProvider(), 1, shader)
+    renderer = QgsSingleBandPseudoColorRenderer(
+        in_layer.dataProvider(), 1, shader)
     renderer.setClassificationMax(max_elev)
     renderer.setClassificationMin(min_elev)
     in_layer.setRenderer(renderer)
     in_layer.triggerRepaint()
-
-
 
 
 def setVectorSymbology(in_layer):
@@ -550,7 +567,7 @@ def setVectorSymbology(in_layer):
         raise Exception("The input vector layer is not valid.")
     list_of_fields = ['Category', 'Id', 'ID', 'iD', 'id', 'Fid', 'FID', 'fid']
     fni = -1
-    for  f in list_of_fields:
+    for f in list_of_fields:
         if not fni == -1:
             break
         fni = layer.fields().indexFromName(f)
@@ -564,7 +581,8 @@ def setVectorSymbology(in_layer):
 
         # configure a symbol layer
         layer_style = {}
-        layer_style['color'] = '%d, %d, %d' % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+        layer_style['color'] = '%d, %d, %d' % (
+            randrange(0, 256), randrange(0, 256), randrange(0, 256))
         layer_style['outline'] = '#000000'
         symbol_layer = QgsSimpleFillSymbolLayer.create(layer_style)
 
@@ -578,7 +596,8 @@ def setVectorSymbology(in_layer):
         categories.append(category)
 
     # create renderer object
-    renderer = QgsCategorizedSymbolRenderer(layer.fields().field(fni).name(), categories)
+    renderer = QgsCategorizedSymbolRenderer(
+        layer.fields().field(fni).name(), categories)
 
     # assign the created renderer to the layer
     if renderer is not None:
@@ -586,16 +605,17 @@ def setVectorSymbology(in_layer):
 
     layer.triggerRepaint()
 
+
 def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
     """
     Rasterizes a vector layer and returns a numpy array.
     :param in_layer: Accepted data types:
-		- str: layer ID
-		- str: layer name
-		- str: layer source
-		- QgsProcessingFeatureSourceDefinition
-		- QgsProperty
-		- QgsVectorLayer
+                - str: layer ID
+                - str: layer name
+                - str: layer source
+                - QgsProcessingFeatureSourceDefinition
+                - QgsProperty
+                - QgsVectorLayer
 
     :param field_to_burn: A specific field from attributes table to get values to burn. This can be a field with depth or elevation values.
     :param no_data: No data value. It can be NAN, zero or any other value.
@@ -607,7 +627,8 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
     """
 
     # define the output path for the resulting raster file
-    output = os.path.join(tempfile.gettempdir(), "Rasterized_vector_layer.tiff") if output_path is None else output_path
+    output = os.path.join(tempfile.gettempdir(
+    ), "Rasterized_vector_layer.tiff") if output_path is None else output_path
     # Convert geotransform to extent if the geotransform is supplied
     if type(geotransform) == tuple and len(geotransform) == 6:
         upx, xres, xskew, upy, yskew, yres = geotransform
@@ -624,23 +645,23 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
     else:
         raster_extent = geotransform
 
-    #Burn values from a field in the attribute table if the field is supplied
+    # Burn values from a field in the attribute table if the field is supplied
     field_to_burn = field_to_burn if field_to_burn is not None else None
 
-    #Specify NODATA value
+    # Specify NODATA value
     nodata = no_data if no_data is not None else np.nan
     # If a fixed value should be burned, specify the value to burn
     burn_value = burn_value if burn_value is not None else 1
 
-    #Check if the input vector layer contains any feature
-    assert (in_layer.featureCount()>0), "The Input vector layer does not contain any feature (polygon, polyline or point)."
-
+    # Check if the input vector layer contains any feature
+    assert (in_layer.featureCount(
+    ) > 0), "The Input vector layer does not contain any feature (polygon, polyline or point)."
 
     r_params = {
         'INPUT': in_layer,
         'FIELD': field_to_burn,
-        'BURN': burn_value, # 1 - if no fixed value is burned
-        'UNITS': 0, # 0- Pixels; 1 - Georeferenced units
+        'BURN': burn_value,  # 1 - if no fixed value is burned
+        'UNITS': 0,  # 0- Pixels; 1 - Georeferenced units
         'WIDTH': width,  # Width of the input layer will be used
         'HEIGHT': height,  # Height of the input layer will be used
         'EXTENT': raster_extent,
@@ -659,7 +680,6 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
         else:
             raise e
 
-
     points_raster_ds = gdal.Open(points_raster)
     points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
 
@@ -667,6 +687,7 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
     drv.Delete(output)
 
     return points_array
+
 
 def vectorToRasterOld(in_layer, geotransform, ncols, nrows):
     """
@@ -692,7 +713,8 @@ def vectorToRasterOld(in_layer, geotransform, ncols, nrows):
 
     NoData_value = 0
     # Create a temporary raster file to save the raster mask in. Define spatial referece system, and get the raster band for writing the mask.
-    mask_raster = gdal.GetDriverByName('MEM').Create('', ncols, nrows, 1, gdal.GDT_Int32)
+    mask_raster = gdal.GetDriverByName('MEM').Create(
+        '', ncols, nrows, 1, gdal.GDT_Int32)
     mask_raster.SetGeoTransform(geotransform)
     crs = osr.SpatialReference()
     crs.ImportFromEPSG(4326)
@@ -710,6 +732,7 @@ def vectorToRasterOld(in_layer, geotransform, ncols, nrows):
 
     return raster_array
 
+
 def polygonsToPolylines(in_layer):
     """
     Converts polygons to polylines.
@@ -724,9 +747,9 @@ def polygonsToPolylines(in_layer):
     polygons_layer = in_layer
     try:
         fixed_polygons = processing.run('native:fixgeometries',
-                                    {'INPUT': polygons_layer,
-                                     'OUTPUT': 'memory:' + "fixed_pshoreline_polygons"
-                                     })['OUTPUT']
+                                        {'INPUT': polygons_layer,
+                                         'OUTPUT': 'memory:' + "fixed_pshoreline_polygons"
+                                         })['OUTPUT']
     except Exception as e:
         raise e
     try:
@@ -738,7 +761,8 @@ def polygonsToPolylines(in_layer):
 
     return polylines['OUTPUT']
 
-def polylinesToPolygons(in_layer:QgsVectorLayer, feedback:TaFeedback)->QgsVectorLayer:
+
+def polylinesToPolygons(in_layer: QgsVectorLayer, feedback: TaFeedback) -> QgsVectorLayer:
     """Creates polygon feature from the points of line features.
 
     :param in_layer: Input vector layer.
@@ -750,12 +774,12 @@ def polylinesToPolygons(in_layer:QgsVectorLayer, feedback:TaFeedback)->QgsVector
     :rtype: QgsVectorLayer
     """
     features = in_layer.getFeatures()
-    assert in_layer.featureCount() >0, "The input layer is empty."
+    assert in_layer.featureCount() > 0, "The input layer is empty."
     polygonFeatures = []
     for feature in features:
         if feedback.canceled:
             break
-        #get the geometry of a feature
+        # get the geometry of a feature
         geometry = feature.geometry()
         attributes = feature.attributes()
 
@@ -765,27 +789,30 @@ def polylinesToPolygons(in_layer:QgsVectorLayer, feedback:TaFeedback)->QgsVector
         elif geometry.wkbType() == QgsWkbTypes.MultiLineString:
             coordinates = geometry.asMultiPolyline()
         else:
-            feedback.info("The geometry is neither polyline nor multipolyline.")
+            feedback.info(
+                "The geometry is neither polyline nor multipolyline.")
         polygonGeometry = QgsGeometry.fromPolygonXY(coordinates)
         feature = QgsFeature()
         feature.setGeometry(polygonGeometry)
         feature.setAttributes(attributes)
         polygonFeatures.append(feature)
 
-
     if not feedback.canceled:
-        out_layer = QgsVectorLayer('Polygon?crs='+in_layer.crs().authid(), in_layer.name(), 'memory')
+        out_layer = QgsVectorLayer(
+            'Polygon?crs='+in_layer.crs().authid(), in_layer.name(), 'memory')
         out_layer.dataProvider().addFeatures(polygonFeatures)
         del polygonFeatures
 
-        #Fix invalid geometries
+        # Fix invalid geometries
         output_layer = processing.run('native:fixgeometries',
                                       {'INPUT': out_layer, 'OUTPUT': 'memory:'})['OUTPUT']
         output_layer.setName(in_layer.name())
-        feedback.info("Fixed invalid geometries in layer {}.".format(in_layer.name()))
+        feedback.info(
+            "Fixed invalid geometries in layer {}.".format(in_layer.name()))
         return output_layer
     else:
         return None
+
 
 def refactorFields(in_layer, layer2, out_layer_name):
     layer1 = in_layer
@@ -831,7 +858,8 @@ def refactorFields(in_layer, layer2, out_layer_name):
                              }
             field_mapping.append(refact_params)
 
-    params = {'INPUT': layer1, 'FIELDS_MAPPING': field_mapping, 'OUTPUT': 'memory:{}'.format(out_layer_name)}
+    params = {'INPUT': layer1, 'FIELDS_MAPPING': field_mapping,
+              'OUTPUT': 'memory:{}'.format(out_layer_name)}
     refactored_layer = processing.run("qgis:refactorfields", params)['OUTPUT']
 
     return refactored_layer, fields_refactored
@@ -854,8 +882,10 @@ def modMinMax(in_array, fmin: int, fmax: int):
     out_array = in_array
 
     ratio = (imax - fmin) / (fmax - fmin)
-    out_array[out_array >= fmin] = fmin + (in_array[in_array >= fmin] - fmin) / ratio
+    out_array[out_array >= fmin] = fmin + \
+        (in_array[in_array >= fmin] - fmin) / ratio
     return out_array
+
 
 def modRescale(in_array: np.ndarray, min: int, max: int) -> np.ndarray:
     """
@@ -876,7 +906,7 @@ def modRescale(in_array: np.ndarray, min: int, max: int) -> np.ndarray:
     """
 
     # Define the initial minimum and maximum values of the array
-    if in_array.size>0 and np.isfinite(in_array).size>0:
+    if in_array.size > 0 and np.isfinite(in_array).size > 0:
         imax = in_array[np.isfinite(in_array)].max()
         imin = in_array[np.isfinite(in_array)].min()
     else:
@@ -886,46 +916,50 @@ def modRescale(in_array: np.ndarray, min: int, max: int) -> np.ndarray:
 
     return out_array
 
+
 def modFormula(in_array, formula, min=None, max=None):
-        """
-        Modifies elevation values given a formula.
+    """
+    Modifies elevation values given a formula.
 
-        :param in_array (numpy array): an input array that contains elevation values.
-        :param formula: the formula to be used for topography modification.
+    :param in_array (numpy array): an input array that contains elevation values.
+    :param formula: the formula to be used for topography modification.
 
-        :param mask_array: mask that will be used to subset area of the raster (input array) for modification.
-        :return: numpy array of modified elevation values.
-        """
+    :param mask_array: mask that will be used to subset area of the raster (input array) for modification.
+    :return: numpy array of modified elevation values.
+    """
 
-        topo = in_array
+    topo = in_array
 
-        H = np.empty(topo.shape)
-        H.fill(np.nan)
-        if min != None and max != None:
-            index = 'H[(H>min)*(H<max)==1]'
-            H[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
-            new_formula = formula.replace('H', index)
-            H[(topo > min) * (topo < max) == 1] = eval(new_formula)
+    H = np.empty(topo.shape)
+    H.fill(np.nan)
+    if min != None and max != None:
+        index = 'H[(H>min)*(H<max)==1]'
+        H[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
+        new_formula = formula.replace('H', index)
+        H[(topo > min) * (topo < max) == 1] = eval(new_formula)
 
-        elif min != None and max == None:
-            index = 'H[H>min]'
-            H[topo > min] = topo[topo > min]
-            new_formula = formula.replace('H', index)
-            H[topo > min] = eval(new_formula)
-        elif min == None and max != None:
-            index = 'H[H<max]'
-            H[topo < max] = topo[topo < max]
-            new_formula = formula.replace('H', index)
-            H[topo < max] = eval(new_formula)
-        else:
-            H = topo
-            new_formula = formula
-            H[:] = eval(new_formula)
+    elif min != None and max == None:
+        index = 'H[H>min]'
+        H[topo > min] = topo[topo > min]
+        new_formula = formula.replace('H', index)
+        H[topo > min] = eval(new_formula)
+    elif min == None and max != None:
+        index = 'H[H<max]'
+        H[topo < max] = topo[topo < max]
+        new_formula = formula.replace('H', index)
+        H[topo < max] = eval(new_formula)
+    else:
+        H = topo
+        new_formula = formula
+        H[:] = eval(new_formula)
 
-        topo[np.isfinite(H)] = H[np.isfinite(H)]
+    topo[np.isfinite(H)] = H[np.isfinite(H)]
 
-        return topo
-def isPathValid(path: str, output_type: str)-> tuple: # for now is used for output paths. Modify the raise texts to fit in other contexts.
+    return topo
+
+
+# for now is used for output paths. Modify the raise texts to fit in other contexts.
+def isPathValid(path: str, output_type: str) -> tuple:
     """
     Checks if the specified output path is valid and accessible. Returns True, if the path is a file path and writable. False otherwise.
     """
@@ -939,11 +973,9 @@ def isPathValid(path: str, output_type: str)-> tuple: # for now is used for outp
         if output_type == 'raster':
             if file_ext == ".tiff" or file_ext == ".tif":
                 file_check = True
-        elif output_type=='vector':
+        elif output_type == 'vector':
             if file_ext == ".shp":
                 file_check = True
-
-
 
     dir_path = os.path.split(path)[0]
     if dir_path:
@@ -951,21 +983,23 @@ def isPathValid(path: str, output_type: str)-> tuple: # for now is used for outp
             path_check = True
 
     if path_check and file_check:
-        return (True,"")
+        return (True, "")
     else:
-        if not file_check and output_type=='raster':
+        if not file_check and output_type == 'raster':
             return(False, "Error: The file output file name is incorrect. Please provide a proper file name for the output. The file name should have a '.tif' or '.tiff' extension.")
-        elif not file_check and output_type=='vector':
+        elif not file_check and output_type == 'vector':
             return(False, "Error: The file output file name is incorrect. Please provide a proper file name for the output. The file name should have a '.shp' extension.")
         elif not path_check:
             return(False, "Error: The output path does not exist or you do not have write permissions.")
         else:
             return(False, "Error: The provided path for the output is not correct. Example: {} or {}".format(r'C:\\Users\user_name\Documents\file.tiff', r'C:\\Users\user_name\Documents\file.shp'))
 
-def reprojectVectorLayer(input_layer:QgsVectorLayer,
-                   target_crs:QgsCoordinateReferenceSystem = QgsCoordinateReferenceSystem('EPSG:4326'),
-                   output_path:str = 'TEMPORARY_OUTPUT',
-                   feedback:TaFeedback = None) -> QgsVectorLayer:
+
+def reprojectVectorLayer(input_layer: QgsVectorLayer,
+                         target_crs: QgsCoordinateReferenceSystem = QgsCoordinateReferenceSystem(
+                             'EPSG:4326'),
+                         output_path: str = 'TEMPORARY_OUTPUT',
+                         feedback: TaFeedback = None) -> QgsVectorLayer:
     """
     Reprojects input vector layers into a different coordinate reference system.
     :param input_layer: Input layer to be reprojected.
@@ -975,16 +1009,19 @@ def reprojectVectorLayer(input_layer:QgsVectorLayer,
     :param output_path: Path to save ouput file. Defaults to "TEMPORARY_OUTPUT" and saves the output in the memory.
     :type output_path: str.
     """
-    reprojecting_params = {"INPUT":input_layer,
-                           "TARGET_CRS":target_crs.authid(),
-                           "OUTPUT":output_path}
+    reprojecting_params = {"INPUT": input_layer,
+                           "TARGET_CRS": target_crs.authid(),
+                           "OUTPUT": output_path}
     if feedback:
-        feedback.info(f"Reprojecting {input_layer.name()} layer from {input_layer.crs().authid()} to {target_crs.authid()}.")
+        feedback.info(
+            f"Reprojecting {input_layer.name()} layer from {input_layer.crs().authid()} to {target_crs.authid()}.")
     try:
-        reprojected_layer = processing.run("native:reprojectlayer", reprojecting_params)['OUTPUT']
+        reprojected_layer = processing.run(
+            "native:reprojectlayer", reprojecting_params)['OUTPUT']
     except Exception as e:
         if feedback:
-            feedback.warning(f"Reprojection of {input_layer.name()} layer failed due to the following exception:")
+            feedback.warning(
+                f"Reprojection of {input_layer.name()} layer failed due to the following exception:")
             feedback.warning(f"{e}")
             return input_layer
         else:
@@ -992,8 +1029,9 @@ def reprojectVectorLayer(input_layer:QgsVectorLayer,
     reprojected_layer.setName(input_layer.name())
     return reprojected_layer
 
+
 def generateUniqueIds(vlayer, id_field) -> QgsVectorLayer:
-    id_found  = False
+    id_found = False
     fields = vlayer.fields().toList()
     for field in fields:
         if field.name().lower == id_field:
@@ -1002,22 +1040,20 @@ def generateUniqueIds(vlayer, id_field) -> QgsVectorLayer:
         else:
             pass
 
-
-
-    if  not id_found:
+    if not id_found:
         id_field = QgsField("id", QVariant.Int, "integer")
         vlayer.startEditing()
         vlayer.addAttribute(id_field)
         vlayer.commitChanges()
 
-
     features = vlayer.getFeatures()
     vlayer.startEditing()
     for current, feature in enumerate(features):
-        feature[id_field.name()]=current
+        feature[id_field.name()] = current
         vlayer.updateFeature(feature)
 
     return vlayer
+
 
 def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime_percentage):
     """
@@ -1057,20 +1093,20 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
         if not f.hasGeometry():
             continue
 
-
         fGeom = f.geometry()
         engine = QgsGeometry.createGeometryEngine(fGeom.constGet())
         engine.prepareGeometry()
 
         bbox = fGeom.boundingBox()
         area = da.measureArea(fGeom)
-        if da.areaUnits()!=8:
+        if da.areaUnits() != 8:
             area = da.convertAreaMeasurement(area, 8)
 
-        pointCount = int(round(point_density* area))
+        pointCount = int(round(point_density * area))
 
         if pointCount == 0:
-            feedback.warning("Warning: Skip feature {} while creating random points as number of points for it is 0.".format(f.id()))
+            feedback.warning(
+                "Warning: Skip feature {} while creating random points as number of points for it is 0.".format(f.id()))
             continue
 
         index = None
@@ -1088,11 +1124,12 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
             feedback.info(
                 "{0} random points being created inside feature <b>{1}</b>.".format(
                     pointCount,
-                    f['name'] if f['name']!=NULL else "NoName"
+                    f['name'] if f['name'] != NULL else "NoName"
                 )
             )
         except KeyError:
-            feedback.info("{0} random points being created inside feature ID {1}.".format(pointCount, f.id()))
+            feedback.info("{0} random points being created inside feature ID {1}.".format(
+                pointCount, f.id()))
 
         while nIterations < maxIterations and nPoints < pointCount:
             if feedback.canceled:
@@ -1116,26 +1153,29 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
                 points[nPoints] = p
                 nPoints += 1
                 pointId += 1
-                if int(progress_count)<int(nPoints*feature_total):
-                    progress_count +=int(nPoints*feature_total)
-                    feedback.progress=progress_count
+                if int(progress_count) < int(nPoints*feature_total):
+                    progress_count += int(nPoints*feature_total)
+                    feedback.progress = progress_count
             nIterations += 1
 
         if nPoints < pointCount:
-            feedback.info('Could not generate requested number of random points. Maximum number of attempts exceeded.')
+            feedback.info(
+                'Could not generate requested number of random points. Maximum number of attempts exceeded.')
 
     points_layer_dp.addFeatures(created_features)
     points_layer_dp = None
     nPolygons = source.featureCount()
-    feedback.info("Created random points inside {} polygons.".format(nPolygons))
+    feedback.info(
+        "Created random points inside {} polygons.".format(nPolygons))
 
     return points_layer
 
-def bufferAroundGeometries(in_layer:Union[QgsVectorLayer, QgsFeatureIterator],
+
+def bufferAroundGeometries(in_layer: Union[QgsVectorLayer, QgsFeatureIterator],
                            buf_dist: int,
                            num_segments: int,
-                           feedback:TaFeedback,
-                           runtime_percentage:int) -> QgsVectorLayer:
+                           feedback: TaFeedback,
+                           runtime_percentage: int) -> QgsVectorLayer:
     """Creates buffer around polygon geometries.
 
     :param in_layer: Input vector layer
@@ -1155,8 +1195,10 @@ def bufferAroundGeometries(in_layer:Union[QgsVectorLayer, QgsFeatureIterator],
 
     feats = in_layer.getFeatures()
 
-    buffer_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
-    fixed_layer = QgsVectorLayer('Polygon?crs={}'.format(in_layer.crs().authid()), '', 'memory')
+    buffer_layer = QgsVectorLayer('Polygon?crs={}'.format(
+        in_layer.crs().authid()), '', 'memory')
+    fixed_layer = QgsVectorLayer('Polygon?crs={}'.format(
+        in_layer.crs().authid()), '', 'memory')
     dp = buffer_layer.dataProvider()
     dp_fixed = fixed_layer.dataProvider()
     total = runtime_percentage/in_layer.featureCount() if in_layer.featureCount() else 0
@@ -1173,18 +1215,19 @@ def bufferAroundGeometries(in_layer:Union[QgsVectorLayer, QgsFeatureIterator],
         dp.addFeature(buf_feat)
         dp_fixed.addFeature(feat)
         progress += total
-        if progress>=1:
+        if progress >= 1:
             feedback.progress += int(progress)
             progress = 0
     dp = None
     dp_fixed = None
     params = {
-                'INPUT':buffer_layer,
-                'OVERLAY':fixed_layer,
-                'OUTPUT':'TEMPORARY_OUTPUT'
-            }
+        'INPUT': buffer_layer,
+        'OVERLAY': fixed_layer,
+        'OUTPUT': 'TEMPORARY_OUTPUT'
+    }
     out_layer = processing.run("native:difference", params)['OUTPUT']
     return out_layer
+
 
 def polygonOverlapCheck(vlayer, selected_only=False, feedback=None,
                         run_time=None):
@@ -1205,18 +1248,19 @@ def polygonOverlapCheck(vlayer, selected_only=False, feedback=None,
         for j in range(0, len(features)):
             if feedback and feedback.canceled:
                 break
-            if i ==j:
+            if i == j:
                 continue
             if features[i].geometry().overlaps(features[j].geometry()):
-                overlaps_number+=1
+                overlaps_number += 1
         if feedback:
             feedback.progress += total/len(features)
 
     return overlaps_number
 
+
 def assignUniqueIds(vlayer, feedback, run_time):
     progress_count = feedback.progress
-    id_found  = False
+    id_found = False
     fields = vlayer.fields().toList()
     if run_time:
         total = run_time
@@ -1230,27 +1274,25 @@ def assignUniqueIds(vlayer, feedback, run_time):
             id_field = field
             break
         progress_count += total*0.3/len(fields)
-        if not int(feedback.progress)==int(progress_count):
+        if not int(feedback.progress) == int(progress_count):
             feedback.progress = int(progress_count)
 
-    if  not id_found:
+    if not id_found:
         id_field = QgsField("id", QVariant.Int, "integer")
         vlayer.startEditing()
         vlayer.addAttribute(id_field)
         vlayer.commitChanges()
-
 
     features = vlayer.getFeatures()
     vlayer.startEditing()
     for current, feature in enumerate(features):
         if feedback and feedback.canceled:
             break
-        feature[id_field.name()]=current
+        feature[id_field.name()] = current
         vlayer.updateFeature(feature)
         progress_count += total*0.7/vlayer.featureCount()
-        if not int(feedback.progress)==int(progress_count):
+        if not int(feedback.progress) == int(progress_count):
             feedback.progress = int(progress_count)
-
 
     ret_code = vlayer.commitChanges()
 
@@ -1260,15 +1302,15 @@ def assignUniqueIds(vlayer, feedback, run_time):
         return (None, False)
 
 
-def smoothArrayWithWrapping(input_array:np.ndarray,
-                            index:list,
-                            side:str,
-                            wrapping_size:tuple,
-                            filter_type:str,
-                            smoothing_factor:int,
-                            mask_array:np.ndarray,
-                            feedback:TaFeedback=None,
-                            runtime_percentage:int=None)->np.ndarray:
+def smoothArrayWithWrapping(input_array: np.ndarray,
+                            index: list,
+                            side: str,
+                            wrapping_size: tuple,
+                            filter_type: str,
+                            smoothing_factor: int,
+                            mask_array: np.ndarray,
+                            feedback: TaFeedback = None,
+                            runtime_percentage: int = None) -> np.ndarray:
     """ Reads a subset of a 2-dimensional numpy array, wrapping it around the edges to opposite side.
 
     :prarm input_array: Input numpy array to read a subset from.
@@ -1287,11 +1329,11 @@ def smoothArrayWithWrapping(input_array:np.ndarray,
     row_from, row_to = index[0]
     col_from, col_to = index[1]
     subset_array = input_array[row_from:row_to, col_from:col_to]
-    if side =='E':
-        wrapping_array = input_array[row_from:row_to,0:wrapping_size]
+    if side == 'E':
+        wrapping_array = input_array[row_from:row_to, 0:wrapping_size]
         wrapped_array = np.concatenate((subset_array, wrapping_array), axis=1)
     elif side == 'W':
-        wrapping_array = input_array[row_from:row_to,wrapping_size*(-1):]
+        wrapping_array = input_array[row_from:row_to, wrapping_size*(-1):]
         wrapped_array = np.concatenate((wrapping_array, subset_array), axis=1)
     else:
         raise ValueError("Wrapping side is neither W nor E.")
@@ -1300,58 +1342,60 @@ def smoothArrayWithWrapping(input_array:np.ndarray,
         smoothed_array = rasterSmoothingInPolygon(wrapped_array,
                                                   filter_type,
                                                   smoothing_factor,
-                                                  feedback = feedback,
-                                                  runtime_percentage = runtime_percentage
+                                                  feedback=feedback,
+                                                  runtime_percentage=runtime_percentage
                                                   )
     except Exception as e:
         raise e
     if side == "E":
-        output_array = np.delete(smoothed_array, np.s_[0:wrapping_size], axis=1)
+        output_array = np.delete(smoothed_array, np.s_[
+                                 0:wrapping_size], axis=1)
     else:
-        output_array = np.delete(smoothed_array, np.s_[wrapping_size*(-1):], axis=1)
+        output_array = np.delete(smoothed_array, np.s_[
+                                 wrapping_size*(-1):], axis=1)
 
     try:
-        output_array[mask_array!=1]=subset_array[mask_array!=1]
+        output_array[mask_array != 1] = subset_array[mask_array != 1]
     except Exception as e:
-        feedback.warning("Failed to apply a mask array to the wrapped and smoothed array.")
+        feedback.warning(
+            "Failed to apply a mask array to the wrapped and smoothed array.")
         feedback.error(e)
 
     return output_array
 
 
 def loadHelp(dlg):
-    #set the help text in the  help box (QTextBrowser)
+    # set the help text in the  help box (QTextBrowser)
     files = [
-            ('TaCompileTopoBathyDlg', 'compile_tb'),
-            ('TaSetPaleoshorelinesDlg', 'set_pls'),
-            ('TaModifyTopoBathyDlg', 'modify_tb'),
-            ('TaCreateTopoBathyDlg', 'create_tb'),
-            ('TaRemoveArtefactsDlg', 'remove_arts'),
-            ('TaPrepareMasksDlg', 'prepare_masks'),
-            ('TaRemoveArtefactsTooltip', 'remove_arts_tooltip')
-            ]
+        ('TaCompileTopoBathyDlg', 'compile_tb'),
+        ('TaSetPaleoshorelinesDlg', 'set_pls'),
+        ('TaModifyTopoBathyDlg', 'modify_tb'),
+        ('TaCreateTopoBathyDlg', 'create_tb'),
+        ('TaRemoveArtefactsDlg', 'remove_arts'),
+        ('TaPrepareMasksDlg', 'prepare_masks'),
+        ('TaRemoveArtefactsTooltip', 'remove_arts_tooltip')
+    ]
     for class_name, file_name in files:
-        if class_name    == type(dlg).__name__:
-            path_to_file = os.path.join(os.path.dirname(__file__),'../help_text/{}.html'.format(file_name))
+        if class_name == type(dlg).__name__:
+            path_to_file = os.path.join(os.path.dirname(
+                __file__), '../help_text/{}.html'.format(file_name))
 
     with open(path_to_file, 'r', encoding='utf-8') as help_file:
         help_text = help_file.read()
     dlg.helpBox.setHtml(help_text)
 
-def install_package(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 class TaProgressImitation(QThread):
     ProgressStoped = False
     processingFinished = pyqtSignal(bool)
 
-
-    def __init__(self, total,total_time, feedback):
+    def __init__(self, total, total_time, feedback):
         super().__init__()
         self.total = total
         self.processingFinished.connect(self.finish)
         self.unit_time = total_time/self.total
         self.feedback = feedback
+
     def run(self):
         for i in range(round(self.total)):
             if self.ProgressStoped:
@@ -1360,11 +1404,8 @@ class TaProgressImitation(QThread):
             time.sleep(self.unit_time)
         self.feedback.progress = self.feedback.progress+self.total
 
-
-
     def finish(self):
-        self.ProgressStoped=True
-
+        self.ProgressStoped = True
 
 
 class TaFeedbackOld(QObject):
@@ -1373,29 +1414,32 @@ class TaFeedbackOld(QObject):
     def __init__(self):
         super().__init__()
 
+
 class TaVectorFileWriter(QgsVectorFileWriter):
     def __init__(self):
         super().__init__()
-    def writeToShapeFile(layer:QgsVectorLayer,
-                         fileName:str,
-                         fileEncoding:str,
-                         destCRS:QgsCoordinateReferenceSystem,
-                         driverName:str) -> (QgsVectorFileWriter.WriterError, str):
+
+    def writeToShapeFile(layer: QgsVectorLayer,
+                         fileName: str,
+                         fileEncoding: str,
+                         destCRS: QgsCoordinateReferenceSystem,
+                         driverName: str) -> Tuple[QgsVectorFileWriter.WriterError, str]:
         """This function is used to make writing to shapefiles compatible beteen Qgis version >3.10 and <3.10."""
 
         # Check if the file is already created. Acts like overwrite
         if os.path.exists(fileName):
             deleted = TaVectorFileWriter.deleteShapeFile(fileName)
             if not deleted:
-                raise Exception("Could not delete shapefile {}.".format(fileName))
+                raise Exception(
+                    "Could not delete shapefile {}.".format(fileName))
         try:
-            result = TaVectorFileWriter.writeAsVectorFormat(layer, fileName, fileEncoding, destCRS, driverName)
+            result = TaVectorFileWriter.writeAsVectorFormat(
+                layer, fileName, fileEncoding, destCRS, driverName)
         except Exception:
             context = QgsCoordinateTransformContext()
             context.addCoordinateOperation(destCRS, destCRS, destCRS.toProj())
             options = TaVectorFileWriter.SaveVectorOptions()
             options.driverName = driverName
-            result= TaVectorFileWriter.writeAsVectorFormat2(layer, fileName, context, options)
+            result = TaVectorFileWriter.writeAsVectorFormat2(
+                layer, fileName, context, options)
         return result
-
-
