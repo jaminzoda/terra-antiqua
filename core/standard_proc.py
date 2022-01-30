@@ -27,7 +27,8 @@ from.utils import (
     TaProgressImitation,
     smoothArrayWithWrapping,
     polygonsToPolylines,
-    modRescale
+    modRescale,
+    fillNoDataWithAFixedValue
     )
 from .utils import rasterSmoothing, rasterSmoothingInPolygon
 from .base_algorithm import TaBaseAlgorithm
@@ -41,7 +42,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
         self.dlg.dialog_name_changed.connect(self.getParameters)
 
     def getParameters(self):
-        self.processing_type = self.dlg.fillingTypeBox.currentText()
+        self.processing_type = self.dlg.processingTypeBox.currentText()
 
         processing_alg_names = [("Fill gaps", "TaFillGaps"),
                                 ("Copy/Paste raster", "TaCopyPasteRaster"),
@@ -72,20 +73,34 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.changeMapSymbology()
 
 
-
-
-
     def fillGaps(self):
         if not self.killed:
             base_raster_layer = self.dlg.baseTopoBox.currentLayer()
             self.feedback.info("Filling the gaps in {}".format(base_raster_layer.name()))
-            self.feedback.info("Inverse Distance Weighting Interpolation method is used.")
-            if self.dlg.interpInsidePolygonCheckBox.isChecked():
-                mask_layer = self.dlg.masksBox.currentLayer()
-                interpolated_raster = fillNoDataInPolygon(base_raster_layer, mask_layer, self.out_file_path)
-            else:
-                interpolated_raster = fillNoData(base_raster_layer, self.out_file_path)
-            self.feedback.info("Interpolation finished.")
+            if self.dlg.fillingTypeBox.currentText() == "Interpolation":
+                self.feedback.info("Inverse Distance Weighting Interpolation method is used.")
+                if all([self.dlg.interpInsidePolygonCheckBox.isChecked(),
+                        self.dlg.masksBox.currentLayer()]):
+                    mask_layer = self.dlg.masksBox.currentLayer()
+                    interpolated_raster = fillNoDataInPolygon(base_raster_layer, mask_layer, self.out_file_path)
+                else:
+                    interpolated_raster = fillNoData(base_raster_layer, self.out_file_path)
+                self.feedback.info("Interpolation finished.")
+            elif self.dlg.fillingTypeBox.currentText() == "Fixed value":
+                mask_layer = None
+                value_to_fill = self.dlg.fillingValueSpinBox.value()
+                if all([self.dlg.interpInsidePolygonCheckBox.isChecked(),
+                        self.dlg.masksBox.currentLayer()]):
+                    mask_layer = self.dlg.masksBox.currentLayer()
+                try:
+                    interpolated_raster =fillNoDataWithAFixedValue(base_raster_layer,
+                                                                  value_to_fill,
+                                                                  mask_layer,
+                                                                  self.out_file_path
+                                                                  )
+                except Exception as e:
+                    self.feedback.warning("Filling gaps failed due to the following error:")
+                    self.feedback.warning(f"{e}")
 
             if self.dlg.smoothingBox.isChecked():
                 self.feedback.progress+= 20

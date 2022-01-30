@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QFileDialog
 )
 
-from qgis.gui import QgsSpinBox
+from qgis.gui import QgsSpinBox,QgsDoubleSpinBox
 from qgis.core import QgsMapLayerProxyModel
 from .base_dialog import TaBaseDialog
 from .widgets import (
@@ -30,12 +30,11 @@ class TaStandardProcessingDlg(TaBaseDialog):
         """Constructor."""
         super(TaStandardProcessingDlg, self).__init__(parent)
         self.defineParameters()
-        self.fillingTypeBox.currentTextChanged.connect(self.reloadHelp)
+        self.processingTypeBox.currentTextChanged.connect(self.reloadHelp)
 
     def defineParameters(self):
-        self.fillingTypeBox = self.addParameter(
-            QtWidgets.QComboBox, "How would you like to process the input DEM?")
-        self.fillingTypeBox.addItems(["Fill gaps",
+        self.processingTypeBox = self.addParameter(QComboBox, "How would you like to process the input DEM?")
+        self.processingTypeBox.addItems(["Fill gaps",
                                       "Copy/Paste raster",
                                       "Smooth raster",
                                       "Isostatic compensation",
@@ -45,10 +44,21 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox,
                                                       "Raster to be modified:",
                                                       "TaMapLayerComboBox")
-        # Parameters for filling the gaps
+        #Parameters for filling the gaps
+        self.fillingTypeBox = self.addVariantParameter(QComboBox,
+                                                       "Fill gaps",
+                                                       "Filling type:")
+        self.fillingTypeBox.addItems(["Interpolation",
+                                      "Fixed value"])
+        self.fillingValueSpinBox = self.addVariantParameter(QgsDoubleSpinBox,
+                                                            "Fill gaps",
+                                                            "Filling value:")
+        self.fillingValueSpinBox.setMaximum(99999)
+        self.fillingValueSpinBox.setMinimum(-99999)
+        self.fillingValueSpinBox.setValue(9999)
         self.interpInsidePolygonCheckBox = self.addVariantParameter(TaCheckBox,
                                                                     "Fill gaps",
-                                                                    "Interpolate inside polygon(s) only.")
+                                                                    "Fill inside polygon(s) only.")
         self.masksBox = self.addVariantParameter(TaVectorLayerComboBox,
                                                  "Fill gaps",
                                                  "Mask layer:",
@@ -182,10 +192,6 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.addColorPaletteButton.pressed.connect(self.addColorPalette)
 
         self.fillDialog()
-        self.showVariantWidgets(self.fillingTypeBox.currentText())
-        self.fillingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
-        self.group_box.collapsedStateChanged.connect(
-            lambda: self.showAdvancedWidgets(self.fillingTypeBox.currentText()))
 
     def setFieldsInLayer(self):
         self.smFactorSpinBox2.initOverrideButton("Smoothing factor", "Smoothing factor for each mask",
@@ -202,6 +208,10 @@ class TaStandardProcessingDlg(TaBaseDialog):
             self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(1))
         else:
             self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(0))
+        self.showVariantWidgets(self.processingTypeBox.currentText())
+        self.processingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
+        self.group_box.collapsedStateChanged.connect(lambda:self.showAdvancedWidgets(self.processingTypeBox.currentText()))
+
 
     def addColorPalette(self) -> bool:
         """Adds a custom color palette to TA resources folder and to displays its name in the color palettes' combobox.
@@ -306,9 +316,9 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                 ("Calculate bathymetry", "TaCalculateBathymetry"),
                                 ("Change map symbology", "TaChangeMapSymbology")]
         for alg, name in processing_alg_names:
-            if self.fillingTypeBox.currentText() == alg:
+            if self.processingTypeBox.currentText() == alg:
                 self.setDialogName(name)
-        if self.fillingTypeBox.currentText() == "Change map symbology":
+        if self.processingTypeBox.currentText() == "Change map symbology":
             self.outputPath.hide()
             self.outputPathLabel.hide()
         else:

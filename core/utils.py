@@ -268,6 +268,56 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
 
     return out_file_path
 
+def fillNoDataWithAFixedValue(in_layer:QgsRasterLayer,
+                              value_to_fill:float,
+                              mask_layer:QgsVectorLayer = None,
+                              out_file_path:str = None) -> str:
+    """Fills gaps in a raster layer with a specific fixed value.
+    :param in_layer: A raster layer to fill gaps in.
+    :type in_layer: QgsRasterLayer.
+    :param value_to_fill: Fixed value that need to be assigned to NoData values pixels (gaps).
+    :type value_to_fill: float.
+    :param mask_layer: A mask layer to constrain filling within mask polygons.
+    :type mask_layer: QgsVectorLayer.
+    :param out_file_path: A path to save the ouput file at.
+    :type out_file_path: str.
+
+    :return: Path to the output file.
+    :rtype: str.
+    """
+    if out_file_path is None:
+        temp_dir = tempfile.gettempdir()
+        out_file_path = os.path.join(temp_dir, "PaleoDEM_with_gaps_filled.tiff")
+    ds = gdal.Open(in_layer.source())
+    in_array = ds.GetRasterBand(1).ReadAsArray()
+    no_data_value = ds.GetRasterBand(1).GetNoDataValue()
+    geotransform = ds.GetGeoTransform()
+    width = in_layer.width()
+    height = in_layer.height()
+    if not np.isnan(no_data_value):
+        in_array[in_array==no_data_value] = np.nan
+    if mask_layer and mask_layer.isValid():
+       assert mask_layer.featureCount() >0, "The selected mask vector layer is empty."
+       mask_array = vectorToRaster(mask_layer,
+                                    geotransform,
+                                    width,
+                                    height)
+       in_array[(mask_array==1)*np.isnan(in_array) == 1] = value_to_fill
+    else:
+        in_array[np.isnan(in_array)] = value_to_fill
+
+    # Create Target - TIFF
+    out_raster = gdal.GetDriverByName('GTiff').Create(out_file_path, width, height, 1, gdal.GDT_Float32)
+    out_raster.SetGeoTransform(geotransform)
+    crs = in_layer.crs().toWkt()
+    out_raster.SetProjection(crs)
+    out_band = out_raster.GetRasterBand(1)
+    out_band.SetNoDataValue(np.nan)
+    out_band.WriteArray(in_array)
+    out_band.FlushCache()
+    out_raster = None
+
+    return out_file_path
 
 def rasterSmoothing(in_layer, filter_type,
                     factor,
