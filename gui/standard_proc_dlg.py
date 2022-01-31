@@ -113,6 +113,11 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.smoothingMaskBox.layerChanged.connect(self.setFieldsInLayer)
         self.smoothInPolygonCheckBox.registerEnabledWidgets(
             [self.smoothingMaskBox])
+        self.smoothInSelectedFeaturesOnlyCheckBox = self.addVariantParameter(TaCheckBox,
+                                                                             "Smooth raster",
+                                                                             "Selected features only.")
+        self.smoothInSelectedFeaturesOnlyCheckBox.registerLinkedWidget(
+            self.smoothingMaskBox)
 
         self.smoothingTypeBox2 = self.addVariantParameter(QtWidgets.QComboBox,
                                                           "Smooth raster",
