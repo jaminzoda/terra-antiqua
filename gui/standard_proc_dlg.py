@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QFileDialog
 )
 
-from qgis.gui import QgsSpinBox,QgsDoubleSpinBox
+from qgis.gui import QgsSpinBox, QgsDoubleSpinBox
 from qgis.core import QgsMapLayerProxyModel
 from .base_dialog import TaBaseDialog
 from .widgets import (
@@ -33,18 +33,19 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.processingTypeBox.currentTextChanged.connect(self.reloadHelp)
 
     def defineParameters(self):
-        self.processingTypeBox = self.addParameter(QComboBox, "How would you like to process the input DEM?")
+        self.processingTypeBox = self.addParameter(
+            QComboBox, "How would you like to process the input DEM?")
         self.processingTypeBox.addItems(["Fill gaps",
-                                      "Copy/Paste raster",
-                                      "Smooth raster",
-                                      "Isostatic compensation",
-                                      "Set new sea level",
-                                      "Calculate bathymetry",
-                                      "Change map symbology"])
+                                         "Copy/Paste raster",
+                                         "Smooth raster",
+                                         "Isostatic compensation",
+                                         "Set new sea level",
+                                         "Calculate bathymetry",
+                                         "Change map symbology"])
         self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox,
                                                       "Raster to be modified:",
                                                       "TaMapLayerComboBox")
-        #Parameters for filling the gaps
+        # Parameters for filling the gaps
         self.fillingTypeBox = self.addVariantParameter(QComboBox,
                                                        "Fill gaps",
                                                        "Filling type:")
@@ -192,6 +193,11 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.addColorPaletteButton.pressed.connect(self.addColorPalette)
 
         self.fillDialog()
+        self.showVariantWidgets(self.processingTypeBox.currentText())
+        self.processingTypeBox.currentTextChanged.connect(
+            self.showVariantWidgets)
+        self.group_box.collapsedStateChanged.connect(
+            lambda: self.showAdvancedWidgets(self.processingTypeBox.currentText()))
 
     def setFieldsInLayer(self):
         self.smFactorSpinBox2.initOverrideButton("Smoothing factor", "Smoothing factor for each mask",
@@ -208,10 +214,6 @@ class TaStandardProcessingDlg(TaBaseDialog):
             self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(1))
         else:
             self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(0))
-        self.showVariantWidgets(self.processingTypeBox.currentText())
-        self.processingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
-        self.group_box.collapsedStateChanged.connect(lambda:self.showAdvancedWidgets(self.processingTypeBox.currentText()))
-
 
     def addColorPalette(self) -> bool:
         """Adds a custom color palette to TA resources folder and to displays its name in the color palettes' combobox.
