@@ -3,10 +3,14 @@
 #Full copyright notice in file: terra_antiqua.py
 
 
+import os
+import shutil
 from PyQt5.QtWidgets import (
-    QComboBox
+    QComboBox,
+    QPushButton,
+    QFileDialog
 )
-from qgis.gui import QgsSpinBox
+from qgis.gui import QgsSpinBox,QgsDoubleSpinBox
 
 from .base_dialog import TaBaseDialog
 from .widgets import (
@@ -21,11 +25,11 @@ class TaStandardProcessingDlg(TaBaseDialog):
         """Constructor."""
         super(TaStandardProcessingDlg, self).__init__(parent)
         self.defineParameters()
-        self.fillingTypeBox.currentTextChanged.connect(self.reloadHelp)
+        self.processingTypeBox.currentTextChanged.connect(self.reloadHelp)
 
     def defineParameters(self):
-        self.fillingTypeBox = self.addParameter(QComboBox, "How would you like to process the input DEM?")
-        self.fillingTypeBox.addItems(["Fill gaps",
+        self.processingTypeBox = self.addParameter(QComboBox, "How would you like to process the input DEM?")
+        self.processingTypeBox.addItems(["Fill gaps",
                                       "Copy/Paste raster",
                                       "Smooth raster",
                                       "Isostatic compensation",
@@ -36,9 +40,20 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                       "Raster to be modified:",
                                                       "TaMapLayerComboBox")
         #Parameters for filling the gaps
+        self.fillingTypeBox = self.addVariantParameter(QComboBox,
+                                                       "Fill gaps",
+                                                       "Filling type:")
+        self.fillingTypeBox.addItems(["Interpolation",
+                                      "Fixed value"])
+        self.fillingValueSpinBox = self.addVariantParameter(QgsDoubleSpinBox,
+                                                            "Fill gaps",
+                                                            "Filling value:")
+        self.fillingValueSpinBox.setMaximum(99999)
+        self.fillingValueSpinBox.setMinimum(-99999)
+        self.fillingValueSpinBox.setValue(9999)
         self.interpInsidePolygonCheckBox = self.addVariantParameter(TaCheckBox,
                                                                     "Fill gaps",
-                                                                    "Interpolate inside polygon(s) only.")
+                                                                    "Fill inside polygon(s) only.")
         self.masksBox = self.addVariantParameter(TaVectorLayerComboBox,
                                                  "Fill gaps",
                                                  "Mask layer:",
@@ -138,11 +153,105 @@ class TaStandardProcessingDlg(TaBaseDialog):
 
         #Parameters for changing map symbology
         self.colorPalette = self.addVariantParameter(TaColorSchemeWidget, "Change map symbology", "Color palette:")
+        self.addColorPaletteButton = self.addVariantParameter(QPushButton,
+                                                              "Change map symbology",
+                                                              "Add custom color palette")
+        self.addColorPaletteButton.pressed.connect(self.addColorPalette)
 
         self.fillDialog()
-        self.showVariantWidgets(self.fillingTypeBox.currentText())
-        self.fillingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
-        self.group_box.collapsedStateChanged.connect(lambda:self.showAdvancedWidgets(self.fillingTypeBox.currentText()))
+        self.showVariantWidgets(self.processingTypeBox.currentText())
+        self.processingTypeBox.currentTextChanged.connect(self.showVariantWidgets)
+        self.group_box.collapsedStateChanged.connect(lambda:self.showAdvancedWidgets(self.processingTypeBox.currentText()))
+
+    def addColorPalette(self) -> bool:
+        """Adds a custom color palette to TA resources folder and to displays its name in the color palettes' combobox.
+
+        :return: True if added successfully, otherwise False.
+        :rtype: bool.
+        """
+        fd = QFileDialog()
+        filter = "Color palette files (*.cpt)"
+        fname, _ = fd.getOpenFileName(caption='Select color palette', directory=None, filter=filter)
+        if fname:
+            ext = os.path.splitext(fname)[1]
+        else:
+            return False
+        if ext != '.cpt':
+            return False
+
+        color_lines = []
+        comment_lines = []
+        bottom_lines = []
+        color_model = None
+        with open(fname) as file:
+            lines = file.readlines()
+            color_scheme_name = lines[0].strip()
+            color_scheme_name = color_scheme_name.replace("#", "")
+            for line_no, line in enumerate(lines):
+                new_line = line.strip()
+                if new_line and not any([new_line[0]=='#',
+                           new_line[0]=='B',
+                           new_line[0]=='F',
+                           new_line[0]=='N']):
+                    new_line = new_line.split()
+                    new_line = [i for i in new_line if i]
+                    color_lines.append(new_line)
+                elif new_line and new_line[0] =='#':
+                    if "COLOR_MODEL" in new_line:
+                        color_model = new_line.split('=')[1].strip()
+                    comment_lines.append(new_line)
+                elif new_line and any([
+                            new_line[0] == 'B',
+                            new_line[0] == 'F',
+                            new_line[0] == 'N']):
+                    bottom_lines.append(new_line)
+        if color_model == 'HSV':
+            self.msgBar.pushWarning("Warning:",
+                                    "The selected color palette has an HSV color model, which is currently not supported.")
+            return False
+
+        if len(color_lines[0])>4:
+            new_color_lines = []
+            for line in color_lines:
+                new_line = []
+                new_line.append(line[0])
+                new_line.append(str(line[1])+'/'+str(line[2])+'/'+str(line[3]))
+                new_line.append(line[4])
+                new_line.append(str(line[5])+'/'+str(line[6])+'/'+str(line[7]))
+                new_color_lines.append(new_line)
+            color_lines = new_color_lines
+
+            new_file_name = os.path.join(self.colorPalette.path_to_color_schemes,
+                                         os.path.basename(fname))
+            with open(new_file_name, mode='w') as f:
+                for line in comment_lines:
+                    f.write(line)
+                    f.write("\n")
+                for line in color_lines:
+                    for no, i in enumerate(line):
+                        f.write(i)
+                        if not no==len(line):
+                            f.write("\t")
+                    f.write("\n")
+                for no, line in enumerate(bottom_lines):
+                    f.write(line)
+                    if not no == len(bottom_lines):
+                        f.write("\n")
+
+        else:
+            try:
+                shutil.copy(fname, self.colorPalette.path_to_color_schemes)
+            except Exception as e:
+                return False
+
+        if self.colorPalette.findText(color_scheme_name) == -1:
+            self.colorPalette.addItem(color_scheme_name)
+        else:
+            self.msgBar.pushWarning("Warning:",
+                                    "A color palette with this name is already added.")
+        self.colorPalette.setCurrentText(color_scheme_name)
+        return True
+
 
     def reloadHelp(self):
         """
@@ -156,9 +265,9 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                 ("Calculate bathymetry", "TaCalculateBathymetry"),
                                 ("Change map symbology", "TaChangeMapSymbology")]
         for alg, name in processing_alg_names:
-            if self.fillingTypeBox.currentText() == alg:
+            if self.processingTypeBox.currentText() == alg:
                 self.setDialogName(name)
-        if self.fillingTypeBox.currentText() == "Change map symbology":
+        if self.processingTypeBox.currentText() == "Change map symbology":
             self.outputPath.hide()
             self.outputPathLabel.hide()
         else:
