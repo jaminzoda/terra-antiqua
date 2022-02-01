@@ -341,8 +341,8 @@ def rasterSmoothing(in_layer, filter_type,
     :return: Smoothed raster layer.
     :rtype: QgsRasterLayer
     """
-    assert factor > 0, "The smoothing factor cannot be negative."
-    assert factor <= 5, "The smoothing factor currently cannot be more than >5."
+    assert factor > 0, "The smoothing factor cannot be 0 or negative."
+    assert factor <= 5, "In this version of Terra Antiqua the smoothing factor cannot be higher than 5."
     raster_ds = gdal.Open(in_layer.source(), gdalconst.GA_Update)
     in_band = raster_ds.GetRasterBand(1)
     no_data_value = in_band.GetNoDataValue()
@@ -457,8 +457,8 @@ def rasterSmoothingInPolygon(in_array: np.ndarray,
     :rtype: np.ndarray
     """
 
-    assert factor > 0, "Smoothing factor cannot be negative."
-    assert factor <= 5, "Smoothing factor cannot currently be >5."
+    assert factor > 0, "The smoothing factor cannot be 0 or negative."
+    assert factor <= 5, "In this version of Terra Antiqua the smoothing factor cannot be higher than 5."
     if runtime_percentage:
         total = runtime_percentage
     else:
