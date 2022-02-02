@@ -4,8 +4,32 @@
 # Full copyright notice in file: terra_antiqua.py
 
 # -*- coding: utf-8 -*-
+
+import sys
+import tempfile
+import os
+import time
+
+
+import numpy as np
+from numpy import * #This to import math functions to be used in formula (modFormula)
+import subprocess
+import random
+from random import randrange
+from typing import Tuple, Union
 from .logger import TaFeedback
 from qgis.gui import QgsMessageBar
+try:
+    from scipy.ndimage.filters import gaussian_filter, uniform_filter
+except Exception:
+    install_package('scipy')
+    from scipy.ndimage.filters import gaussian_filter, uniform_filter
+
+from PyQt5.QtGui import QColor
+from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
+
+from osgeo import gdal, osr, ogr
+from osgeo import gdalconst
 from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
@@ -1474,6 +1498,7 @@ class TaVectorFileWriter(QgsVectorFileWriter):
                          fileEncoding: str,
                          destCRS: QgsCoordinateReferenceSystem,
                          driverName: str) -> Tuple[QgsVectorFileWriter.WriterError, str]:
+
         """This function is used to make writing to shapefiles compatible beteen Qgis version >3.10 and <3.10."""
 
         # Check if the file is already created. Acts like overwrite

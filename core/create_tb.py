@@ -264,6 +264,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
 
             if not self.killed:
                 self.feedback.info("Sampling existing bathymetry from the input raster...")
+                #TODO Consider rearanging this part to first check if the keep_deeper_bathy is checked
                 # Sampling the existing bathymetry values from the input raster
                 try:
                     sampling_params = {
@@ -310,6 +311,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 for feat in features:
                     attr = feat.attributes()
                     dist = feat.attribute("HubDist")
+                    #TODO Consider rearanging this part to first check if the keep_deeper_bathy is checked
                     try:
                         in_depth = feat.attribute("d_value_1")
                     except KeyError as e:
@@ -319,8 +321,8 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
 
                     if dist > shelf_width + slope_width:
                         depth = (max_sea_depth - min_sea_depth) * (dist - min_dist) / (max_dist - min_dist) + min_sea_depth
-                        if in_depth:
-                            if depth > in_depth:
+                        if in_depth and self.dlg.keepDeepBathyCheckBox.isChecked():
+                            if depth>in_depth:
                                 depth = in_depth
                         attr.append(depth)
                         feat.setAttributes(attr)
@@ -328,8 +330,9 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     elif dist <= shelf_width:
                         depth = max_shelf_depth * dist / shelf_width
                         # if the calculated depth value for a point is shallower than the initial depth, the initial depth will taken.
-                        if in_depth and depth > in_depth:
-                            depth = in_depth
+                        if in_depth and self.dlg.keepDeepBathyCheckBox.isChecked():
+                            if depth > in_depth:
+                                depth = in_depth
                         attr.append(depth)
                         feat.setAttributes(attr)
                         features_out.append(feat)
@@ -646,7 +649,8 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
 
             if not self.killed:
                 self.feedback.info("Sampling existing topography from the input raster...")
-                # Sampling the existing bathymetry values from the input raster
+                #TODO rearrange the code to check if the keep_high_topo checkbox is checked
+                # Sampling the existing topography values from the input raster
                 try:
                     sampling_params = {
                         'INPUT': r_points_distance_layer,
@@ -693,14 +697,17 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 for feat in features:
                     attr = feat.attributes()
                     dist = feat.attribute("HubDist")
+                    #TODO reaarange to first check if the keep_high_topo checkbox is checked
                     try:
                         in_elev = feat.attribute("elev_value_1")
+                    except KeyError:
+                        in_elev = feat.attribute("elev_value1")
                     except KeyError:
                         in_elev = None
 
                     if dist > slope_width:
                         elev = (max_mount_elev - min_mount_elev) * (dist - min_dist) / (max_dist - min_dist) + min_mount_elev
-                        if in_elev:
+                        if in_elev and self.dlg.keepHighTopoCheckBox.isChecked():
                             if elev < in_elev:
                                 elev = in_elev
                         #Introducing ruggedness to the created mountain range
