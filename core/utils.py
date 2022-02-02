@@ -15,7 +15,7 @@ from numpy import * #This to import math functions to be used in formula (modFor
 import subprocess
 import random
 from random import randrange
-from typing import Union
+from typing import Tuple, Union
 
 try:
     from scipy.ndimage.filters import gaussian_filter, uniform_filter
@@ -33,6 +33,8 @@ from qgis.core import (
     QgsVectorLayer,
     QgsRasterBandStats,
     QgsColorRampShader,
+    QgsGradientColorRamp,
+    QgsGradientStop,
     QgsRasterShader,
     QgsSingleBandPseudoColorRenderer,
     QgsProject,
@@ -256,6 +258,57 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
     return out_file_path
 
 
+def fillNoDataWithAFixedValue(in_layer:QgsRasterLayer,
+                              value_to_fill:float,
+                              mask_layer:QgsVectorLayer = None,
+                              out_file_path:str = None) -> str:
+    """Fills gaps in a raster layer with a specific fixed value.
+    :param in_layer: A raster layer to fill gaps in.
+    :type in_layer: QgsRasterLayer.
+    :param value_to_fill: Fixed value that need to be assigned to NoData values pixels (gaps).
+    :type value_to_fill: float.
+    :param mask_layer: A mask layer to constrain filling within mask polygons.
+    :type mask_layer: QgsVectorLayer.
+    :param out_file_path: A path to save the ouput file at.
+    :type out_file_path: str.
+
+    :return: Path to the output file.
+    :rtype: str.
+    """
+    if out_file_path is None:
+        temp_dir = tempfile.gettempdir()
+        out_file_path = os.path.join(temp_dir, "PaleoDEM_with_gaps_filled.tiff")
+    ds = gdal.Open(in_layer.source())
+    in_array = ds.GetRasterBand(1).ReadAsArray()
+    no_data_value = ds.GetRasterBand(1).GetNoDataValue()
+    geotransform = ds.GetGeoTransform()
+    width = in_layer.width()
+    height = in_layer.height()
+    if not np.isnan(no_data_value):
+        in_array[in_array==no_data_value] = np.nan
+    if mask_layer and mask_layer.isValid():
+       assert mask_layer.featureCount() >0, "The selected mask vector layer is empty."
+       mask_array = vectorToRaster(mask_layer,
+                                    geotransform,
+                                    width,
+                                    height)
+       in_array[(mask_array==1)*np.isnan(in_array) == 1] = value_to_fill
+    else:
+        in_array[np.isnan(in_array)] = value_to_fill
+
+    # Create Target - TIFF
+    out_raster = gdal.GetDriverByName('GTiff').Create(out_file_path, width, height, 1, gdal.GDT_Float32)
+    out_raster.SetGeoTransform(geotransform)
+    crs = in_layer.crs().toWkt()
+    out_raster.SetProjection(crs)
+    out_band = out_raster.GetRasterBand(1)
+    out_band.SetNoDataValue(np.nan)
+    out_band.WriteArray(in_array)
+    out_band.FlushCache()
+    out_raster = None
+
+    return out_file_path
+
 def rasterSmoothing(in_layer, filter_type, factor, mask_layer = None, out_file=None, feedback=None, runtime_percentage=None):
     """
     Smoothes values of pixels in a raster  by implementing a low-pass filter  such as gaussian or uniform (mean filter)
@@ -399,7 +452,7 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
                     color_lines.append(new_line)
         return color_lines
 
-    def createColorRamp(ramp_shader:QgsColorRampShader, color_lines, minimum, maximum):
+    def getColorRampItems(ramp_shader:QgsColorRampShader, color_lines, minimum, maximum):
         color_items_list = []
         for line_no, line in enumerate(color_lines):
             r,g,b = line[1].split('/')
@@ -419,6 +472,30 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
             color_items_list.append(color_item)
         return color_items_list
 
+    def createColorRamp(color_ramp_items:list) -> QgsGradientColorRamp:
+        """Creates a QgsGradient color ramp from ColorRampItem list.
+        :param color_ramp_items: A list of color ramp items.
+        :type color_ramp_items: QgsColorRampShader.ColorRampItem.
+
+        :return: Color ramp.
+        :rtype: QgsGradientColorRamp
+        """
+        color_ramp = QgsGradientColorRamp()
+        color1 = color_ramp_items[0].color
+        color2 = color_ramp_items[-1].color
+        color_ramp.setColor1(color1)
+        color_ramp.setColor2(color2)
+        stops = []
+        maximum_value = color_ramp_items[-1].value
+        minimum_value = color_ramp_items[0].value
+        for item in color_ramp_items[1:len(color_ramp_items)-1]:
+            max_min_distance = np.sqrt(pow(maximum_value-minimum_value,2))
+            stop_distance = np.sqrt(pow(item.value - minimum_value, 2))
+            stop = stop_distance/max_min_distance
+            stops.append(QgsGradientStop(stop, item.color))
+        color_ramp.setStops(stops)
+        return color_ramp
+
     stats = in_layer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
     min_elev = stats.minimumValue
     max_elev = stats.maximumValue
@@ -426,8 +503,10 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
     ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
     cpt_data = readCpt(color_palette_file)
-    lst =createColorRamp(ramp_shader, cpt_data, min_elev, max_elev)
+    lst =getColorRampItems(ramp_shader, cpt_data, min_elev, max_elev)
     ramp_shader.setColorRampItemList(lst)
+    ramp_shader.setSourceColorRamp(createColorRamp(lst))
+    #ramp_shader.classifyColorRamp()
 
     # We’ll assign the color ramp to a QgsRasterShader
     # so it can be used to symbolize a raster layer.
@@ -439,6 +518,8 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
     #Then we’ll Assign the renderer to our raster layer.
 
     renderer = QgsSingleBandPseudoColorRenderer(in_layer.dataProvider(), 1, shader)
+    renderer.setClassificationMax(max_elev)
+    renderer.setClassificationMin(min_elev)
     in_layer.setRenderer(renderer)
     in_layer.triggerRepaint()
 
@@ -1228,7 +1309,7 @@ class TaVectorFileWriter(QgsVectorFileWriter):
                          fileName:str,
                          fileEncoding:str,
                          destCRS:QgsCoordinateReferenceSystem,
-                         driverName:str) -> (QgsVectorFileWriter.WriterError, str):
+                         driverName:str) -> Tuple[QgsVectorFileWriter.WriterError, str]:
         """This function is used to make writing to shapefiles compatible beteen Qgis version >3.10 and <3.10."""
 
         # Check if the file is already created. Acts like overwrite

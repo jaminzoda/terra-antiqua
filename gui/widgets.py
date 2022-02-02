@@ -1,6 +1,6 @@
-#Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
-#Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
-#Full copyright notice in file: terra_antiqua.py
+# Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
+# Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
+# Full copyright notice in file: terra_antiqua.py
 
 
 import os
@@ -21,6 +21,7 @@ from qgis.core import (
     QgsProperty
 )
 
+
 class TaButtonGroup(QtWidgets.QWidget):
     def __init__(self):
         super(TaButtonGroup, self).__init__()
@@ -36,12 +37,12 @@ class TaButtonGroup(QtWidgets.QWidget):
         self.up.setIcon(QtGui.QIcon(':/arrow_up.png'))
         self.up.setAutoRaise(True)
         self.up.setToolTip("Move row up")
-        self.down= QtWidgets.QToolButton()
+        self.down = QtWidgets.QToolButton()
         self.down.setIcon(QtGui.QIcon(':/arrow_down.png'))
         self.down.setAutoRaise(True)
         self.down.setToolTip("Move row down")
         self.hLayout = QtWidgets.QHBoxLayout(self)
-        self.hLayout.setContentsMargins(QtCore.QMargins(0,0,0,0))
+        self.hLayout.setContentsMargins(QtCore.QMargins(0, 0, 0, 0))
         self.hLayout.addStretch()
         self.hLayout.addWidget(self.up)
         self.hLayout.addWidget(self.down)
@@ -50,46 +51,51 @@ class TaButtonGroup(QtWidgets.QWidget):
         self.setLayout(self.hLayout)
 
 
-
 class TaTableWidget(QtWidgets.QTableWidget):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(TaTableWidget, self).__init__(parent)
         self.layerItems = []
 
     def moveRowDown(self):
         row = self.currentRow()
         column = self.currentColumn()
-        if row < self.rowCount()-1 and self.rowCount()>1:
+        if row < self.rowCount()-1 and self.rowCount() > 1:
             self.insertRow(row+2)
             for i in range(self.columnCount()):
-                self.setCellWidget(row+2,i,self.cellWidget(row,i))
-                self.setCurrentCell(row+2,column)
+                self.setCellWidget(row+2, i, self.cellWidget(row, i))
+                self.setCurrentCell(row+2, column)
             self.removeRow(row)
 
     def moveRowUp(self):
         row = self.currentRow()
         column = self.currentColumn()
-        if row > 0 :
+        if row > 0:
             self.insertRow(row-1)
             for i in range(self.columnCount()):
-                self.setCellWidget(row-1,i,self.cellWidget(row+1,i))
-                self.setCurrentCell(row-1,column)
+                self.setCellWidget(row-1, i, self.cellWidget(row+1, i))
+                self.setCurrentCell(row-1, column)
             self.removeRow(row+1)
+
 
 class TaHelpBrowser(QtWidgets.QTextBrowser):
     visibilityChanged = QtCore.pyqtSignal(bool)
+
     def __init__(self, parent=None):
         super(TaHelpBrowser, self).__init__()
-        self.collapsed=False
+        self.collapsed = False
+
     def hideEvent(self, event):
         if event.type() == event.Hide:
             self.visibilityChanged.emit(False)
+
     def showEvent(self, event):
         if event.type() == event.Show:
             self.visibilityChanged.emit(True)
 
+
 class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
     enabled = QtCore.pyqtSignal(bool)
+
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -97,15 +103,16 @@ class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
         if event.type() == QtCore.QEvent.EnabledChange:
             self.enabled.emit(self.isEnabled())
 
+
 class TaMapLayerComboBox(QtWidgets.QWidget):
-    def __init__(self, label = None):
+    def __init__(self, label=None):
         super(TaMapLayerComboBox, self).__init__()
         self.cmb = TaAbstractMapLayerComboBox(self)
         self.cmb.setLayer(None)
         self.cmb.setAllowEmptyLayer(True)
         self.openButton = QtWidgets.QToolButton(self)
         self.openButton.setText('...')
-        self.openButton.setIconSize(QtCore.QSize(16,16))
+        self.openButton.setIconSize(QtCore.QSize(16, 16))
         if not label:
             self.label = QtWidgets.QLabel('')
         else:
@@ -117,7 +124,7 @@ class TaMapLayerComboBox(QtWidgets.QWidget):
         self.vlayout.addWidget(self.label)
         self.vlayout.addLayout(self.layout)
         self.vlayout.setSpacing(6)
-        self.vlayout.setContentsMargins(QtCore.QMargins(0,0,0,0))
+        self.vlayout.setContentsMargins(QtCore.QMargins(0, 0, 0, 0))
         self.setLayout(self.vlayout)
         self.setLayerType()
         self.associatedWidgets = []
@@ -132,6 +139,7 @@ class TaMapLayerComboBox(QtWidgets.QWidget):
 
     def currentLayer(self):
         return self.cmb.currentLayer()
+
     def setCurrentLayer(self, layer):
         self.cmb.setLayer(layer)
 
@@ -139,7 +147,7 @@ class TaMapLayerComboBox(QtWidgets.QWidget):
         for widget in self.associatedWidgets:
             widget.setEnabled(state)
 
-    def setAssociatedWidget(self, widget:QtWidgets.QWidget):
+    def setAssociatedWidget(self, widget: QtWidgets.QWidget):
         self.associatedWidgets.append(widget)
 
 
@@ -151,7 +159,8 @@ class TaRasterLayerComboBox(TaMapLayerComboBox):
     def openRasterFromDisk(self):
         fd = QtWidgets.QFileDialog()
         filter = "Raster files (*.jpg *.tif *.grd *.nc *.png *.tiff)"
-        fname, _ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
+        fname, _ = fd.getOpenFileName(
+            caption='Select a vector layer', directory=None, filter=filter)
 
         if fname:
             name, _ = os.path.splitext(os.path.basename(fname))
@@ -163,7 +172,6 @@ class TaRasterLayerComboBox(TaMapLayerComboBox):
         self.cmb.setFilters(QgsMapLayerProxyModel.RasterLayer)
 
 
-
 class TaVectorLayerComboBox(TaMapLayerComboBox):
     def __init__(self, label=None):
         super(TaVectorLayerComboBox, self).__init__(label)
@@ -172,7 +180,8 @@ class TaVectorLayerComboBox(TaMapLayerComboBox):
     def openVectorFromDisk(self):
         fd = QtWidgets.QFileDialog()
         filter = "Vector files (*.shp)"
-        fname, _ = fd.getOpenFileName(caption='Select a vector layer', directory=None, filter=filter)
+        fname, _ = fd.getOpenFileName(
+            caption='Select a vector layer', directory=None, filter=filter)
 
         if fname:
             name, _ = os.path.splitext(os.path.basename(fname))
@@ -194,6 +203,7 @@ class TaVectorLayerComboBox(TaMapLayerComboBox):
                 layer_type = QgsMapLayerProxyModel.VectorLayer
         self.cmb.setFilters(layer_type)
 
+
 class TaSpinBox(QtWidgets.QWidget):
     def __init__(self):
         super(TaSpinBox, self).__init__()
@@ -207,20 +217,20 @@ class TaSpinBox(QtWidgets.QWidget):
         self.layout.addWidget(self.spinBox)
         self.layout.addWidget(self.overrideButton)
         self.layout.setSpacing(6)
-        self.layout.setContentsMargins(QtCore.QMargins(0,0,0,0))
+        self.layout.setContentsMargins(QtCore.QMargins(0, 0, 0, 0))
         self.setLayout(self.layout)
-        self.dataType =None
+        self.dataType = None
         self.spinBox.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.initOverrideButton("generalProperty", "Blank property")
 
     def initOverrideButton(self, property_name, property_descr, layer=None):
         if self.dataType:
-            if  self.dataType.lower() == 'integer':
+            if self.dataType.lower() == 'integer':
                 definition = QgsPropertyDefinition(property_name, property_descr,
-                                               QgsPropertyDefinition.Integer)
+                                                   QgsPropertyDefinition.Integer)
             elif self.dataType.lower() == 'double':
                 definition = QgsPropertyDefinition(property_name, property_descr,
-                                               QgsPropertyDefinition.Double)
+                                                   QgsPropertyDefinition.Double)
             else:
                 raise Exception("Wrong data type: {}".format(self.dataType))
         else:
@@ -229,12 +239,12 @@ class TaSpinBox(QtWidgets.QWidget):
 
         if layer:
             self.overrideButton.registerExpressionContextGenerator(layer)
-            self.overrideButton.init(0, QgsProperty(), definition, layer, False)
+            self.overrideButton.init(
+                0, QgsProperty(), definition, layer, False)
         else:
             self.overrideButton.init(0, QgsProperty(), definition)
 
-
-    def setDataType(self, dataType:str):
+    def setDataType(self, dataType: str):
         """Sets the type of data set in SpinBox. Must be called before
         initOverrideButton. Accepts Integer and Double.
 
@@ -268,14 +278,11 @@ class TaCheckBox(QtWidgets.QCheckBox):
         self.linked_widgets = []
         self.natural_behavior = None
 
-
-
-
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.EnabledChange and not self.isEnabled():
             self.setChecked(False)
 
-    def registerEnabledWidgets(self, widgets:list, natural:bool = False):
+    def registerEnabledWidgets(self, widgets: list, natural: bool = False):
         """Registers widgets that get enabled when the checkbox is checked.
         If natural is True, the widgets get disabled, when the checkbox is
         checked."""
@@ -293,18 +300,15 @@ class TaCheckBox(QtWidgets.QCheckBox):
             else:
                 widget.setEnabled(self.natural_behavior)
 
-
-
     def enabledWidgets(self):
         return self.enabled_widgets
 
-    def registerLinkedWidget(self, widget:QtWidgets.QWidget):
+    def registerLinkedWidget(self, widget: QtWidgets.QWidget):
         self.linked_widgets.append(widget)
         try:
             widget.layerChanged.connect(self.setSelfEnabled)
         except Exception as e:
             raise e
-
 
         try:
             for widget in self.linked_widgets:
@@ -315,20 +319,18 @@ class TaCheckBox(QtWidgets.QCheckBox):
         except Exception:
             pass
 
-
     def setSelfEnabled(self, layer):
-        if layer and layer.selectedFeatureCount()>0:
+        if layer and layer.selectedFeatureCount() > 0:
             self.setEnabled(True)
         else:
             self.setEnabled(False)
+
     def linkedWidgets(self):
         return self.linked_widgets
 
 
-
-
 class TaExpressionWidget(QtWidgets.QWidget):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(TaExpressionWidget, self).__init__(parent)
         self.layout = QtWidgets.QHBoxLayout()
         self.lineEdit = QgsFilterLineEdit(self)
@@ -338,25 +340,28 @@ class TaExpressionWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.lineEdit)
         self.layout.addWidget(self.overrideButton)
         self.layout.setSpacing(6)
-        self.layout.setContentsMargins(QtCore.QMargins(0,0,0,0))
+        self.layout.setContentsMargins(QtCore.QMargins(0, 0, 0, 0))
         self.setLayout(self.layout)
         self.initOverrideButton("general Property", "Blank Property")
 
     def initOverrideButton(self, property_name, property_descr, layer=None):
         definition = QgsPropertyDefinition(property_name, property_descr,
-                                               QgsPropertyDefinition.String)
+                                           QgsPropertyDefinition.String)
 
         if layer:
             self.overrideButton.registerExpressionContextGenerator(layer)
-            self.overrideButton.init(0, QgsProperty(), definition, layer, False)
+            self.overrideButton.init(
+                0, QgsProperty(), definition, layer, False)
         else:
             self.overrideButton.init(0, QgsProperty(), definition)
+
 
 class TaColorSchemeWidget(QtWidgets.QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.path_to_color_schemes = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/color_schemes"))
-        self.color_scheme_names= []
+        self.path_to_color_schemes = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "../resources/color_schemes"))
+        self.color_scheme_names = []
         self.populateColorSchemes()
         self.setDefaultColorScheme()
 
@@ -365,20 +370,15 @@ class TaColorSchemeWidget(QtWidgets.QComboBox):
         for (dirpath, dirnames, filenames) in os.walk(self.path_to_color_schemes):
             file_names.extend(filenames)
         for file in file_names:
-            with open(os.path.join(self.path_to_color_schemes,file)) as f:
+            with open(os.path.join(self.path_to_color_schemes, file)) as f:
                 lines = f.readlines()
-                color_scheme_name = lines[0].strip()
-                color_scheme_name = color_scheme_name.replace("#", "")
-                self.color_scheme_names.append(color_scheme_name)
+                if len(lines) > 0:
+                    color_scheme_name = lines[0].strip()
+                    color_scheme_name = color_scheme_name.replace("#", "")
+                    self.color_scheme_names.append(color_scheme_name)
         self.addItems(self.color_scheme_names)
 
     def setDefaultColorScheme(self):
         for i in self.color_scheme_names:
             if i == "Terra Antiqua color scheme":
                 self.setCurrentText(i)
-
-
-
-
-
-

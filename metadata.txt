@@ -10,7 +10,7 @@
 name=Terra Antiqua
 qgisMinimumVersion=3.10
 description=This plugin creates digital elevation models of paleogeographic maps.
-version=1.1-beta
+version=1.1-RC.1
 author=Jovid Aminov, Diego Ruiz
 email=terraantiqua.qgis@gmail.com
 
