@@ -99,6 +99,27 @@ class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
     def __init__(self, parent):
         super().__init__(parent)
 
+    def setLayerType(self, layer_type:str=None):
+        """Sets the layer type to be displayed in the combobox.
+
+        :param layer_type: The type of the layer the a combobox can accept. Can be Raster, Polygon, Polyline and Point.
+        :type layer_type: str.
+
+        """
+
+        if not layer_type:
+            layer_type = QgsMapLayerProxyModel.RasterLayer
+        else:
+            if layer_type == 'Polygon':
+                layer_type = QgsMapLayerProxyModel.PolygonLayer
+            elif layer_type == 'Polyline':
+                layer_type = QgsMapLayerProxyModel.LineLayer
+            elif layer_type == 'Point':
+                layer_type = QgsMapLayerProxyModel.PointLayer
+            else:
+                layer_type = QgsMapLayerProxyModel.VectorLayer
+        self.setFilters(layer_type)
+
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.EnabledChange:
             self.enabled.emit(self.isEnabled())
@@ -126,7 +147,6 @@ class TaMapLayerComboBox(QtWidgets.QWidget):
         self.vlayout.setSpacing(6)
         self.vlayout.setContentsMargins(QtCore.QMargins(0, 0, 0, 0))
         self.setLayout(self.vlayout)
-        self.setLayerType()
         self.associatedWidgets = []
         self.associatedWidgets.append(self.openButton)
         self.cmb.enabled.connect(self.setAssociatedWidgetsEnabled)
@@ -155,6 +175,7 @@ class TaRasterLayerComboBox(TaMapLayerComboBox):
     def __init__(self, label=None):
         super(TaRasterLayerComboBox, self).__init__(label)
         self.openButton.pressed.connect(self.openRasterFromDisk)
+        self.cmb.setLayerType()
 
     def openRasterFromDisk(self):
         fd = QtWidgets.QFileDialog()
@@ -168,8 +189,6 @@ class TaRasterLayerComboBox(TaMapLayerComboBox):
             QgsProject.instance().addMapLayer(rlayer)
             self.cmb.setLayer(rlayer)
 
-    def setLayerType(self):
-        self.cmb.setFilters(QgsMapLayerProxyModel.RasterLayer)
 
 
 class TaVectorLayerComboBox(TaMapLayerComboBox):
@@ -189,19 +208,6 @@ class TaVectorLayerComboBox(TaMapLayerComboBox):
             QgsProject.instance().addMapLayer(vlayer)
             self.cmb.setLayer(vlayer)
 
-    def setLayerType(self, layer_type=None):
-        if not layer_type:
-            layer_type = QgsMapLayerProxyModel.PolygonLayer
-        else:
-            if layer_type == 'Polygon':
-                layer_type = QgsMapLayerProxyModel.PolygonLayer
-            elif layer_type == 'Polyline':
-                layer_type = QgsMapLayerProxyModel.LineLayer
-            elif layer_type == 'Point':
-                layer_type = QgsMapLayerProxyModel.PointLayer
-            else:
-                layer_type = QgsMapLayerProxyModel.VectorLayer
-        self.cmb.setFilters(layer_type)
 
 
 class TaSpinBox(QtWidgets.QWidget):
@@ -284,8 +290,14 @@ class TaCheckBox(QtWidgets.QCheckBox):
 
     def registerEnabledWidgets(self, widgets: list, natural: bool = False):
         """Registers widgets that get enabled when the checkbox is checked.
-        If natural is True, the widgets get disabled, when the checkbox is
-        checked."""
+
+        :param widgets: A list of widgets that need to be registered with the checkbox.
+        :type widgets: list.
+        :param natural: If natural is True, the widgets get disabled, when the checkbox is
+        checked. If it is False the checbox get enabled.
+        :type natural: bool.
+
+        """
 
         for widget in widgets:
             self.enabled_widgets.append(widget)
@@ -303,7 +315,12 @@ class TaCheckBox(QtWidgets.QCheckBox):
     def enabledWidgets(self):
         return self.enabled_widgets
 
-    def registerLinkedWidget(self, widget: QtWidgets.QWidget):
+    def registerLinkedWidget(self, widget:QtWidgets.QWidget):
+        """Registers TaVectorLayerComboBox widgets to retrieve number of selected features.
+        If the linked widget contains any selected features, the checkbox gets enabled.
+        :param widget: A vector layer combobox.
+        :type widget: TaVectorLayerComboBox or QgsMapLayerComboBox.
+        """
         self.linked_widgets.append(widget)
         try:
             widget.layerChanged.connect(self.setSelfEnabled)

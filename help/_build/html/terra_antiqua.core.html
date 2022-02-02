@@ -968,16 +968,21 @@ added to self.actions list.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.TaProgressImitation">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">TaProgressImitation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">TaProgressImitation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QThread</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="terra_antiqua.core.utils.TaProgressImitation.ProgressStoped">
+<span class="sig-name descname"><span class="pre">ProgressStoped</span></span><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation.ProgressStoped" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.TaProgressImitation.finish">
 <span class="sig-name descname"><span class="pre">finish</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation.finish" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="terra_antiqua.core.utils.TaProgressImitation.finished">
-<span class="sig-name descname"><span class="pre">finished</span></span><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation.finished" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="terra_antiqua.core.utils.TaProgressImitation.processingFinished">
+<span class="sig-name descname"><span class="pre">processingFinished</span></span><a class="headerlink" href="#terra_antiqua.core.utils.TaProgressImitation.processingFinished" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -993,7 +998,7 @@ added to self.actions list.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qgis._core.QgsVectorFileWriter</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.TaVectorFileWriter.writeToShapeFile">
-<span class="sig-name descname"><span class="pre">writeToShapeFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">fileName:</span> <span class="pre">str</span></em>, <em class="sig-param"><span class="pre">fileEncoding:</span> <span class="pre">str</span></em>, <em class="sig-param"><span class="pre">destCRS:</span> <span class="pre">qgis._core.QgsCoordinateReferenceSystem</span></em>, <em class="sig-param"><span class="pre">driverName:</span> <span class="pre">str)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'qgis._core.QgsVectorFileWriter.WriterError'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'str'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.TaVectorFileWriter.writeToShapeFile" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">writeToShapeFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileEncoding</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destCRS</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">qgis._core.QgsCoordinateReferenceSystem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">driverName</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">qgis._core.QgsVectorFileWriter.WriterError</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#terra_antiqua.core.utils.TaVectorFileWriter.writeToShapeFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to make writing to shapefiles compatible beteen Qgis version &gt;3.10 and &lt;3.10.</p>
 </dd></dl>
 
@@ -1029,18 +1034,21 @@ added to self.actions list.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.fillNoData">
-<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">fillNoData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_file_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_data_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.fillNoData" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">fillNoData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">qgis._core.QgsRasterLayer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_file_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_data_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="headerlink" href="#terra_antiqua.core.utils.fillNoData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fills the missing data by interpolating from edges.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>in_layer</strong> – QgsRasterLayer</p></li>
-<li><p><strong>no_data_value</strong> – NoDataValue of the input layer. These values to be set to np.nan   during the interpolation.</p></li>
+<li><p><strong>in_layer</strong> (<em>QgsRasterLayer.</em>) – A raster layer to fill gaps in.</p></li>
+<li><p><strong>no_data_value</strong> (<em>float|int</em>) – NoDataValue of the input layer. These values to be set to np.nan   during the interpolation.</p></li>
 <li><p><strong>vlayer</strong> – A vector layer with masks for interpolating only inside masks</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>String - the path of the output file.</p>
+<dd class="field-even"><p>The path of the output file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1060,6 +1068,28 @@ added to self.actions list.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>String - the path of the output file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="terra_antiqua.core.utils.fillNoDataWithAFixedValue">
+<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">fillNoDataWithAFixedValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">qgis._core.QgsRasterLayer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_to_fill</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_layer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">qgis._core.QgsVectorLayer</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_file_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="headerlink" href="#terra_antiqua.core.utils.fillNoDataWithAFixedValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills gaps in a raster layer with a specific fixed value.
+:param in_layer: A raster layer to fill gaps in.
+:type in_layer: QgsRasterLayer.
+:param value_to_fill: Fixed value that need to be assigned to NoData values pixels (gaps).
+:type value_to_fill: float.
+:param mask_layer: A mask layer to constrain filling within mask polygons.
+:type mask_layer: QgsVectorLayer.
+:param out_file_path: A path to save the ouput file at.
+:type out_file_path: str.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Path to the output file.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1124,7 +1154,7 @@ minimum and maximum values.  This is basically flattening and roughening.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.modRescale">
-<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">modRescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.modRescale" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">modRescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_array</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#terra_antiqua.core.utils.modRescale" title="Permalink to this definition">¶</a></dt>
 <dd><p>Modifies the elevation/bathimetry
 values based on the current and provided
 minimum and maximum values.
@@ -1132,15 +1162,14 @@ This is basically flattening and roughening.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>in_array</strong> – input numpy array for modification.</p></li>
-<li><p><strong>fmin</strong> – final minimum value of elevation/bathymetry.</p></li>
-<li><p><strong>fmax</strong> – final maximum value of elevation/bathymetry.</p></li>
+<li><p><strong>in_array</strong> (<em>np.ndarray.</em>) – input numpy array for modification.</p></li>
+<li><p><strong>fmin</strong> (<em>int.</em>) – final minimum value of elevation/bathymetry.</p></li>
+<li><p><strong>fmax</strong> (<em>int.</em>) – final maximum value of elevation/bathymetry.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>numpy.array</p>
-</dd>
 </dl>
+<p>:return:rescaled array.
+:rtype:np.ndarray.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1204,7 +1233,7 @@ This is basically flattening and roughening.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.rasterSmoothing">
-<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">rasterSmoothing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runtime_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.rasterSmoothing" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">rasterSmoothing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reflect'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runtime_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.rasterSmoothing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Smoothes values of pixels in a raster  by implementing a low-pass filter  such as gaussian or uniform (mean filter)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1220,6 +1249,30 @@ This is basically flattening and roughening.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>QgsRasterLayer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="terra_antiqua.core.utils.rasterSmoothingInPolygon">
+<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">rasterSmoothingInPolygon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_array</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_array</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'reflect'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#terra_antiqua.core.logger.TaFeedback" title="terra_antiqua.core.logger.TaFeedback"><span class="pre">terra_antiqua.core.logger.TaFeedback</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runtime_percentage</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#terra_antiqua.core.utils.rasterSmoothingInPolygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smoothes values of an array by implementing a low-pass filter  such as gaussian or uniform (mean filter)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_array</strong> (<em>Numpy n-dimensional array</em>) – input array or smoothing</p></li>
+<li><p><strong>filter_type</strong> (<em>str.</em>) – Smoothing filter type (for now accepts only “Uniform” and “Gaussian”).</p></li>
+<li><p><strong>factor</strong> (<em>int</em>) – factor that is used to define the size of a kernel used (e.g. 3x3, 5x5 etc).</p></li>
+<li><p><strong>mask_array</strong> (<em>np.ndarray.</em>) – an array containing mask for smoothing only inside polygons.</p></li>
+<li><p><strong>feedback</strong> (<em>TaFeedback.</em>) – A feedback object to report progress and log info.</p></li>
+<li><p><strong>runtime_percentage</strong> (<em>int.</em>) – Percentage of the total algorithm run time that smoothing takes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Smoothed raster array.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1262,6 +1315,34 @@ This is basically flattening and roughening.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>in_layer</strong> (<em>QgsVectorLayer.</em>) – input vector layer for rendering symbology.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="terra_antiqua.core.utils.smoothArrayWithWrapping">
+<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">smoothArrayWithWrapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrapping_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_factor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_array</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#terra_antiqua.core.logger.TaFeedback" title="terra_antiqua.core.logger.TaFeedback"><span class="pre">terra_antiqua.core.logger.TaFeedback</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runtime_percentage</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#terra_antiqua.core.utils.smoothArrayWithWrapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a subset of a 2-dimensional numpy array, wrapping it around the edges to opposite side.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Prarm input_array</dt>
+<dd class="field-odd"><p>Input numpy array to read a subset from.</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><p><strong>index</strong> – A list of tuples with indices for reading the input array. Each tuple in the list contains two</p>
+</dd>
+</dl>
+<p>addresses - from and to for each axis (rows, columns).
+:type index: list.
+:param side: Side of the array for wrapping (E or W).
+:type side: str.
+:param wrapping_size: Number of rows and columns (integer) to read from the opposite side of the array.
+:type wrapping_size: tuple.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A subset of the input array wrapped around the specified edges by the specified size.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
