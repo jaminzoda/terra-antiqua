@@ -191,6 +191,7 @@ class TaBaseDialog(TaTemplateDialog):
         self.group_box = QgsCollapsibleGroupBox(self)
         self.group_box.setTitle("Advanced parameters")
         self.group_box.setCollapsed(True)
+        self.group_box.collapsedStateChanged.connect(lambda state:self.showAdvancedWidgets(self.var_index) if not state else None)
         layout = QVBoxLayout()
         for widget, variant_index in self.advanced_parameters:
             layout.addWidget(widget)
