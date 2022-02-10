@@ -20,13 +20,14 @@ Full copyright notice in file: terra_antiqua.py -->
 
 <p>
 In some cases, small pieces of the bathymetry raster might overlap the topography raster, leading to the formation of
-artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check that box, a buffer
-zone with a distance of <i>0.5</i> (default, in map units) will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within the buffer zone. This default value can be edited in the field <b><i>Buffer distance</b></i>. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
+artefacts. The <b><i>Remove overlapping bathymetry</i></b> option is used to avoid this. If you check this box, a buffer
+zone with a distance of <i>0.5</i> (default, in map units) will be created around polygon geometries of continental blocks, seubsequently removing the elevation values of pixels within that buffer zone. This default value can be edited in the field <b><i>Buffer distance</b></i>. The algorithm will use the perimeter of the polygons from the mask layer for this. The resulting gaps can then be interpolated. <br/>
 
 <p>
     
 <b><i>Mask layer:</i></b> If you activate the option <b>Remove overlapping bathymetry</b>, you must select a shapefile (a set of vector polygons) that will be used to define the continental blocks around which the buffer zone needs to be taken.
 <br/>
+If you want to use only certain masks of the <b>mask layer</b>, you can select these masks on the map canvas and then check the <i><b>Selected features only</i></b> checkbox.<br/>
 When a <b><i>Mask layer</i></b> is selected, a column will appear in the table above. <br/>
 Please select which raster the <b>Mask layer</b> corresponds to by checking the box next to the raster.<br/>
 

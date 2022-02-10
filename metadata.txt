@@ -10,7 +10,7 @@
 name=Terra Antiqua
 qgisMinimumVersion=3.10
 description=This plugin creates digital elevation models of paleogeographic maps.
-version=1.0.3
+version=1.0.4
 author=Jovid Aminov, Diego Ruiz
 email=terraantiqua.qgis@gmail.com
 
@@ -23,6 +23,8 @@ repository=https://github.com/jaminzoda/terra-antiqua
 
 # Uncomment the following line and add your changelog:
 Changelog=
+    version 1.0.4
+    -Minor text revision
     version 1.0.3
     -Minor bug fixes
     version 1.0.2
@@ -35,27 +37,7 @@ Changelog=
     - A user manual is added to the plugin
     - Help button that opens user manual
     - General functionality enhancement and bug fixes
-    version 0.6
-    - New secondary tools:
-        - Set New Sea Level
-        - Calculate Bathymetry
-        - Change Map Symbology
-    - General functionality improvements
-    - Preparations for upcoming v1.0 and public release
-    - More bugfixes and updates
-    version 0.5
-    - New Advanced Parameters tab
-    - Minor GUI improvements for "Compile Topo-/ Bathymetry" and "Prepare Masks"
-    - Added support for mathematical functions (such as sqrt, log, sin, etc.) in "Modify Topo-/ Bathymetry"
-    - Slight modifications to some tools (Calculate Bathymetry, Isostatic Compensation)
-    - Now the plugin checks if all rasters are the same size and if they have the same CRS. If not, it prompts a message.
-    - Minor bug fixes
-    version 0.4
-	- User interface redesigned
-	- New icons for all modules
-	- Increased efficiency of smoothing algorithms
-	- New option to choose the color palette
-	- Other bug fixes and small enhancements
+ 
 
 # Tags are comma separated with spaces allowed
 tags=python, paleoreconstruction, DEM, geology, geoscience, topography, paleotopography, bathymetry, paleobathymetry, GPlates, climate modeling, paleogeography
