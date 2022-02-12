@@ -749,7 +749,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.finished.emit(False, "")
 
     def setSeaLevel(self):
-        progress = TaProgressImitation(100, 100, self, self.feedback)
+        progress = TaProgressImitation(100, 100, self.feedback)
         progress.start()
         if not self.killed:
             topo_layer = self.dlg.baseTopoBox.currentLayer()
