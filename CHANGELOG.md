@@ -1,6 +1,10 @@
 CHANGELOG
 ===========
 
+Version 1.0.4
+---------------
+* Minor revision of the help texts
+
 Version 1.0.3
 ---------------
 * Bug fixes 

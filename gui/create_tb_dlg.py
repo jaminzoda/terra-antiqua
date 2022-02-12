@@ -47,7 +47,7 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
         self.contSlopeWidth.setAllowedValueRange(0, 1000)
 
         self.keepDeepBathyCheckBox = self.addAdvancedParameter(TaCheckBox,
-                                                                label="Keep deeper bathymetry.",
+                                                                label="Keep deeper bathymetry",
                                                                 variant_index="Sea")
 
         #Parameters for mountain range creation
@@ -72,7 +72,7 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
         self.mountSlope.setAllowedValueRange(0, 500)
 
         self.keepHighTopoCheckBox = self.addAdvancedParameter(TaCheckBox,
-                                                                label="Keep higher topography.",
+                                                                label="Keep higher topography",
                                                                 variant_index="Mountain range")
         self.fillDialog()
         self.showVariantWidgets(self.featureTypeBox.currentText())

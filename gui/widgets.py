@@ -106,7 +106,6 @@ class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
         :type layer_type: str.
 
         """
-
         if not layer_type:
             layer_type = QgsMapLayerProxyModel.RasterLayer
         else:
@@ -194,6 +193,10 @@ class TaVectorLayerComboBox(TaMapLayerComboBox):
     def __init__(self, label=None):
         super(TaVectorLayerComboBox, self).__init__(label)
         self.openButton.pressed.connect(self.openVectorFromDisk)
+        # default type for vector layers = polygon
+        # If need to add polyline layer combobox, type should be set
+        # when defining parameters for each dialog
+        self.cmb.setLayerType('Polygon')
 
     def openVectorFromDisk(self):
         fd = QtWidgets.QFileDialog()
