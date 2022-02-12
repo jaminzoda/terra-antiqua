@@ -99,14 +99,13 @@ class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def setLayerType(self, layer_type:str=None):
+    def setLayerType(self, layer_type: str = None):
         """Sets the layer type to be displayed in the combobox.
 
         :param layer_type: The type of the layer the a combobox can accept. Can be Raster, Polygon, Polyline and Point.
         :type layer_type: str.
 
         """
-
         if not layer_type:
             layer_type = QgsMapLayerProxyModel.RasterLayer
         else:
@@ -190,11 +189,14 @@ class TaRasterLayerComboBox(TaMapLayerComboBox):
             self.cmb.setLayer(rlayer)
 
 
-
 class TaVectorLayerComboBox(TaMapLayerComboBox):
     def __init__(self, label=None):
         super(TaVectorLayerComboBox, self).__init__(label)
         self.openButton.pressed.connect(self.openVectorFromDisk)
+        # default type for vector layers = polygon
+        # If need to add polyline layer combobox, type should be set
+        # when defining parameters for each dialog
+        self.cmb.setLayerType('Polygon')
 
     def openVectorFromDisk(self):
         fd = QtWidgets.QFileDialog()
@@ -207,7 +209,6 @@ class TaVectorLayerComboBox(TaMapLayerComboBox):
             vlayer = QgsVectorLayer(fname, name, 'ogr')
             QgsProject.instance().addMapLayer(vlayer)
             self.cmb.setLayer(vlayer)
-
 
 
 class TaSpinBox(QtWidgets.QWidget):
@@ -315,7 +316,7 @@ class TaCheckBox(QtWidgets.QCheckBox):
     def enabledWidgets(self):
         return self.enabled_widgets
 
-    def registerLinkedWidget(self, widget:QtWidgets.QWidget):
+    def registerLinkedWidget(self, widget: QtWidgets.QWidget):
         """Registers TaVectorLayerComboBox widgets to retrieve number of selected features.
         If the linked widget contains any selected features, the checkbox gets enabled.
         :param widget: A vector layer combobox.
