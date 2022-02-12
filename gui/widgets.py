@@ -284,10 +284,20 @@ class TaCheckBox(QtWidgets.QCheckBox):
         self.enabled_widgets = []
         self.linked_widgets = []
         self.natural_behavior = None
+        self.default_checked_state = None
 
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.EnabledChange and not self.isEnabled():
             self.setChecked(False)
+        if event.type() == QtCore.QEvent.EnabledChange and self.isEnabled():
+            if self.default_checked_state:
+                self.setChecked(self.default_checked_state)
+
+    def setDefaultCheckedState(self, state: bool) -> None:
+        """Sets the default checked state of the checkbox to checked or unchecked
+        :param state: Checked state. If True, the checkbox is checked otherwise it is unchecked.
+        """
+        self.default_checked_state = state
 
     def registerEnabledWidgets(self, widgets: list, natural: bool = False):
         """Registers widgets that get enabled when the checkbox is checked.
