@@ -44,6 +44,7 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
                                                               label="Save mask layer.")
         self.addPolLayerToCanvasCheckBox = self.addAdvancedParameter(TaCheckBox,
                                                                      label="Add mask layer to the map canvas.")
+        self.addPolLayerToCanvasCheckBox.setDefaultCheckedState(True)
 
         self.masksOutputPath = self.addAdvancedParameter(QgsFileWidget,
                                                          label="Output file path:")

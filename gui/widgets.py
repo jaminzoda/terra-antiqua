@@ -99,7 +99,7 @@ class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def setLayerType(self, layer_type:str=None):
+    def setLayerType(self, layer_type: str = None):
         """Sets the layer type to be displayed in the combobox.
 
         :param layer_type: The type of the layer the a combobox can accept. Can be Raster, Polygon, Polyline and Point.
@@ -190,7 +190,6 @@ class TaRasterLayerComboBox(TaMapLayerComboBox):
             self.cmb.setLayer(rlayer)
 
 
-
 class TaVectorLayerComboBox(TaMapLayerComboBox):
     def __init__(self, label=None):
         super(TaVectorLayerComboBox, self).__init__(label)
@@ -207,7 +206,6 @@ class TaVectorLayerComboBox(TaMapLayerComboBox):
             vlayer = QgsVectorLayer(fname, name, 'ogr')
             QgsProject.instance().addMapLayer(vlayer)
             self.cmb.setLayer(vlayer)
-
 
 
 class TaSpinBox(QtWidgets.QWidget):
@@ -283,10 +281,20 @@ class TaCheckBox(QtWidgets.QCheckBox):
         self.enabled_widgets = []
         self.linked_widgets = []
         self.natural_behavior = None
+        self.default_checked_state = None
 
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.EnabledChange and not self.isEnabled():
             self.setChecked(False)
+        if event.type() == QtCore.QEvent.EnabledChange and self.isEnabled():
+            if self.default_checked_state:
+                self.setChecked(self.default_checked_state)
+
+    def setDefaultCheckedState(self, state: bool) -> None:
+        """Sets the default checked state of the checkbox to checked or unchecked
+        :param state: Checked state. If True, the checkbox is checked otherwise it is unchecked.
+        """
+        self.default_checked_state = state
 
     def registerEnabledWidgets(self, widgets: list, natural: bool = False):
         """Registers widgets that get enabled when the checkbox is checked.
@@ -315,7 +323,7 @@ class TaCheckBox(QtWidgets.QCheckBox):
     def enabledWidgets(self):
         return self.enabled_widgets
 
-    def registerLinkedWidget(self, widget:QtWidgets.QWidget):
+    def registerLinkedWidget(self, widget: QtWidgets.QWidget):
         """Registers TaVectorLayerComboBox widgets to retrieve number of selected features.
         If the linked widget contains any selected features, the checkbox gets enabled.
         :param widget: A vector layer combobox.
