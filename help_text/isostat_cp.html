@@ -25,7 +25,7 @@ This tool compensates for the absence of ice mass in the poles. The DEM values w
 <i>Hc</i> - Compensated elevation (new elevation value) <br/>
 <i>Hi</i> - Initial elevation<br/>
 <i>Hd</i> - Elevation difference between the bedrock and ice topographies (ice thickness)<br/>
-<i>Ir</i> - Removed amount of ice (in %)
+<i>Ir</i> - Amount of ice removed (in %)
 
 <p><b><i>Raster to be modified </i></b><br/>
 Select a raster corresponding to the bedrock topography (topography and bathymetry 
@@ -36,7 +36,7 @@ Select a raster corresponding to the ice topography (rotated to the time of reco
 
 
 <p><b><i>Amount of ice to be removed:</i></b><br/>
-    If you enter <i>100%</i>, the isostatic rebound will be calculated assuming all the ice disappears from the poles. With a lower percentage, the isostatic rebound will be smaller and the bedrock topography will not be lifted that much.
+Enter the percentage of ice you want to remove from the poles to calculate the isostatic rebound. The higher this percentage, the stronger the rebound, and the higher the resulting bedrock topography.
     <p>
     <b><i>Advanced parameters:</i></b><br/>
     
@@ -45,7 +45,7 @@ Select a raster corresponding to the ice topography (rotated to the time of reco
         <br/>
         If you don't want to use all polygons in the mask layer, you have two options:
         <br/>
-        If you choose the option <b><i>Selected feature(s) only</i></b>, the polygon(s) you  have selected on the map canvas will be used.
+        If you choose the option <b><i>Selected features only</i></b>, the polygon(s) you  have selected on the map canvas will be used.
         <br/>
         If you choose the option <b><i>Get polar regions automatically</i></b>, common
         names for polar plates (Antarctica, Greenland, etc...) will be searched among

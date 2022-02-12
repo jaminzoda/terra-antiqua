@@ -109,7 +109,7 @@ class TaBaseAlgorithm(QThread):
             ('TaFillGaps', 'PaleoDEM_interpolated.tif', 'raster'),
             ('TaCopyPasteRaster', 'PaleoDEM_with_copied_values.tif', 'raster'),
             ('TaSmoothRaster', 'PaleoDEM_smoothed.tif', 'raster'),
-            ('TaIsostaticCompensation','PaleoDEM_isostat_compensated.tif', 'raster'),
+            ('TaIsostaticCompensation','PaleoDEM_isost_compensated.tif', 'raster'),
              ('TaSetSeaLevel', 'PaleoDEM_with_Sea_Level_changed.tif', 'raster'),
             ('TaCalculateBathymetry', 'PaleoDEM_with_calculated_bathymetry.tif', 'raster')
         ]
