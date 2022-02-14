@@ -16,8 +16,7 @@ Full copyright notice in file: terra_antiqua.py -->
    <p> <b>Smoothing</b> is designed to reduce abrupt elevation changes in a DEM. It is meant to be used after the
        primary tools in a map without gaps. 
     
-    <!-- this technical info belongs to the manual. This algorithms handles the boundaries automatically: if the raster covers
-       the entire globe, the raster is wrapped around to the opposite side. -->
+    
    <p>
    <b><i>Raster to be modified:</i></b><br/>You need to choose a raster (DEM) where you want to perform the smoothing.
    <p>
@@ -27,18 +26,16 @@ Full copyright notice in file: terra_antiqua.py -->
    <b><i>Mask layer:</i></b> <br/> Select a layer that contains mask polygons for smoothing. 
 
    <p>
-       <b><i>Smoothing type:</i></b><br>
-   Select a Smoothing type: Gaussian filter or Uniform filter. Please refer to the manual for details about these.
+       <b><i>Smoothing type:</i></b><br/>
+       Select which filter will be used for the smoothing. Please refer to the manual for details about the different filters.
    <p>
    <b><i>Smoothing factor:</i></b><br/>
-   You may specify a smoothing factor, which represents the radius around a given pixel that will be taken into consideration. The greater the factor, the smoother will the resulting raster be.
-    This factor will be 
-   <div>Please be aware that a higher smoothing factor will increase the processing time.</div> <br/>
 
-         <div>If you have different smoothing factors for each polygon, select the corresponding field from the attribute
-    table using the override button on the right.<br/>
-       The <b>smoothing factor<b> specified above will be used as default for the polygons that do not have an individual smoothing factor on the attribute table.</div>
-    <div><a>More information on the User's Manual</a> </div>
+    Enter the smoothing factor this text field or, if it is in the attribute table (e.g.: it’s different for each mask), please select the corresponding attribute field by pressing the override button on the right. <br/>
+    This factor represents the radius around a given pixel that will be taken into consideration. The greater the number, the smoother will the resulting raster be.
+<div>
+       The <b><i>smoothing factor</i></b> specified in the text field will be used as default for the polygons that do not have an individual smoothing factor in the attribute table.</div>
+    <div><a>More information in the User's Manual</a> </div>
    <p>
        <b><i>Advanced parameters:</i></b><br/>
        <b><i>Set Paleoshorelines fixed</i></b> can be checked to keep paleoshorelines fixed during smoothing. <br/><br/>
