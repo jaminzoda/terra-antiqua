@@ -59,12 +59,11 @@ Full copyright notice in file: terra_antiqua.py -->
 
     <p>
         <b><i>Advanced parameters:</i></b><br />
-        If <b><i>Keep deeper bathymetry</i></b> (when creating a sea) is checked, the exisiting bathymetry within the
-        feature (to be created) domain, that is deeper than the one created, will be kept.<br />
-        <b><i>Keep higher topography</i></b> allows keeping existing topography that is higher than the one created,
-        while creating a mountain range.<br />
-        If these checkboxes are not checked (default), the existing topography/bathymetry is first removed, then a new
-        one is created.
+        If <b><i>Keep deeper bathymetry</i></b> or <b><i>Keep higher topography</i></b> is checked (depending on whether you are creating seas or mountain ranges), the prexisiting bathymetry /topography will be taken into account to create the feature.<br />
+        These preexisting values are only kept if they are higher than the mountain range you are creating (topography), or deeper than the sea you are creating (bathymetry).<br/>
+        If this box is not checked (default), the existing topography/bathymetry will be completely removed, before creating a new one.
+        
+        <p>Refer to the manual for more info
 
     </p>
     <p>
