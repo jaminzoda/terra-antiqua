@@ -64,7 +64,7 @@ class TaBaseAlgorithm(QThread):
 
     def checkProjectCrs(self):
         if not self.crs.isValid():
-            msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Refernce System to your project?'
+            msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Reference System to your project?'
             self.decisionMessageBox.setText(msg)
             retval = self.decisionMessageBox.exec_()
             if retval == QMessageBox.Yes:
@@ -78,7 +78,7 @@ class TaBaseAlgorithm(QThread):
             if layer.crs() != self.crs:
                 unmaching_crs.append(layer.name())
         if len(unmaching_crs) > 0:
-            msg = f"""{len(unmaching_crs)} layers in your project have different Coordinate Refernce System (crs) from the current project. For Terra Antiqua to work properly all the layers must have the same crs  as the project. Consider reprojecting your layer to the project crs before using Terra Antiqua."""
+            msg = f"""{len(unmaching_crs)} layers in your project have a different Coordinate Reference System (crs) from the current project. For Terra Antiqua to work properly all the layers must have the same crs  as the project. Consider reprojecting your layer to the project crs before using Terra Antiqua."""
             self.informationMessageBox.setText(msg)
             retval = self.informationMessageBox.exec_()
 
