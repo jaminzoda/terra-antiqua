@@ -263,3 +263,7 @@ zip_build/
 .settings/
 pb_tool.cfg
 
+.vscode/extensions.json
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json

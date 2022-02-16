@@ -3,57 +3,80 @@
 Full copyright notice in file: terra_antiqua.py -->
 
 <html>
+
 <head>
-<link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    <link rel="stylesheet" type="text/css" href="StyleSheet.css">
 </head>
 <title> Create Topography / Bathymetry </title>
 
 <body>
-<p>
-This tool creates new topography or bathymetry in a DEM in the area defined by a polygon. For details about the process, please refer to the manual.
+    <p>
+        This tool creates new topography or bathymetry in a DEM in the area defined by a polygon. For details about the
+        process, please refer to the manual.
 
-<p>
-<b><i>Raster to be modified:</i></b><br/>
-Select a raster layer in which you want to create the features.
-</p>
-<p>
-<b><i>Layer with feature polygons:</i></b><br/>
-Select a vector layer containing the polygons where you want to create new geographic features.<br/>
-If only certain masks should be used to create the feature(s), these masks must be selected and <i><b>Selected feature(s) only</i></b> must be checked.
-</p>
-<p><b><i>Geographic feature type:</i></b><br/>
-Select the type of the geographic feature that you want to create (sea, mountain range).
-</p>
-<div><b>Note:</b> All the numerical parameters that follow (max depth, min depth, etc.) can be selected from the attribute table of the <b>Layer with feature polygons</b>. For this click on the button on the right of each line to select the corresponding field of the attribute table.</div>
-<p>
-<b><i>Maximum sea depth / ridge elevation (in m):</i></b><br/>
-Enter here the maximum elevation (for topography) or maximum depth (for bathymetry) that the new features must have.
-<p>
-<b><i>Minimum sea depth / ridge elevation (in m):</i></b><br/>
-Enter here the minimum elevation (for topography) or minimum depth (for bathymetry) that the new features must have.
-<p>
-<b> <i>Ruggedness of the mountains (in %):</i></b>
-(only available for mountains)<br/> The lower this value, the "smoother" will the mountain be.
-</p>
-<p>
-<b><i>Shelf width (in km):</i></b>
-(only available for seas)<br/> Enter here the width of the shallow area that will be created at the margins of the sea (continental shelf).
-</p>
-<p>
-<b><i>Width of the continental slope:</i></b> (only available for seas)<br/>
-Enter here how large you want to make the contiental slope, which will start at the end of the shelf you define above. The higher this number is, the flatter will the slope be.
-</p>
-<p>
-<b><i>Width of the mountain slope:</i></b>
-(only available for mountains)<br/> Enter here how large you want to make the mountain slope, which starts from the edge of the polygon and goes towards the center. The higher this number is, the flatter will the slope be.
+    <p>
+        <b><i>Raster to be modified:</i></b><br />
+        Select a raster layer in which you want to create the features.
+    </p>
+    <p>
+        <b><i>Layer with feature polygons:</i></b><br />
+        Select a vector layer containing the polygons where you want to create new geographic features.<br />
+        If only certain masks should be used to create the feature(s), these masks must be selected and <i><b>Selected
+                feature(s) only</i></b> must be checked.
+    </p>
+    <p><b><i>Geographic feature type:</i></b><br />
+        Select the type of the geographic feature that you want to create (sea, mountain range).
+    </p>
+    <div><b>Note:</b> All the numerical parameters that follow (max depth, min depth, etc.) can be selected from the
+        attribute table of the <b>Layer with feature polygons</b>. For this click on the button on the right of each
+        line to select the corresponding field of the attribute table.</div>
+    <p>
+        <b><i>Maximum sea depth / ridge elevation (in m):</i></b><br />
+        Enter here the maximum elevation (for topography) or maximum depth (for bathymetry) that the new features must
+        have.
+    <p>
+        <b><i>Minimum sea depth / ridge elevation (in m):</i></b><br />
+        Enter here the minimum elevation (for topography) or minimum depth (for bathymetry) that the new features must
+        have.
+    <p>
+        <b> <i>Ruggedness of the mountains (in %):</i></b>
+        (only available for mountains)<br /> The lower this value, the "smoother" will the mountain be.
+    </p>
+    <p>
+        <b><i>Shelf width (in km):</i></b>
+        (only available for seas)<br /> Enter here the width of the shallow area that will be created at the margins of
+        the sea (continental shelf).
+    </p>
+    <p>
+        <b><i>Width of the continental slope:</i></b> (only available for seas)<br />
+        Enter here how large you want to make the contiental slope, which will start at the end of the shelf you define
+        above. The higher this number is, the flatter will the slope be.
+    </p>
+    <p>
+        <b><i>Width of the mountain slope:</i></b>
+        (only available for mountains)<br /> Enter here how large you want to make the mountain slope, which starts from
+        the edge of the polygon and goes towards the center. The higher this number is, the flatter will the slope be.
 
-<p>
-<b><i>Output file path:</i></b>
-If there is no path specified here, the file will be created in the temporary folder. The full path will be shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
+    <p>
+        <b><i>Advanced parameters:</i></b><br />
+        If <b><i>Keep deeper bathymetry</i></b> or <b><i>Keep higher topography</i></b> is checked (depending on whether you are creating seas or mountain ranges), the prexisiting bathymetry /topography will be taken into account to create the feature.<br />
+        These preexisting values are only kept if they are higher than the mountain range you are creating (topography), or deeper than the sea you are creating (bathymetry).<br/>
+        If this box is not checked (default), the existing topography/bathymetry will be completely removed, before creating a new one.
+        
+        <p>Refer to the manual for more info
 
-<div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors: <i>( ) / - % $ @ #</i><br/>
-    <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To avoid this, specify a different path (or filename) each time</div>
-</p>
+    </p>
+    <p>
+        <b><i>Output file path:</i></b>
+        If there is no path specified here, the file will be created in the temporary folder. The full path will be
+        shown in the <b>Log</b> tab and the result will be loaded to the map canvas.
+
+    <div><b>Warning:</b> Please avoid using these characters in the file name, as they might cause processing errors:
+        <i>( ) / - % $ @ #</i><br />
+        <b>Note:</b> If this tool is used repetitively with no path specified, previous results will be overwritten. To
+        avoid this, specify a different path (or filename) each time
+    </div>
+    </p>
 </body>
-</html>
 
+</html>

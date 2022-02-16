@@ -1,6 +1,6 @@
-#Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
+# Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
-#Full copyright notice in file: terra_antiqua.py
+# Full copyright notice in file: terra_antiqua.py
 
 import os
 import tempfile
@@ -24,6 +24,7 @@ class TaBaseAlgorithm(QThread):
     progress = pyqtSignal(int)
     finished = pyqtSignal(bool, object)
     log = pyqtSignal(object)
+    layerAdded = pyqtSignal(str)
 
     def __init__(self, dlg):
         super().__init__()
@@ -41,7 +42,8 @@ class TaBaseAlgorithm(QThread):
         self.decisionMessageBox = QMessageBox()
         self.decisionMessageBox.setIcon(QMessageBox.Warning)
         self.decisionMessageBox.setWindowTitle('Terra Antiqua - Warning')
-        self.decisionMessageBox.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        self.decisionMessageBox.setStandardButtons(
+            QMessageBox.Yes | QMessageBox.No)
         self.processing_output = self.getProcessingOutput()
         self.informationMessageBox = QMessageBox()
         self.informationMessageBox.setIcon(QMessageBox.Warning)
@@ -50,7 +52,7 @@ class TaBaseAlgorithm(QThread):
         try:
             self.feedback = self.dlg.createFeedback()
         except Exception as e:
-           raise e
+            raise e
         self.checkProjectCrs()
         self.checkLayersCrs()
         self.isProcessingPluginEnabled(QgsSettings())
@@ -62,7 +64,7 @@ class TaBaseAlgorithm(QThread):
 
     def checkProjectCrs(self):
         if not self.crs.isValid():
-            msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Refernce System to your project?'
+            msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Reference System to your project?'
             self.decisionMessageBox.setText(msg)
             retval = self.decisionMessageBox.exec_()
             if retval == QMessageBox.Yes:
@@ -75,12 +77,12 @@ class TaBaseAlgorithm(QThread):
         for key, layer in QgsProject.instance().mapLayers().items():
             if layer.crs() != self.crs:
                 unmaching_crs.append(layer.name())
-        if len(unmaching_crs)>0:
-            msg = f"""{len(unmaching_crs)} layers in your project have different Coordinate Refernce System (crs) from the current project. For Terra Antiqua to work properly all the layers must have the same crs  as the project. Consider reprojecting your layer to the project crs before using Terra Antiqua."""
+        if len(unmaching_crs) > 0:
+            msg = f"""{len(unmaching_crs)} layers in your project have a different Coordinate Reference System (crs) from the current project. For Terra Antiqua to work properly all the layers must have the same crs  as the project. Consider reprojecting your layer to the project crs before using Terra Antiqua."""
             self.informationMessageBox.setText(msg)
             retval = self.informationMessageBox.exec_()
 
-    def setProjectCrs(self,crs:QgsCoordinateReferenceSystem=None)->QgsCoordinateReferenceSystem:
+    def setProjectCrs(self, crs: QgsCoordinateReferenceSystem = None) -> QgsCoordinateReferenceSystem:
         if not crs:
             crs = QgsCoordinateReferenceSystem('EPSG:4326')
         project = QgsProject.instance()
@@ -109,8 +111,8 @@ class TaBaseAlgorithm(QThread):
             ('TaFillGaps', 'PaleoDEM_interpolated.tif', 'raster'),
             ('TaCopyPasteRaster', 'PaleoDEM_with_copied_values.tif', 'raster'),
             ('TaSmoothRaster', 'PaleoDEM_smoothed.tif', 'raster'),
-            ('TaIsostaticCompensation','PaleoDEM_isost_compensated.tif', 'raster'),
-             ('TaSetSeaLevel', 'PaleoDEM_with_Sea_Level_changed.tif', 'raster'),
+            ('TaIsostaticCompensation', 'PaleoDEM_isostat_compensated.tif', 'raster'),
+            ('TaSetSeaLevel', 'PaleoDEM_with_Sea_Level_changed.tif', 'raster'),
             ('TaCalculateBathymetry', 'PaleoDEM_with_calculated_bathymetry.tif', 'raster')
         ]
 
@@ -152,18 +154,19 @@ class TaBaseAlgorithm(QThread):
             processing_output = 'TEMPORARY_OUTPUT'
             try:
                 self.feedback.warning(
-                "TEMPORARY_OUTPUT is used for intermediate files but your Qgis version is different from what is expected. Check if you get correct results.")
+                    "TEMPORARY_OUTPUT is used for intermediate files but your Qgis version is different from what is expected. Check if you get correct results.")
             except:
                 pass
 
         return processing_output
 
-    def getExpressionContext(self,layer:QgsVectorLayer=None):
+    def getExpressionContext(self, layer: QgsVectorLayer = None):
         context = QgsExpressionContext()
         if not layer:
             context.appendScope(QgsExpressionContextUtils.globalScope())
         else:
-            context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(layer))
+            context.appendScopes(
+                QgsExpressionContextUtils.globalProjectLayerScopes(layer))
         return context
 
     @property

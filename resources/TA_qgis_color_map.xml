@@ -1,0 +1,17 @@
+<!DOCTYPE qgis_style>
+<qgis_style version="2">
+  <symbols/>
+  <colorramps>
+    <colorramp name="Terra_Antiqua" type="gradient" tags="Colorful">
+      <prop v="0,0,51,255" k="color1"/>
+      <prop v="255,255,255,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.083;0,51,102,255:0.166;24,138,204,255:0.249;25,145,214,255:0.332;25,151,219,255:0.415;121,187,224,255:0.67;176,226,255,255:0.67;0,97,71,255:0.583;16,123,48,255:0.666;232,214,125,255:0.749;163,68,0,255:0.832;130,30,30,255:0.915;189,189,189,255" k="stops"/>
+    </colorramp>
+  </colorramps>
+  <textformats/>
+  <labelsettings/>
+  <legendpatchshapes/>
+  <symbols3d/>
+</qgis_style>
