@@ -1,6 +1,18 @@
 CHANGELOG
 ===========
 
+Version 1.1
+---------------
+* New functionality
+    * Change map symbology: new option to add custom color palette
+    * Smooth raster: new option to smooth within polygons
+    * Fill gaps: new option to use a fixed value
+    * Remove Artefacts: new option to save polygons
+    * Create TB: new advanced parameters
+* General help text revision
+* User's manual updated
+* General Bug fixes
+
 Version 1.0.4
 ---------------
 * Minor revision of the help texts
