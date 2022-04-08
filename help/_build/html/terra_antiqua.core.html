@@ -233,6 +233,11 @@
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.addSecondaryOutputToProject">
+<span class="sig-name descname"><span class="pre">addSecondaryOutputToProject</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_output</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.addSecondaryOutputToProject" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.clean">
 <span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.clean" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -334,6 +339,11 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.kill">
 <span class="sig-name descname"><span class="pre">kill</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.kill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="terra_antiqua.core.base_algorithm.TaBaseAlgorithm.layerAdded">
+<span class="sig-name descname"><span class="pre">layerAdded</span></span><a class="headerlink" href="#terra_antiqua.core.base_algorithm.TaBaseAlgorithm.layerAdded" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1349,7 +1359,7 @@ This is basically flattening and roughening.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.vectorToRaster">
-<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">vectorToRaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geotransform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_to_burn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burn_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.vectorToRaster" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">vectorToRaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geotransform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_to_burn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burn_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.vectorToRaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rasterizes a vector layer and returns a numpy array.
 :param in_layer: Accepted data types:</p>
 <blockquote>

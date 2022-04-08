@@ -1,6 +1,6 @@
-#Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
+# Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
-#Full copyright notice in file: terra_antiqua.py
+# Full copyright notice in file: terra_antiqua.py
 
 import os
 from osgeo import (
@@ -18,19 +18,19 @@ from qgis.core import (
 import shutil
 
 import numpy as np
-from numpy import * #This is to import math functions to use in formula
+from numpy import *  # This is to import math functions to use in formula
 
 from .utils import (
-     vectorToRaster,
-     modFormula,
-     modRescale,
-     polygonOverlapCheck
-     )
+    vectorToRaster,
+    modFormula,
+    modRescale,
+    polygonOverlapCheck
+)
 from .base_algorithm import TaBaseAlgorithm
+from .taconst import taconst
 
 
 class TaModifyTopoBathy(TaBaseAlgorithm):
-
 
     def __init__(self, dlg):
         super().__init__(dlg)
@@ -53,14 +53,18 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
         self.feedback.info('Getting the raster layer')
         topo_layer = self.dlg.baseTopoBox.currentLayer()
         topo_ds = gdal.Open(topo_layer.dataProvider().dataSourceUri())
-        self.topo = topo_ds.GetRasterBand(1).ReadAsArray()
-        self.geotransform = topo_ds.GetGeoTransform()  # this geotransform is used to rasterize extracted masks below
+        self.topo = topo_ds.GetRasterBand(1).ReadAsArray(
+            buf_type=taconst.GDT_TopoDType)
+        # this geotransform is used to rasterize extracted masks below
+        self.geotransform = topo_ds.GetGeoTransform()
         self.nrows, self.ncols = np.shape(self.topo)
 
         if self.topo is not None:
-            self.feedback.info('Size of the Topography raster: {}'.format(self.topo.shape))
+            self.feedback.info(
+                'Size of the Topography raster: {}'.format(self.topo.shape))
         else:
-            self.feedback.info('There is a problem with reading the Topography raster')
+            self.feedback.info(
+                'There is a problem with reading the Topography raster')
 
         # Get the vector masks
         self.feedback.info('Getting the vector layer')
@@ -69,12 +73,13 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
         if self.vlayer.isValid():
             self.feedback.info('The mask layer is loaded properly')
         else:
-            self.feedback.error('There is a problem with the mask layer - not loaded properly')
+            self.feedback.error(
+                'There is a problem with the mask layer - not loaded properly')
             self.kill()
         if not self.killed:
             self.fields = self.vlayer.fields().toList()
 
-            #Check if the input layer contains overlapping features
+            # Check if the input layer contains overlapping features
             if self.dlg.selectedFeaturesBox.isChecked():
                 overlaps = polygonOverlapCheck(self.vlayer, selected_only=True,
                                                feedback=self.feedback,
@@ -83,8 +88,9 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 overlaps = polygonOverlapCheck(self.vlayer, selected_only=False,
                                                feedback=self.feedback,
                                                run_time=10)
-            if overlaps>0:
-                self.feedback.warning("Some polygons in the input vector layer overlap each other")
+            if overlaps > 0:
+                self.feedback.warning(
+                    "Some polygons in the input vector layer overlap each other")
                 self.feedback.warning("The topography of overlapping areas\
                                       will be modified multiple times.")
         if not self.killed:
@@ -97,12 +103,13 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             else:
                 self.features = self.vlayer.getFeatures()
                 self.feats_count = self.vlayer.featureCount()
-                if self.feats_count ==0:
+                if self.feats_count == 0:
                     self.feedback.error("The layer you selected as an input\
                                         layer is empty.")
                     self.kill()
 
-            self.context = QgsExpressionContext(QgsExpressionContextUtils.globalProjectLayerScopes(self.vlayer))
+            self.context = QgsExpressionContext(
+                QgsExpressionContextUtils.globalProjectLayerScopes(self.vlayer))
             return True
         else:
             return False
@@ -119,7 +126,6 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 else:
                     modified_array, ok = self.modifyWithMinAndMax(80)
 
-
         if not self.killed:
             if ok:
                 # Write the resulting raster array to a raster file
@@ -127,7 +133,8 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 if os.path.exists(self.out_file_path):
                     driver.Delete(self.out_file_path)
 
-                raster = driver.Create(self.out_file_path, self.ncols, self.nrows, 1, gdal.GDT_Float32)
+                raster = driver.Create(
+                    self.out_file_path, self.ncols, self.nrows, 1, taconst.GDT_TopoDType)
                 raster.SetGeoTransform(self.geotransform)
                 raster.SetProjection(self.crs.toWkt())
                 raster.GetRasterBand(1).WriteArray(modified_array)
@@ -136,13 +143,14 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 self.feedback.progress = 100
 
             else:
-                self.feedback.error("The plugin did not succeed because one or more parameters were set incorrectly.")
+                self.feedback.error(
+                    "The plugin did not succeed because one or more parameters were set incorrectly.")
                 self.feedback.error("Please, check the log above.")
                 self.finished.emit(False, "")
         else:
             self.finished.emit(False, "")
 
-    def modifyWithFormula(self, run_time = None):
+    def modifyWithFormula(self, run_time=None):
         if run_time:
             total = run_time
         else:
@@ -161,7 +169,8 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
 
             # Check if the formula field contains the formula
             if formula == NULL or ('H' in formula) is False:
-                self.feedback.warning("Mask {} does not contain any formula.".format(mask_number))
+                self.feedback.warning(
+                    "Mask {} does not contain any formula.".format(mask_number))
                 self.feedback.warning("You might want to check if the field\
                                    for formula is specified correctly in the plugin dialog.")
                 continue
@@ -178,12 +187,12 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
 
             if self.dlg.min_maxValueCheckBox.isChecked():
                 min_value, ok = self.dlg.minValueSpin.overrideButton.toProperty().value(self.context)
-                if not ok and not self.dlg.maxValueSpin.spinBox.value() - self.dlg.minValueSpin.spinBox.value()==0:
+                if not ok and not self.dlg.maxValueSpin.spinBox.value() - self.dlg.minValueSpin.spinBox.value() == 0:
                     min_value = self.dlg.minValueSpin.spinBox.value()
                 else:
                     min_value = None
                 max_value, ok = self.dlg.maxValueSpin.overrideButton.toProperty().value(self.context)
-                if not ok and not self.dlg.maxValueSpin.spinBox.value() - self.dlg.minValueSpin.spinBox.value()==0:
+                if not ok and not self.dlg.maxValueSpin.spinBox.value() - self.dlg.minValueSpin.spinBox.value() == 0:
                     max_value = self.dlg.maxValueSpin.spinBox.value()
                 else:
                     max_value = None
@@ -192,14 +201,14 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 max_value = None
 
             # Create a temporary layer to store the extracted masks
-            temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
+            temp_layer = QgsVectorLayer(
+                f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
             temp_dp = temp_layer.dataProvider()
             temp_dp.addAttributes(self.fields)
             temp_layer.updateFields()
 
             temp_dp.addFeature(feat)
             temp_dp = None
-
 
             if not self.killed:
                 # Rasterize extracted masks
@@ -210,21 +219,22 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                     self.nrows,
                     field_to_burn=None,
                     no_data=0
-                    )
+                )
                 v_layer = None
 
                 # Modify the topography
                 in_array = H[r_masks == 1]
-                H[r_masks == 1] = modFormula(in_array, formula, min_value, max_value)
+                H[r_masks == 1] = modFormula(
+                    in_array, formula, min_value, max_value)
 
             # Send progress feedback
-            self.feedback.progress += total/ self.feats_count
+            self.feedback.progress += total / self.feats_count
         if 'H' in locals():
             return (H, True)
         else:
             return (None, False)
 
-    def modifyWithMinAndMax(self, run_time = None):
+    def modifyWithMinAndMax(self, run_time=None):
         if run_time:
             total = run_time
         else:
@@ -249,18 +259,18 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                                       maximum or/and minimum values \
                                       specified in the attributes table.". format(mask_number))
                 self.feedback.warning("You might want to check if the fields for minimum and "
-                              "maximum values are specified correctly in the plugin dialog.")
+                                      "maximum values are specified correctly in the plugin dialog.")
                 continue
 
             # Create a temporary layer to store the extracted masks
-            temp_layer = QgsVectorLayer(f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
+            temp_layer = QgsVectorLayer(
+                f'Polygon?crs={self.crs.authid()}', 'extracted_masks', 'memory')
             temp_dp = temp_layer.dataProvider()
             temp_dp.addAttributes(self.fields)
             temp_layer.updateFields()
 
             temp_dp.addFeature(feat)
             temp_dp = None
-
 
             # Rasterize extracted masks
             r_masks = vectorToRaster(
@@ -270,7 +280,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 self.nrows,
                 field_to_burn=None,
                 no_data=0
-                )
+            )
             v_layer = None
 
             # Modify the topography
@@ -278,11 +288,9 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             H[r_masks == 1] = modRescale(in_array, fmin, fmax)
 
             # Send progress feedback
-            self.feedback.progress += total/ self.feats_count
+            self.feedback.progress += total / self.feats_count
 
         if 'H' in locals():
             return (H, True)
         else:
             return (None, False)
-
-

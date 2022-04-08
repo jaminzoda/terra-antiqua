@@ -25,6 +25,7 @@ from .utils import (
     polygonsToPolylines
 )
 from .base_algorithm import TaBaseAlgorithm
+from .taconst import taconst
 
 
 class TaCompileTopoBathy(TaBaseAlgorithm):
@@ -114,7 +115,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
         self.getParameters()
         raster_size = (self.items[0].get('Layer').dataProvider().ySize(),
                        self.items[0].get('Layer').dataProvider().xSize())
-        compiled_array = np.empty(raster_size)
+        compiled_array = np.empty(raster_size, taconst.NP_TopoDType)
         compiled_array[:] = np.nan
         unit_progress = 90/len(self.items)
         for i in range(len(self.items), 0, -1):
@@ -126,7 +127,8 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
 
             try:
                 ds = gdal.Open(item.get("Layer").source())
-                data_array = ds.GetRasterBand(1).ReadAsArray()
+                data_array = ds.GetRasterBand(1).ReadAsArray(
+                    buf_type=taconst.GDT_TopoDType)
             except Exception as e:
                 self.feedback.error(
                     f"Compiling {item.get('Layer').name()} failed.")
@@ -225,7 +227,7 @@ class TaCompileTopoBathy(TaBaseAlgorithm):
                                                                  raster_size[1],
                                                                  raster_size[0],
                                                                  1,
-                                                                 gdal.GDT_Float32)
+                                                                 taconst.GDT_TopoDType)
 
             ds = gdal.Open(self.items[0].get("Layer").source())
             geotransform = ds.GetGeoTransform()

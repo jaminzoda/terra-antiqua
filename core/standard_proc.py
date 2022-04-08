@@ -2,6 +2,7 @@
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
 
+from .taconst import taconst
 from .base_algorithm import TaBaseAlgorithm
 from .utils import rasterSmoothing, rasterSmoothingInPolygon
 import os
@@ -149,13 +150,15 @@ class TaStandardProcessing(TaBaseAlgorithm):
             from_raster_layer = self.dlg.copyFromRasterBox.currentLayer()
             from_raster = gdal.Open(
                 from_raster_layer.dataProvider().dataSourceUri())
-            from_array = from_raster.GetRasterBand(1).ReadAsArray()
+            from_array = from_raster.GetRasterBand(
+                1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
         if not self.killed:
             # Get a raster layer to copy the elevation values TO
             to_raster_layer = self.dlg.baseTopoBox.currentLayer()
             to_raster = gdal.Open(
                 to_raster_layer.dataProvider().dataSourceUri())
-            to_array = to_raster.GetRasterBand(1).ReadAsArray()
+            to_array = to_raster.GetRasterBand(
+                1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
         self.feedback.progress += 20
 
         if not self.killed:
@@ -203,7 +206,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             self.feedback.info("Saving the resulting raster.")
             # Create a new raster for the result
             output_raster = gdal.GetDriverByName('GTiff').Create(
-                self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                self.out_file_path, ncols, nrows, 1, taconst.GDT_TopoDType)
             output_raster.SetGeoTransform(geotransform)
             output_raster.SetProjection(self.crs.toWkt())
             output_band = output_raster.GetRasterBand(1)
@@ -228,12 +231,13 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 "Using {} for smoothing the elevation/bathymetry values.".format(smoothing_type))
 
         if not self.killed:
-            in_array = raster_to_smooth_ds.GetRasterBand(1).ReadAsArray()
+            in_array = raster_to_smooth_ds.GetRasterBand(
+                1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
 
             # Check if data contains NaN values. If it contains, interpolate values for them first
             # If the pixels with NaN values are left empty they will cause part of the smoothed raster to get empty.
             # Gaussian filter removes all values under the kernel, which contain at least one NaN ValueError
-            nan_mask = np.zeros(in_array.shape)
+            nan_mask = np.zeros(in_array.shape, dtype=taconst.NP_MaskDType)
             no_data_value = raster_to_smooth_ds.GetRasterBand(
                 1).GetNoDataValue()
             # if the no_data_value is np.nan, band.GetNoDataValue returns nan,
@@ -248,7 +252,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 filled_raster = fillNoData(raster_to_smooth_layer)
                 raster_to_smooth_ds = gdal.Open(
                     filled_raster, gdalconst.GA_ReadOnly)
-                in_array = raster_to_smooth_ds.GetRasterBand(1).ReadAsArray()
+                in_array = raster_to_smooth_ds.GetRasterBand(
+                    1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
 
         if not self.killed:
             in_raster_extent = raster_to_smooth_layer.extent()
@@ -424,7 +429,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
                     self.feedback.error(e)
 
                 smoothed_raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, in_array.shape[1],
-                                                                       in_array.shape[0], 1, gdal.GDT_Float32)
+                                                                       in_array.shape[0], 1, taconst.GDT_TopoDType)
                 smoothed_raster.SetGeoTransform(
                     raster_to_smooth_ds.GetGeoTransform())
                 smoothed_raster.SetProjection(self.crs.toWkt())
@@ -468,9 +473,10 @@ class TaStandardProcessing(TaBaseAlgorithm):
                     smoothed_raster = gdal.Open(
                         self.out_file_path, gdalconst.GA_Update)
                     smoothed_array = smoothed_raster.GetRasterBand(
-                        1).ReadAsArray()
+                        1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
                     # map NoData values to reset them after interpolation
-                    nan_mask = np.zeros(smoothed_array.shape, dtype=np.int8)
+                    nan_mask = np.zeros(
+                        smoothed_array.shape, dtype=taconst.NP_MaskDType)
                     nan_mask[np.isnan(smoothed_array)] = 1
                     # set paleoshorelines
                     smoothed_array[shorelines_array == 1] = 0
@@ -492,7 +498,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                     # any pixel on the other side of the shoreline
                     final_raster = gdal.Open(
                         self.out_file_path, gdalconst.GA_Update)
-                    final_array = final_raster.GetRasterBand(1).ReadAsArray()
+                    final_array = final_raster.GetRasterBand(
+                        1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
                     array_to_rescale_asl = final_array[(
                         shorelines_mask_array == 1)*(final_array < 0) == 1]
                     rescaled = modRescale(array_to_rescale_asl, 0.1, 5)
@@ -525,7 +532,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 topo_br_layer = self.dlg.baseTopoBox.currentLayer()
                 topo_br_ds = gdal.Open(
                     topo_br_layer.dataProvider().dataSourceUri())
-                topo_br_data = topo_br_ds.GetRasterBand(1).ReadAsArray()
+                topo_br_data = topo_br_ds.GetRasterBand(
+                    1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
                 assert topo_br_layer, "The Berock topography raster layer is not loaded properly."
                 assert topo_br_layer.isValid(), "The Bedrock topography raster layer is not valid."
             except Exception as e:
@@ -543,7 +551,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 topo_ice_layer = self.dlg.selectIceTopoBox.currentLayer()
                 topo_ice_ds = gdal.Open(
                     topo_ice_layer.dataProvider().dataSourceUri())
-                topo_ice_data = topo_ice_ds.GetRasterBand(1).ReadAsArray()
+                topo_ice_data = topo_ice_ds.GetRasterBand(
+                    1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
                 assert topo_ice_layer, "The Ice topography raster layer is not loaded properly."
                 assert topo_ice_layer.isValid(), "The Ice topography raster layer is not valid."
             except Exception as e:
@@ -734,7 +743,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
             geotransform = topo_br_ds.GetGeoTransform()
             nrows, ncols = np.shape(topo_br_data)
             output_raster = gdal.GetDriverByName('GTiff').Create(
-                self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                self.out_file_path, ncols, nrows, 1, taconst.GDT_TopoDType)
             output_raster.SetGeoTransform(geotransform)
             output_raster.SetProjection(self.crs.toWkt())
             output_band = output_raster.GetRasterBand(1)
@@ -760,7 +769,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                f" by  {np.abs(shiftAmount)} meters.")
             try:
                 topo_ds = gdal.Open(topo_layer.source())
-                input_topo_array = topo_ds.GetRasterBand(1).ReadAsArray()
+                input_topo_array = topo_ds.GetRasterBand(
+                    1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
             except Exception as e:
                 self.feedback.error(
                     f"Could not load the input raster layer {topo_layer.name()} properly.")
@@ -768,7 +778,8 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 self.kill()
         if not self.killed:
             try:
-                modified_topo_array = np.empty(input_topo_array.shape)
+                modified_topo_array = np.empty(
+                    input_topo_array.shape, dtype=taconst.NP_TopoDType)
                 modified_topo_array[:] = np.nan
                 modified_topo_array[np.isfinite(input_topo_array)] = input_topo_array[np.isfinite(
                     input_topo_array)] - shiftAmount
@@ -780,7 +791,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
             try:
                 raster = gdal.GetDriverByName('GTiff').Create(
-                    self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                    self.out_file_path, ncols, nrows, 1, taconst.GDT_TopoDType)
                 raster.SetGeoTransform(geotransform)
                 raster.SetProjection(self.crs.toWkt())
                 raster.GetRasterBand(1).WriteArray(modified_topo_array)
@@ -815,7 +826,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
         if not self.killed:
             # create an empty array to store calculated ocean depth from age.
-            ocean_depth = np.empty(ocean_age.shape)
+            ocean_depth = np.empty(ocean_age.shape, dtype=taconst.NP_TopoDType)
             ocean_depth[:] = np.nan
             # calculate ocean age
             time_difference = reconstruction_time - age_raster_time
@@ -832,7 +843,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
             try:
                 raster = gdal.GetDriverByName('GTiff').Create(
-                    self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
+                    self.out_file_path, ncols, nrows, 1, taconst.GDT_TopoDType)
                 raster.SetGeoTransform(geotransform)
                 raster.SetProjection(self.crs.toWkt())
                 raster.GetRasterBand(1).WriteArray(ocean_depth)
