@@ -33,6 +33,7 @@ from .utils import (
     TaVectorFileWriter)
 from qgis._core import QgsRasterLayer
 from .base_algorithm import TaBaseAlgorithm
+from .taconst import taconst
 
 
 class TaPolygonCreator(QgsMapToolEmitPoint):
@@ -137,7 +138,8 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                 self.feedback.warning(error[1])
         if not self.killed:
             topo_raster = gdal.Open(topo_layer.source())
-            H = topo_raster.GetRasterBand(1).ReadAsArray()
+            H = topo_raster.GetRasterBand(1).ReadAsArray(
+                buf_type=taconst.GDT_TopoDType)
         if not self.killed:
             total = 75 / self.vl.featureCount() if self.vl.featureCount() else 0
             features = self.vl.getFeatures()
@@ -197,7 +199,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                     topo_layer.width(),
                     topo_layer.height(),
                     1,  # number of bands
-                    gdal.GDT_Float32  # data type
+                    taconst.GDT_TopoDType  # data type
                 )
                 raster_for_interpolation.SetGeoTransform(
                     topo_raster.GetGeoTransform())
@@ -236,7 +238,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                     topo_layer.width(),
                     topo_layer.height(),
                     1,  # number of bands
-                    gdal.GDT_Float32  # data type
+                    taconst.GDT_TopoDType  # data type
                 )
                 output_raster.SetGeoTransform(topo_raster.GetGeoTransform())
                 output_raster.SetProjection(topo_raster.GetProjection())

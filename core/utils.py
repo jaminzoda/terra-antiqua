@@ -12,11 +12,13 @@ import time
 
 
 import numpy as np
-from numpy import * #This to import math functions to be used in formula (modFormula)
+# This to import math functions to be used in formula (modFormula)
+from numpy import *
 import subprocess
 import random
 from random import randrange
 from typing import Tuple, Union
+from .taconst import taconst
 from .logger import TaFeedback
 from qgis.gui import QgsMessageBar
 try:
@@ -130,7 +132,7 @@ def fillNoData(in_layer: QgsRasterLayer,
         print("Could not open the provided raster layer.")
     else:
         in_band = raster_ds.GetRasterBand(1)
-        in_array = in_band.ReadAsArray()
+        in_array = in_band.ReadAsArray(buf_type=taconst.GDT_TopoDType)
 
     if no_data_value != None:
         in_array[in_array == no_data_value] = np.nan
@@ -149,14 +151,14 @@ def fillNoData(in_layer: QgsRasterLayer,
 
     raster_ds = None
 
-    out_array = np.ones(in_array.shape)
+    out_array = np.ones(in_array.shape, dtype=taconst.NP_TopoDType)
 
     out_array[np.isnan(in_array)] = np.nan
     out_array[np.isfinite(in_array)] = 1
 
     # Create Target - TIFF
     out_raster = gdal.GetDriverByName('GTiff').Create(
-        mask_path, width, height, 1, gdal.GDT_Byte)
+        mask_path, width, height, 1, taconst.GDT_TopoDType)
     out_raster.SetGeoTransform(geotransform)
     crs = in_layer.crs().toWkt()
     out_raster.SetProjection(crs)
@@ -217,7 +219,7 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
         print("Could not open the provided raster layer.")
     else:
         in_band = raster_ds.GetRasterBand(1)
-        in_array = in_band.ReadAsArray()
+        in_array = in_band.ReadAsArray(buf_type=taconst.GDT_TopoDType)
 
     if no_data_value != None:
         in_array[in_array == no_data_value] = np.nan
@@ -236,14 +238,14 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
     mask_path = os.path.join(
         temp_dir, "Valid_data_mask_for_interpolation.tiff")
 
-    out_array = np.ones(in_array.shape)
+    out_array = np.ones(in_array.shape, dtype=taconst.NP_TopoDType)
 
     out_array[np.isnan(in_array)] = np.nan
     out_array[np.isfinite(in_array)] = 1
 
     # Create Target - TIFF
     out_raster = gdal.GetDriverByName('GTiff').Create(
-        mask_path, width, height, 1, gdal.GDT_Byte)
+        mask_path, width, height, 1, taconst.GDT_TopoDType)
     out_raster.SetGeoTransform(geotransform)
     crs = in_layer.crs().toWkt()
     out_raster.SetProjection(crs)
@@ -276,7 +278,8 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
 
     # Output raster
     raster_ds = gdal.Open(out_file_path, gdal.GA_Update)
-    raster_array = raster_ds.GetRasterBand(1).ReadAsArray()
+    raster_array = raster_ds.GetRasterBand(
+        1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
     raster_array[mapped_array == 1] = np.nan
     raster_ds.GetRasterBand(1).WriteArray(raster_array)
     raster_ds.GetRasterBand(1).FlushCache()
@@ -292,10 +295,11 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
 
     return out_file_path
 
-def fillNoDataWithAFixedValue(in_layer:QgsRasterLayer,
-                              value_to_fill:float,
-                              mask_layer:QgsVectorLayer = None,
-                              out_file_path:str = None) -> str:
+
+def fillNoDataWithAFixedValue(in_layer: QgsRasterLayer,
+                              value_to_fill: float,
+                              mask_layer: QgsVectorLayer = None,
+                              out_file_path: str = None) -> str:
     """Fills gaps in a raster layer with a specific fixed value.
     :param in_layer: A raster layer to fill gaps in.
     :type in_layer: QgsRasterLayer.
@@ -311,27 +315,29 @@ def fillNoDataWithAFixedValue(in_layer:QgsRasterLayer,
     """
     if out_file_path is None:
         temp_dir = tempfile.gettempdir()
-        out_file_path = os.path.join(temp_dir, "PaleoDEM_with_gaps_filled.tiff")
+        out_file_path = os.path.join(
+            temp_dir, "PaleoDEM_with_gaps_filled.tiff")
     ds = gdal.Open(in_layer.source())
-    in_array = ds.GetRasterBand(1).ReadAsArray()
+    in_array = ds.GetRasterBand(1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
     no_data_value = ds.GetRasterBand(1).GetNoDataValue()
     geotransform = ds.GetGeoTransform()
     width = in_layer.width()
     height = in_layer.height()
     if not np.isnan(no_data_value):
-        in_array[in_array==no_data_value] = np.nan
+        in_array[in_array == no_data_value] = np.nan
     if mask_layer and mask_layer.isValid():
-       assert mask_layer.featureCount() >0, "The selected mask vector layer is empty."
-       mask_array = vectorToRaster(mask_layer,
+        assert mask_layer.featureCount() > 0, "The selected mask vector layer is empty."
+        mask_array = vectorToRaster(mask_layer,
                                     geotransform,
                                     width,
                                     height)
-       in_array[(mask_array==1)*np.isnan(in_array) == 1] = value_to_fill
+        in_array[(mask_array == 1)*np.isnan(in_array) == 1] = value_to_fill
     else:
         in_array[np.isnan(in_array)] = value_to_fill
 
     # Create Target - TIFF
-    out_raster = gdal.GetDriverByName('GTiff').Create(out_file_path, width, height, 1, gdal.GDT_Float32)
+    out_raster = gdal.GetDriverByName('GTiff').Create(
+        out_file_path, width, height, 1, taconst.GDT_TopoDType)
     out_raster.SetGeoTransform(geotransform)
     crs = in_layer.crs().toWkt()
     out_raster.SetProjection(crs)
@@ -342,6 +348,7 @@ def fillNoDataWithAFixedValue(in_layer:QgsRasterLayer,
     out_raster = None
 
     return out_file_path
+
 
 def rasterSmoothing(in_layer, filter_type,
                     factor,
@@ -370,7 +377,7 @@ def rasterSmoothing(in_layer, filter_type,
     raster_ds = gdal.Open(in_layer.source(), gdalconst.GA_Update)
     in_band = raster_ds.GetRasterBand(1)
     no_data_value = in_band.GetNoDataValue()
-    in_array = in_band.ReadAsArray()
+    in_array = in_band.ReadAsArray(buf_type=taconst.GDT_TopoDType)
     in_array[in_array == no_data_value] = np.nan
     nan_mask = np.isnan(in_array)
     # Check if data contains NaN values. If it contains, interpolate values for them first
@@ -381,7 +388,7 @@ def rasterSmoothing(in_layer, filter_type,
         filled_raster = fillNoData(in_layer)
         raster_ds_filled = gdal.Open(filled_raster, gdalconst.GA_ReadOnly)
         in_band_filled = raster_ds_filled.GetRasterBand(1)
-        in_array = in_band_filled.ReadAsArray()
+        in_array = in_band_filled.ReadAsArray(buf_type=taconst.GDT_TopoDType)
         raster_ds_filled = None
         in_band_filled = None
 
@@ -421,7 +428,7 @@ def rasterSmoothing(in_layer, filter_type,
         except Exception as e:
             raise e
         smoothed_raster = gdal.GetDriverByName('GTiff').Create(
-            out_file, cols, rows, 1, gdal.GDT_Float32)
+            out_file, cols, rows, 1, taconst.GDT_TopoDType)
         smoothed_raster.SetGeoTransform(geotransform)
         crs = in_layer.crs()
         smoothed_raster.SetProjection(crs.toWkt())
@@ -680,7 +687,16 @@ def setVectorSymbology(in_layer):
     layer.triggerRepaint()
 
 
-def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_to_burn=None, no_data=None, burn_value=None, output_path=None):
+def vectorToRaster(in_layer,
+                   geotransform,
+                   width,
+                   height,
+                   feedback=None,
+                   field_to_burn=None,
+                   no_data=None,
+                   burn_value=None,
+                   data_type=taconst.GDT_MaskDType,
+                   output_path=None):
     """
     Rasterizes a vector layer and returns a numpy array.
     :param in_layer: Accepted data types:
@@ -741,7 +757,7 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
         'EXTENT': raster_extent,
         'NODATA': nodata,
         'OPTIONS': '',
-        'DATA_TYPE': 5,  # Float32 is used
+        'DATA_TYPE': data_type,
         'INIT': None,
         'INVERT': False,
         'OUTPUT': output
@@ -755,12 +771,13 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
             raise e
 
     points_raster_ds = gdal.Open(points_raster)
-    points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
+    rasterized_array = points_raster_ds.GetRasterBand(
+        1).ReadAsArray(buf_type=data_type)
 
     drv = gdal.GetDriverByName('GTIFF')
     drv.Delete(output)
 
-    return points_array
+    return rasterized_array
 
 
 def vectorToRasterOld(in_layer, geotransform, ncols, nrows):
@@ -1004,7 +1021,7 @@ def modFormula(in_array, formula, min=None, max=None):
 
     topo = in_array
 
-    H = np.empty(topo.shape)
+    H = np.empty(topo.shape, dtype=taconst.NP_TopoDType)
     H.fill(np.nan)
     if min != None and max != None:
         index = 'H[(H>min)*(H<max)==1]'
@@ -1498,7 +1515,6 @@ class TaVectorFileWriter(QgsVectorFileWriter):
                          fileEncoding: str,
                          destCRS: QgsCoordinateReferenceSystem,
                          driverName: str) -> Tuple[QgsVectorFileWriter.WriterError, str]:
-
         """This function is used to make writing to shapefiles compatible beteen Qgis version >3.10 and <3.10."""
 
         # Check if the file is already created. Acts like overwrite
