@@ -3,6 +3,7 @@
 # Full copyright notice in file: terra_antiqua.py
 
 
+from cProfile import label
 import os
 import tempfile
 from PyQt5.QtWidgets import QComboBox, QPushButton
@@ -21,7 +22,8 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
 
     def defineParameters(self):
         self.comparisonTypeBox = self.addParameter(QComboBox,
-                                                   "Choose a comparison operator")
+                                                   label="Choose a comparison operator",
+                                                   param_id="comparisonTypeBox")
         # List comparison operators
 
         options = ['More than', 'Less than', 'Equal', 'Between']
@@ -29,25 +31,32 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
         self.comparisonTypeBox.setCurrentIndex(0)
 
         self.exprLineEdit = self.addMandatoryParameter(TaExpressionWidget,
-                                                       "Enter your expression:")
+                                                       label="Enter your expression:",
+                                                       param_id="exprLineEdit")
         self.exprLineEdit.lineEdit.editingFinished.connect(
             self.formulaValidation)
         self.interpolateCheckBox = self.addParameter(TaCheckBox,
-                                                     "Interpolate values for removed cells")
-        self.addButton = self.addParameter(QPushButton, "Add more polygons")
+                                                     label="Interpolate values for removed cells",
+                                                     param_id="interpolateCheckBox")
+        self.addButton = self.addParameter(QPushButton,
+                                           label="Add more polygons",
+                                           param_id="addButton")
         # Elements of dialog are changed appropriately, when a filling type is selected
         self.comparisonTypeBox.currentIndexChanged.connect(
             self.typeOfComparison)
 
         # Add advanced parameters
         self.savePolygonsCheckBox = self.addAdvancedParameter(TaCheckBox,
-                                                              label="Save mask layer.")
+                                                              label="Save mask layer.",
+                                                              param_id="savePolygonsCheckBox")
         self.addPolLayerToCanvasCheckBox = self.addAdvancedParameter(TaCheckBox,
-                                                                     label="Add mask layer to the map canvas.")
+                                                                     label="Add mask layer to the map canvas.",
+                                                                     param_id="addPolLayerToCanvasCheckBox")
         self.addPolLayerToCanvasCheckBox.setDefaultCheckedState(True)
 
         self.masksOutputPath = self.addAdvancedParameter(QgsFileWidget,
-                                                         label="Output file path:")
+                                                         label="Output file path:",
+                                                         param_id="masksOutputPath")
         self.masksOutputPath.setStorageMode(self.masksOutputPath.SaveFile)
         self.masksOutputPath.setFilter('*.shp')
         default_file_path = os.path.join(tempfile.gettempdir(),

@@ -203,7 +203,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.addAdvancedParameter">
-<span class="sig-name descname"><span class="pre">addAdvancedParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">PyQt5.QtWidgets.QWidget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant_index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">PyQt5.QtWidgets.QWidget</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addAdvancedParameter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">addAdvancedParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">PyQt5.QtWidgets.QWidget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant_index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">PyQt5.QtWidgets.QWidget</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addAdvancedParameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds advanced parameters to the dialog.
 :param param: A parameter widget to be added.
 :type param: QWidget.
@@ -229,18 +229,81 @@ i.e. TaStandardProcessingDlg.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.addMandatoryParameter">
-<span class="sig-name descname"><span class="pre">addMandatoryParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addMandatoryParameter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">addMandatoryParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">PyQt5.QtWidgets.QWidget</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addMandatoryParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds parameter widget to the list of parameters and marks it as mandatory.
+:param param: The parameter widget to be added.
+:type param: QWidget.
+:param label: Label for the parameter to be added.
+:type label: str.
+:param widget_type: Widget type. Currently supports only TaAbstractMapLayerComboBox.
+If the parameter to be added is of TaAbstractMapLayerComboBox type, the maplayer combobox
+will be returned by calling parameter.getMainWidget()
+:type widget_type: str.
+:param param_id: parameter id that will be used from within the algorithm to access the
+value of the parameter.
+:type patam_id: str.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the added parameter widget.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>QWidget.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.addParameter">
-<span class="sig-name descname"><span class="pre">addParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addParameter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">addParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">PyQt5.QtWidgets.QWidget</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds parameter widget to the list of parameters to be able to show it on the dialog.
+:param param: The parameter widget to be added.
+:type param: QWidget.
+:param label: Label for the parameter to be added.
+:type label: str.
+:param widget_type: Widget type. Currently supports only TaAbstractMapLayerComboBox.
+If the parameter to be added is of TaAbstractMapLayerComboBox type, the maplayer combobox
+will be returned by calling parameter.getMainWidget()
+:type widget_type: str.
+:param param_id: parameter id that will be used from within the algorithm to access the
+value of the parameter.
+:type patam_id: str.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the added parameter widget.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>QWidget.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.addVariantParameter">
-<span class="sig-name descname"><span class="pre">addVariantParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mandatory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addVariantParameter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">addVariantParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">PyQt5.QtWidgets.QWidget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant_index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widget_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mandatory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">PyQt5.QtWidgets.QWidget</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.addVariantParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a variant parameter widget to the list of parameters to be able to show it on the dialog.
+:param param: The parameter widget to be added.
+:type param: QWidget.
+:param label: Label for the parameter to be added.
+:type label: str.
+:param widget_type: Widget type. Currently supports only TaAbstractMapLayerComboBox.
+If the parameter to be added is of TaAbstractMapLayerComboBox type, the maplayer combobox
+will be returned by calling parameter.getMainWidget()
+:type widget_type: str.
+:param variant_index: In a dialog with multiple algorithms this specifies index  (name) of that algorithm
+the parameter is shown only, if that index is chosen in the appropriate combobox.
+:type variant_index: str.
+:param param_id: parameter id that will be used from within the algorithm to access the
+value of the parameter.
+:type patam_id: str</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the added parameter widget.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>QWidget.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.appendAdvancedWidgets">
@@ -294,14 +357,27 @@ i.e. TaStandardProcessingDlg.
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.getAdvancedParameters">
+<span class="sig-name descname"><span class="pre">getAdvancedParameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.getAdvancedParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of advanced parameters.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.getAlgName">
 <span class="sig-name descname"><span class="pre">getAlgName</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.getAlgName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.getParameters">
-<span class="sig-name descname"><span class="pre">getParameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.getParameters" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">getParameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of main paramaters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.getVariantParameters">
+<span class="sig-name descname"><span class="pre">getVariantParameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#terra_antiqua.gui.base_dialog.TaBaseDialog.getVariantParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of variant parameters.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.base_dialog.TaBaseDialog.isCanceled">
@@ -387,16 +463,6 @@ the output files is the OS’s temporary folder.
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.gui.compile_tb_dlg.</span></span><span class="sig-name descname"><span class="pre">TaCompileTopoBathyDlg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addColumn">
-<span class="sig-name descname"><span class="pre">addColumn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addColumn" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addRow">
-<span class="sig-name descname"><span class="pre">addRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.addRow" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.defineParameters">
 <span class="sig-name descname"><span class="pre">defineParameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds parameters to a list object that is used by the TaBaseDialog
@@ -411,21 +477,6 @@ class to create widgets and place them in parameters tab.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.onRemoveOverlapCheckBoxStateChange">
 <span class="sig-name descname"><span class="pre">onRemoveOverlapCheckBoxStateChange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.onRemoveOverlapCheckBoxStateChange" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterButtonSignal">
-<span class="sig-name descname"><span class="pre">openRasterButtonSignal</span></span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterButtonSignal" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterFromDisk">
-<span class="sig-name descname"><span class="pre">openRasterFromDisk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.openRasterFromDisk" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.removeRow">
-<span class="sig-name descname"><span class="pre">removeRow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.compile_tb_dlg.TaCompileTopoBathyDlg.removeRow" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -481,23 +532,8 @@ class to create widgets and place them in parameters tab.</p>
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.gui.prepare_masks_dlg.</span></span><span class="sig-name descname"><span class="pre">TaPrepareMasksDlg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.base_dialog.TaBaseDialog" title="terra_antiqua.gui.base_dialog.TaBaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.base_dialog.TaBaseDialog</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.addRow">
-<span class="sig-name descname"><span class="pre">addRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.addRow" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.defineParameters">
 <span class="sig-name descname"><span class="pre">defineParameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.defineParameters" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.removeRow">
-<span class="sig-name descname"><span class="pre">removeRow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.removeRow" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.updateItemsInMaskCategories">
-<span class="sig-name descname"><span class="pre">updateItemsInMaskCategories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.prepare_masks_dlg.TaPrepareMasksDlg.updateItemsInMaskCategories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -694,12 +730,11 @@ file properly.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>widgets</strong> (<em>list.</em>) – A list of widgets that need to be registered with the checkbox.</p></li>
-<li><p><strong>natural</strong> – If natural is True, the widgets get disabled, when the checkbox is</p></li>
+<li><p><strong>natural</strong> (<em>bool.</em>) – If natural is True, the widgets get disabled, when the checkbox is
+checked. If it is False the checbox get enabled.</p></li>
 </ul>
 </dd>
 </dl>
-<p>checked. If it is False the checbox get enabled.
-:type natural: bool.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -815,6 +850,37 @@ If the linked widget contains any selected features, the checkbox gets enabled.
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaRasterCompilerTableWidget">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.gui.widgets.</span></span><span class="sig-name descname"><span class="pre">TaRasterCompilerTableWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterCompilerTableWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.widgets.TaTableWidget" title="terra_antiqua.gui.widgets.TaTableWidget"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.widgets.TaTableWidget</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.addColumn">
+<span class="sig-name descname"><span class="pre">addColumn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.addColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.addRow">
+<span class="sig-name descname"><span class="pre">addRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.addRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.openRasterButtonSignal">
+<span class="sig-name descname"><span class="pre">openRasterButtonSignal</span></span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.openRasterButtonSignal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.openRasterFromDisk">
+<span class="sig-name descname"><span class="pre">openRasterFromDisk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.openRasterFromDisk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.removeRow">
+<span class="sig-name descname"><span class="pre">removeRow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterCompilerTableWidget.removeRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaRasterLayerComboBox">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.gui.widgets.</span></span><span class="sig-name descname"><span class="pre">TaRasterLayerComboBox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaRasterLayerComboBox" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.widgets.TaMapLayerComboBox" title="terra_antiqua.gui.widgets.TaMapLayerComboBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.widgets.TaMapLayerComboBox</span></code></a></p>
@@ -870,8 +936,8 @@ type value: int.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaTableWidget">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.gui.widgets.</span></span><span class="sig-name descname"><span class="pre">TaTableWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QTableWidget</span></code></p>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.gui.widgets.</span></span><span class="sig-name descname"><span class="pre">TaTableWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaTableWidget.moveRowDown">
 <span class="sig-name descname"><span class="pre">moveRowDown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget.moveRowDown" title="Permalink to this definition">¶</a></dt>
@@ -880,6 +946,32 @@ type value: int.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaTableWidget.moveRowUp">
 <span class="sig-name descname"><span class="pre">moveRowUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget.moveRowUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaTableWidget.registerMsgBar">
+<span class="sig-name descname"><span class="pre">registerMsgBar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg_bar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaTableWidget.registerMsgBar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaVectorCompilerTableWidget">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.gui.widgets.</span></span><span class="sig-name descname"><span class="pre">TaVectorCompilerTableWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaVectorCompilerTableWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#terra_antiqua.gui.widgets.TaTableWidget" title="terra_antiqua.gui.widgets.TaTableWidget"><code class="xref py py-class docutils literal notranslate"><span class="pre">terra_antiqua.gui.widgets.TaTableWidget</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaVectorCompilerTableWidget.addRow">
+<span class="sig-name descname"><span class="pre">addRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaVectorCompilerTableWidget.addRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaVectorCompilerTableWidget.removeRow">
+<span class="sig-name descname"><span class="pre">removeRow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaVectorCompilerTableWidget.removeRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="terra_antiqua.gui.widgets.TaVectorCompilerTableWidget.updateItemsInMaskCategories">
+<span class="sig-name descname"><span class="pre">updateItemsInMaskCategories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.gui.widgets.TaVectorCompilerTableWidget.updateItemsInMaskCategories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

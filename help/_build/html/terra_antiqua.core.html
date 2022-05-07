@@ -194,7 +194,7 @@
 <span id="terra-antiqua-core-algorithm-provider-module"></span><h2>terra_antiqua.core.algorithm_provider module<a class="headerlink" href="#module-terra_antiqua.core.algorithm_provider" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.algorithm_provider.</span></span><span class="sig-name descname"><span class="pre">TaAlgorithmProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.algorithm_provider.</span></span><span class="sig-name descname"><span class="pre">TaAlgorithmProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaAlgorithmProvider" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.core.algorithm_provider.TaAlgorithmProvider.add_result">
@@ -225,7 +225,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.algorithm_provider.</span></span><span class="sig-name descname"><span class="pre">TaRemoveArtefactsAlgProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tltp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.algorithm_provider.</span></span><span class="sig-name descname"><span class="pre">TaRemoveArtefactsAlgProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tltp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="terra_antiqua.core.algorithm_provider.TaRemoveArtefactsAlgProvider.addResult">
@@ -794,57 +794,42 @@ raises a NotImplementedError.</p>
 </div>
 <div class="section" id="module-terra_antiqua.core.terra_antiqua">
 <span id="terra-antiqua-core-terra-antiqua-module"></span><h2>terra_antiqua.core.terra_antiqua module<a class="headerlink" href="#module-terra_antiqua.core.terra_antiqua" title="Permalink to this headline">¶</a></h2>
-<dl>
-<dt>/<strong>***********************************************************************</strong></dt><dd><dl class="simple">
-<dt>Terra Antiqua</dt><dd><p>A QGIS plugin</p>
-</dd>
-</dl>
-</dd>
-<dt>Terra Antiqua deals with the reconstruction of paleogeography, simplifying the reconstruction process. The conceptual approach we follow consists of modifying present-day topography, assuming that it is possible to infer the paleogeography based on present-day observations (e.g., fossil data, thermochronological data). Terra Antiqua provides a complete set of tools to edit Digital Elevations Models (DEM) for paleoreconstructions.</dt><dd><blockquote>
-<div><blockquote>
-<div></div></blockquote>
-<p>begin             : 2019-03-18
-git sha           : $Format:%H$
-copyright         : (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
-email             : <a class="reference external" href="mailto:jovid&#46;aminov&#37;&#52;&#48;outlook&#46;com">jovid<span>&#46;</span>aminov<span>&#64;</span>outlook<span>&#46;</span>com</a></p>
-</div></blockquote>
-<p><strong>***********************************************************************</strong>/</p>
-</dd>
-<dt>/<strong>***********************************************************************</strong></dt><dd><ul class="simple">
-<li><ul>
-<li></li>
-</ul>
-</li>
-<li><p>This program is free software; you can redistribute it and/or modify  *</p></li>
-<li><p>it under the terms of the GNU General Public License as published by  *</p></li>
-<li><p>the Free Software Foundation; either version 3 of the License, or     *</p></li>
-<li><p>(at your option) any later version.                                   *</p></li>
-<li><ul>
-<li></li>
-</ul>
-</li>
-<li><p>This program is distributed in the hope that it will be useful,       *</p></li>
-<li><p>but WITHOUT ANY WARRANTY; without even the implied warranty of        *</p></li>
-<li><p>MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *</p></li>
-<li><p>GNU General Public License for more details.                          *</p></li>
-<li><ul>
-<li></li>
-</ul>
-</li>
-<li><p>You should have received a copy of the GNU General Public License     *</p></li>
-<li><p>along with this program.  If not, see &lt;<a class="reference external" href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>&gt;.*</p></li>
-<li><ul>
-<li></li>
-</ul>
-</li>
-<li><ul>
-<li></li>
-</ul>
-</li>
-</ul>
-<p><strong>***********************************************************************</strong>/</p>
-</dd>
-</dl>
+<p>/<strong>***********************************************************************</strong>
+*                                                                          *
+*   Terra Antiqua - A QGIS plugin                                          *
+*                                                                          *
+*   Terra Antiqua deals with the reconstruction of paleogeography,         *
+*   simplifying the reconstruction process. The conceptual approach we     *
+*   follow consists of modifying present-day topography, assuming that it  *
+*   is possible to infer the paleogeography based on present-day           *
+*   observations (e.g., fossil data, thermochronological data). Terra      *
+*   Antiqua provides a complete set of tools to edit Digital Elevations    *
+*                                                                          *
+*   begin             : 2019-03-18                                         *
+*   git sha           : $Format:%H$                                        *
+*   copyright         : (C)2021 by Jovid Aminov, Diego Ruiz,               *
+*                        Guillaume Dupont-Nivet                            *
+*   email             : <a class="reference external" href="mailto:jovid&#46;aminov&#37;&#52;&#48;outlook&#46;com">jovid<span>&#46;</span>aminov<span>&#64;</span>outlook<span>&#46;</span>com</a>                           *
+*                                                                          *
+*                                                                          *
+<strong>************************************************************************</strong>/</p>
+<p>/<strong>***********************************************************************</strong>
+*                                                                         *
+*   This program is free software; you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation; either version 3 of the License, or     *
+*   (at your option) any later version.                                   *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see &lt;<a class="reference external" href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>&gt;.*
+*                                                                         *
+*                                                                         *
+<strong>***********************************************************************</strong>/</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="terra_antiqua.core.terra_antiqua.TerraAntiqua">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.terra_antiqua.</span></span><span class="sig-name descname"><span class="pre">TerraAntiqua</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iface</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.terra_antiqua.TerraAntiqua" title="Permalink to this definition">¶</a></dt>
@@ -1338,16 +1323,13 @@ This is basically flattening and roughening.</p>
 <dd class="field-odd"><p>Input numpy array to read a subset from.</p>
 </dd>
 <dt class="field-even">Parameters</dt>
-<dd class="field-even"><p><strong>index</strong> – A list of tuples with indices for reading the input array. Each tuple in the list contains two</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>index</strong> (<em>list.</em>) – A list of tuples with indices for reading the input array. Each tuple in the list contains two
+addresses - from and to for each axis (rows, columns).</p></li>
+<li><p><strong>side</strong> (<em>str.</em>) – Side of the array for wrapping (E or W).</p></li>
+<li><p><strong>wrapping_size</strong> (<em>tuple.</em>) – Number of rows and columns (integer) to read from the opposite side of the array.</p></li>
+</ul>
 </dd>
-</dl>
-<p>addresses - from and to for each axis (rows, columns).
-:type index: list.
-:param side: Side of the array for wrapping (E or W).
-:type side: str.
-:param wrapping_size: Number of rows and columns (integer) to read from the opposite side of the array.
-:type wrapping_size: tuple.</p>
-<dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>A subset of the input array wrapped around the specified edges by the specified size.</p>
 </dd>
@@ -1361,32 +1343,14 @@ This is basically flattening and roughening.</p>
 <dt class="sig sig-object py" id="terra_antiqua.core.utils.vectorToRaster">
 <span class="sig-prename descclassname"><span class="pre">terra_antiqua.core.utils.</span></span><span class="sig-name descname"><span class="pre">vectorToRaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geotransform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_to_burn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burn_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#terra_antiqua.core.utils.vectorToRaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rasterizes a vector layer and returns a numpy array.
-:param in_layer: Accepted data types:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>str: layer ID</p></li>
-<li><p>str: layer name</p></li>
-<li><p>str: layer source</p></li>
-<li><p>QgsProcessingFeatureSourceDefinition</p></li>
-<li><p>QgsProperty</p></li>
-<li><p>QgsVectorLayer</p></li>
-</ul>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>field_to_burn</strong> – A specific field from attributes table to get values to burn. This can be a field with depth or elevation values.</p></li>
-<li><p><strong>no_data</strong> – No data value. It can be NAN, zero or any other value.</p></li>
-<li><p><strong>burn_value</strong> – A fixed value to burn in the raster.</p></li>
-<li><p><strong>geotransform</strong> – geotransform for the resulting raster layer. Can accept geotransform (raster_ds.GetGeotransform()) extent (raster_layer.extent()) and QgsRasterLayer.</p></li>
-<li><p><strong>width</strong> – number of columns in the raster. Should be consistent with the raster that the masks will deployed on.</p></li>
-<li><p><strong>height</strong> – number of rows in the raster. Should be consistent with the raster that the masks will deployed on.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Numpy array.</p>
-</dd>
-</dl>
+:param in_layer: Accepted data types: str: layer ID, str: layer name, str: layer source, QgsProcessingFeatureSourceDefinition, QgsProperty, QgsVectorLayer
+:param field_to_burn: A specific field from attributes table to get values to burn. This can be a field with depth or elevation values.
+:param no_data: No data value. It can be NAN, zero or any other value.
+:param burn_value: A fixed value to burn in the raster.
+:param geotransform: geotransform for the resulting raster layer. Can accept geotransform (raster_ds.GetGeotransform()) extent (raster_layer.extent()) and QgsRasterLayer.
+:param width: number of columns in the raster. Should be consistent with the raster that the masks will deployed on.
+:param height: number of rows in the raster. Should be consistent with the raster that the masks will deployed on.
+:return: Numpy array.</p>
 </dd></dl>
 
 <dl class="py function">

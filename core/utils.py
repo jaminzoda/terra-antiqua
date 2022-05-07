@@ -699,14 +699,7 @@ def vectorToRaster(in_layer,
                    output_path=None):
     """
     Rasterizes a vector layer and returns a numpy array.
-    :param in_layer: Accepted data types:
-                - str: layer ID
-                - str: layer name
-                - str: layer source
-                - QgsProcessingFeatureSourceDefinition
-                - QgsProperty
-                - QgsVectorLayer
-
+    :param in_layer: Accepted data types: str: layer ID, str: layer name, str: layer source, QgsProcessingFeatureSourceDefinition, QgsProperty, QgsVectorLayer
     :param field_to_burn: A specific field from attributes table to get values to burn. This can be a field with depth or elevation values.
     :param no_data: No data value. It can be NAN, zero or any other value.
     :param burn_value: A fixed value to burn in the raster.
@@ -1407,7 +1400,7 @@ def smoothArrayWithWrapping(input_array: np.ndarray,
     :prarm input_array: Input numpy array to read a subset from.
     :type input_array: np.ndarray.
     :param index: A list of tuples with indices for reading the input array. Each tuple in the list contains two
-    addresses - from and to for each axis (rows, columns).
+                  addresses - from and to for each axis (rows, columns).
     :type index: list.
     :param side: Side of the array for wrapping (E or W).
     :type side: str.

@@ -33,8 +33,9 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.processingTypeBox.currentTextChanged.connect(self.reloadHelp)
 
     def defineParameters(self):
-        self.processingTypeBox = self.addParameter(
-            QComboBox, "How would you like to process the input DEM?")
+        self.processingTypeBox = self.addParameter(QComboBox,
+                                                   label="How would you like to process the input DEM?",
+                                                   param_id="processingTypeBox")
         self.processingTypeBox.addItems(["Fill gaps",
                                          "Copy/Paste raster",
                                          "Smooth raster",
@@ -43,39 +44,48 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                          "Calculate bathymetry",
                                          "Change map symbology"])
         self.baseTopoBox = self.addMandatoryParameter(TaRasterLayerComboBox,
-                                                      "Raster to be modified:",
-                                                      "TaMapLayerComboBox")
+                                                      label="Raster to be modified:",
+                                                      widget_type="TaMapLayerComboBox",
+                                                      param_id="baseTopoBox")
         # Parameters for filling the gaps
         self.fillingTypeBox = self.addVariantParameter(QComboBox,
-                                                       "Fill gaps",
-                                                       "Filling type:")
+                                                       variant_index="Fill gaps",
+                                                       label="Filling type:",
+                                                       param_id="fillingTypeBox")
         self.fillingTypeBox.addItems(["Interpolation",
                                       "Fixed value"])
         self.fillingValueSpinBox = self.addVariantParameter(QgsDoubleSpinBox,
-                                                            "Fill gaps",
-                                                            "Filling value:")
+                                                            variant_index="Fill gaps",
+                                                            label="Filling value:",
+                                                            param_id="fillingValueSpinBox")
         self.fillingValueSpinBox.setMaximum(99999)
         self.fillingValueSpinBox.setMinimum(-99999)
         self.fillingValueSpinBox.setValue(9999)
         self.interpInsidePolygonCheckBox = self.addVariantParameter(TaCheckBox,
-                                                                    "Fill gaps",
-                                                                    "Fill inside polygon(s) only.")
+                                                                    variant_index="Fill gaps",
+                                                                    label="Fill inside polygon(s) only.",
+                                                                    param_id="interpInsidePolygonCheckBox")
         self.masksBox = self.addVariantParameter(TaVectorLayerComboBox,
-                                                 "Fill gaps",
-                                                 "Mask layer:",
-                                                 "TaMapLayerComboBox")
+                                                 variant_index="Fill gaps",
+                                                 label="Mask layer:",
+                                                 widget_type="TaMapLayerComboBox",
+                                                 param_id="masksBox")
         self.interpInsidePolygonCheckBox.registerEnabledWidgets([
                                                                 self.masksBox])
-        self.smoothingBox = self.addVariantParameter(TaCheckBox, "Fill gaps",
-                                                     "Smooth the resulting raster")
+        self.smoothingBox = self.addVariantParameter(TaCheckBox,
+                                                     variant_index="Fill gaps",
+                                                     label="Smooth the resulting raster",
+                                                     param_id="smoothingBox")
         self.smoothingTypeBox = self.addVariantParameter(QtWidgets.QComboBox,
-                                                         "Fill gaps",
-                                                         "Smoothing type:")
+                                                         variant_index="Fill gaps",
+                                                         label="Smoothing type:",
+                                                         param_id="smoothingTypeBox")
         self.smoothingTypeBox.addItems(["Gaussian filter",
                                         "Uniform filter"])
         self.smFactorSpinBox = self.addVariantParameter(QgsSpinBox,
-                                                        "Fill gaps",
-                                                        "Smoothing factor (in grid cells):")
+                                                        variant_index="Fill gaps",
+                                                        label="Smoothing factor (in grid cells):",
+                                                        param_id="smFactorSpinBox")
         self.smFactorSpinBox.setMinimum(1)
         self.smFactorSpinBox.setMaximum(5)
 
@@ -84,59 +94,69 @@ class TaStandardProcessingDlg(TaBaseDialog):
 
         # Parameters for Copying and pasting raster data
         self.copyFromRasterBox = self.addVariantParameter(TaRasterLayerComboBox,
-                                                          "Copy/Paste raster",
-                                                          "Raster to copy values from:",
-                                                          "TaMapLayerComboBox",
-                                                          mandatory=True)
+                                                          variant_index="Copy/Paste raster",
+                                                          label="Raster to copy values from:",
+                                                          widget_type="TaMapLayerComboBox",
+                                                          mandatory=True,
+                                                          param_id="copyFromRasterBox")
         self.copyFromMaskBox = self.addVariantParameter(TaVectorLayerComboBox,
-                                                        "Copy/Paste raster",
-                                                        "Mask layer:",
-                                                        "TaMapLayerComboBox",
-                                                        mandatory=True)
+                                                        variant_index="Copy/Paste raster",
+                                                        label="Mask layer:",
+                                                        widget_type="TaMapLayerComboBox",
+                                                        mandatory=True,
+                                                        param_id="copyFromMaskBox")
         self.copyPasteSelectedFeaturesOnlyCheckBox = self.addVariantParameter(TaCheckBox,
-                                                                              "Copy/Paste raster",
-                                                                              "Selected features only")
+                                                                              variant_index="Copy/Paste raster",
+                                                                              label="Selected features only",
+                                                                              param_id="copyPasteSelectedFeaturesOnlyCheckBox")
         self.copyPasteSelectedFeaturesOnlyCheckBox.registerLinkedWidget(
             self.copyFromMaskBox)
 
         # Parameters for smothing rasters
         self.smoothInPolygonCheckBox = self.addVariantParameter(TaCheckBox,
-                                                                "Smooth raster",
-                                                                "Smooth inside polygon(s) only.")
+                                                                variant_index="Smooth raster",
+                                                                label="Smooth inside polygon(s) only.",
+                                                                param_id="smoothInPolygonCheckBox")
         self.smoothInPolygonCheckBox.stateChanged.connect(
             self.onSmoothInPolygonCheckBoxStateChange)
         self.smoothingMaskBox = self.addVariantParameter(TaVectorLayerComboBox,
-                                                         "Smooth raster",
-                                                         "Mask layer:",
-                                                         "TaMapLayerComboBox")
+                                                         variant_index="Smooth raster",
+                                                         label="Mask layer:",
+                                                         widget_type="TaMapLayerComboBox",
+                                                         param_id="smoothingMaskBox")
         self.smoothingMaskBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.smoothingMaskBox.layerChanged.connect(self.setFieldsInLayer)
         self.smoothInPolygonCheckBox.registerEnabledWidgets(
             [self.smoothingMaskBox])
         self.smoothInSelectedFeaturesOnlyCheckBox = self.addVariantParameter(TaCheckBox,
-                                                                             "Smooth raster",
-                                                                             "Selected features only.")
+                                                                             variant_index="Smooth raster",
+                                                                             label="Selected features only.",
+                                                                             param_id="smoothInSelectedFeaturesOnlyCheckBox")
         self.smoothInSelectedFeaturesOnlyCheckBox.registerLinkedWidget(
             self.smoothingMaskBox)
 
         self.smoothingTypeBox2 = self.addVariantParameter(QtWidgets.QComboBox,
-                                                          "Smooth raster",
-                                                          "Smoothing type:")
+                                                          variant_index="Smooth raster",
+                                                          label="Smoothing type:",
+                                                          param_id="smoothingTypeBox2")
         self.smFactorSpinBox2 = self.addVariantParameter(TaSpinBox,
-                                                         "Smooth raster",
-                                                         "Smoothing factor (in grid cells):")
+                                                         variant_index="Smooth raster",
+                                                         label="Smoothing factor (in grid cells):",
+                                                         param_id="smFactorSpinBox2")
         self.smoothingTypeBox2.addItems(["Gaussian filter",
                                          "Uniform filter"])
         self.smFactorSpinBox2.setAllowedValueRange(1, 5)
         self.fixedPaleoShorelinesCheckBox = self.addAdvancedParameter(TaCheckBox,
                                                                       label="Set paleoshorelines fixed.",
-                                                                      variant_index="Smooth raster")
+                                                                      variant_index="Smooth raster",
+                                                                      param_id="fixedPaleoShorelinesCheckBox")
         self.fixedPaleoShorelinesCheckBox.stateChanged.connect(
             self.onFixedPaleoshorelinesCheckBoxStateChange)
         self.paleoshorelinesMask = self.addAdvancedParameter(TaVectorLayerComboBox,
                                                              label="Rotated paleoshorelines:",
                                                              widget_type="TaMapLayerComboBox",
-                                                             variant_index="Smooth raster")
+                                                             variant_index="Smooth raster",
+                                                             param_id="paleoshorelinesMask")
         self.paleoshorelinesMask.setLayerType("Polygon")
         self.fixedPaleoShorelinesCheckBox.registerEnabledWidgets(
             [self.paleoshorelinesMask])
@@ -145,28 +165,33 @@ class TaStandardProcessingDlg(TaBaseDialog):
         self.selectIceTopoBox = self.addVariantParameter(TaRasterLayerComboBox,
                                                          "Isostatic compensation",
                                                          "Ice topography raster:",
-                                                         mandatory=True)
+                                                         mandatory=True,
+                                                         param_id="selectIceTopoBox")
         self.isostatMaskBox = self.addAdvancedParameter(TaVectorLayerComboBox,
                                                         label="Mask layer:",
                                                         widget_type="TaMapLayerComboBox",
-                                                        variant_index="Isostatic compensation")
+                                                        variant_index="Isostatic compensation",
+                                                        param_id="isostatMaskBox")
         self.isostatMaskSelectedFeaturesCheckBox = self.addAdvancedParameter(TaCheckBox,
                                                                              label="Selected features only",
-                                                                             variant_index="Isostatic compensation")
+                                                                             variant_index="Isostatic compensation",
+                                                                             param_id="isostatMaskSelectedFeaturesCheckBox")
         self.isostatMaskSelectedFeaturesCheckBox.registerLinkedWidget(
             self.isostatMaskBox)
 
         self.masksFromCoastCheckBox = self.addAdvancedParameter(
             TaCheckBox,
             label="Get polar regions automatically.",
-            variant_index="Isostatic compensation")
+            variant_index="Isostatic compensation",
+            param_id="masksFromCoastCheckBox")
         self.isostatMaskSelectedFeaturesCheckBox.registerEnabledWidgets(
             [self.masksFromCoastCheckBox], natural=True)
 
         self.iceAmountSpinBox = self.addVariantParameter(
             QgsSpinBox,
-            "Isostatic compensation",
-            "Amount of the ice to be removed (in %)"
+            variant_index="Isostatic compensation",
+            label="Amount of the ice to be removed (in %)",
+            param_id="iceAmountSpinBox"
         )
         self.iceAmountSpinBox.setMinimum(0)
         self.iceAmountSpinBox.setMaximum(100)
@@ -174,27 +199,33 @@ class TaStandardProcessingDlg(TaBaseDialog):
 
         # Parameters for Setting sea level
         self.seaLevelShiftBox = self.addVariantParameter(QgsSpinBox,
-                                                         "Set new sea level",
-                                                         "Amount of sea level shift (m):")
+                                                         variant_index="Set new sea level",
+                                                         label="Amount of sea level shift (m):",
+                                                         param_id="seaLevelShiftBox")
         self.seaLevelShiftBox.setMinimum(-1000)
         self.seaLevelShiftBox.setMaximum(1000)
         self.seaLevelShiftBox.setValue(100)
 
         # Parameters for calculating bathymetry from ocean age
         self.ageRasterTime = self.addVariantParameter(QgsSpinBox,
-                                                      "Calculate bathymetry",
-                                                      "Time of the age raster:")
+                                                      variant_index="Calculate bathymetry",
+                                                      label="Time of the age raster:",
+                                                      param_id="ageRasterTime")
         self.ageRasterTime.setValue(0)
         self.reconstructionTime = self.addVariantParameter(QgsSpinBox,
-                                                           "Calculate bathymetry",
-                                                           "Reconstruction time:")
+                                                           variant_index="Calculate bathymetry",
+                                                           label="Reconstruction time:",
+                                                           param_id="reconstructionTime")
 
         # Parameters for changing map symbology
-        self.colorPalette = self.addVariantParameter(
-            TaColorSchemeWidget, "Change map symbology", "Color palette:")
+        self.colorPalette = self.addVariantParameter(TaColorSchemeWidget,
+                                                     variant_index="Change map symbology",
+                                                     label="Color palette:",
+                                                     param_id="colorPalette")
         self.addColorPaletteButton = self.addVariantParameter(QPushButton,
-                                                              "Change map symbology",
-                                                              "Add custom color palette")
+                                                              variant_index="Change map symbology",
+                                                              label="Add custom color palette",
+                                                              param_id="addColorPaletteButton")
         self.addColorPaletteButton.pressed.connect(self.addColorPalette)
 
         self.fillDialog()

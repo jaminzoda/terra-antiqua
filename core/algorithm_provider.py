@@ -25,7 +25,7 @@ from ..gui.welcome_dialog import TaWelcomeDialog
 
 class TaAlgorithmProvider:
 
-    def __init__(self, dlg, thread, iface, settings):
+    def __init__(self, dlg, thread, iface, settings, params=None):
         self.dlg = dlg()
         self.thread = thread(self.dlg)
         self.iface = iface
@@ -35,6 +35,9 @@ class TaAlgorithmProvider:
         self.thread.finished.connect(self.finish)
         self.thread.progress.connect(self.dlg.setProgressValue)
         self.welcome_page = TaWelcomeDialog()
+        if params:
+            self.parameters = params(self.dlg)
+            self.parameters.restoreParameters()
 
     def load(self):
         if self.settings.temporarySettings.get("first_start") != False:
@@ -105,7 +108,7 @@ class TaAlgorithmProvider:
 
 class TaRemoveArtefactsAlgProvider:
 
-    def __init__(self, tltp, dlg, iface, actions, settings):
+    def __init__(self, tltp, dlg, iface, actions, settings, params=None):
         self.dlg = dlg()
         self.tooltip = tltp()
         self.actions = actions
@@ -126,6 +129,8 @@ class TaRemoveArtefactsAlgProvider:
         self.dlg.cancelled.connect(self.stop)
         self.dlg.addButton.clicked.connect(self.createPolygon)
         self.dlg.closeButton.clicked.connect(self.clean)
+        if params:
+            self.parameters = params(self.dlg)
 
     def initiate(self):
         if self.tooltip.showAgain:

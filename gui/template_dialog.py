@@ -1,6 +1,6 @@
-#Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
-#Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
-#Full copyright notice in file: terra_antiqua.py
+# Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
+# Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
+# Full copyright notice in file: terra_antiqua.py
 
 import os
 from PyQt5 import QtWidgets
@@ -15,8 +15,9 @@ class TaTemplateDialog(QtWidgets.QDialog):
         self.plugin_dir = os.path.dirname(__file__)
 
         self.setGeometry(200, 200, 900, 600)
-        self.tabWidget =QtWidgets.QTabWidget(self)
-        self.tabWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.tabWidget = QtWidgets.QTabWidget(self)
+        self.tabWidget.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         self.paramsScrollArea = QtWidgets.QScrollArea()
         self.paramsScrollArea.setAlignment(QtCore.Qt.AlignTop)
@@ -31,7 +32,8 @@ class TaTemplateDialog(QtWidgets.QDialog):
         self.logBrowser.setOpenExternalLinks(True)
         self.tabWidget.addTab(self.logBrowser, 'Log')
         self.helpTextBox = TaHelpBrowser(self)
-        self.helpTextBox.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self.helpTextBox.setSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         try:
             self.helpTextBox.placeholderText = "Your log will be shown here."
         except:
@@ -40,9 +42,10 @@ class TaTemplateDialog(QtWidgets.QDialog):
         self.iconLeft = QtGui.QIcon(':/arrow_left.png')
         self.collapseButton = QtWidgets.QToolButton(self)
         self.collapseButton.setIcon(self.iconRight)
-        self.collapseButton.setIconSize(QtCore.QSize(8,8))
+        self.collapseButton.setIconSize(QtCore.QSize(8, 8))
         self.collapseButton.setAutoRaise(True)
-        self.tabWidget.setCornerWidget(self.collapseButton, QtCore.Qt.TopRightCorner)
+        self.tabWidget.setCornerWidget(
+            self.collapseButton, QtCore.Qt.TopRightCorner)
         self.splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.splitter.addWidget(self.tabWidget)
         self.splitter.addWidget(self.helpTextBox)
@@ -64,13 +67,16 @@ class TaTemplateDialog(QtWidgets.QDialog):
         self.helpButton = QtWidgets.QPushButton()
         self.helpButton.setText('Help')
         self.helpButton.setToolTip("Open user manual")
+        self.saveParametersButton = QtWidgets.QPushButton()
+        self.saveParametersButton.setText("Save parameters")
+        self.saveParametersButton.setToolTip("Save parameters for later use")
         self.runLayout = QtWidgets.QHBoxLayout()
         self.runLayout.addWidget(self.helpButton)
+        self.runLayout.addWidget(self.saveParametersButton)
         self.runLayout.addWidget(self.warnLabel)
         self.runLayout.addStretch()
         self.runLayout.addWidget(self.closeButton)
         self.runLayout.addWidget(self.runButton)
-
 
         self.dialogLayout = QtWidgets.QVBoxLayout()
         self.dialogLayout.setSpacing(5)
@@ -79,10 +85,11 @@ class TaTemplateDialog(QtWidgets.QDialog):
         self.dialogLayout.addLayout(self.runLayout)
         self.setLayout(self.dialogLayout)
 
-        #Signals Connection
+        # Signals Connection
         self.collapseButton.pressed.connect(self.hideHelpTextBox)
         self.tabWidget.currentChanged.connect(self.onSwitchTab)
-        self.helpTextBox.visibilityChanged.connect(self.changeCollapseButtonIcon)
+        self.helpTextBox.visibilityChanged.connect(
+            self.changeCollapseButtonIcon)
         self.splitter.splitterMoved.connect(self.splitterCollapsed)
 
     def onSwitchTab(self, tab):
@@ -99,11 +106,11 @@ class TaTemplateDialog(QtWidgets.QDialog):
         max_size = sum(self.splitter.sizes())
         min_size = round(max_size*0.62)
         if self.helpTextBox.collapsed:
-            self.splitter.moveSplitter(min_size,1)
-            self.helpTextBox.collapsed= False
+            self.splitter.moveSplitter(min_size, 1)
+            self.helpTextBox.collapsed = False
         else:
-            self.splitter.moveSplitter(max_size,1)
-            self.helpTextBox.collapsed= True
+            self.splitter.moveSplitter(max_size, 1)
+            self.helpTextBox.collapsed = True
 
     def changeCollapseButtonIcon(self, state):
         if state:
@@ -113,7 +120,7 @@ class TaTemplateDialog(QtWidgets.QDialog):
 
     def splitterCollapsed(self, pos, index):
         max_size = sum(self.splitter.sizes())
-        if pos>=max_size:
+        if pos >= max_size:
             self.changeCollapseButtonIcon(False)
             self.helpTextBox.collapsed = True
         else:
@@ -121,7 +128,7 @@ class TaTemplateDialog(QtWidgets.QDialog):
             self.helpTextBox.collapsed = False
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     dlg = TaTemplateDialog()
     dlg.show()

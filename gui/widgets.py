@@ -51,30 +51,173 @@ class TaButtonGroup(QtWidgets.QWidget):
         self.setLayout(self.hLayout)
 
 
-class TaTableWidget(QtWidgets.QTableWidget):
-    def __init__(self, parent=None):
+class TaTableWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None, msg_bar=None):
         super(TaTableWidget, self).__init__(parent)
+        self.layout = QtWidgets.QVBoxLayout()
+        self.table = QtWidgets.QTableWidget()
+        self.controlButtons = TaButtonGroup()
+        self.controlButtons.down.clicked.connect(self.moveRowDown)
+        self.controlButtons.up.clicked.connect(self.moveRowUp)
+        self.layout.addWidget(self.table)
+        self.layout.addWidget(self.controlButtons)
+        self.setLayout(self.layout)
         self.layerItems = []
+        self.msgBar = msg_bar
+
+    def registerMsgBar(self, msg_bar):
+        self.msgBar = msg_bar
 
     def moveRowDown(self):
-        row = self.currentRow()
-        column = self.currentColumn()
-        if row < self.rowCount()-1 and self.rowCount() > 1:
-            self.insertRow(row+2)
-            for i in range(self.columnCount()):
-                self.setCellWidget(row+2, i, self.cellWidget(row, i))
-                self.setCurrentCell(row+2, column)
-            self.removeRow(row)
+        row = self.table.currentRow()
+        column = self.table.currentColumn()
+        if row < self.table.rowCount()-1 and self.table.rowCount() > 1:
+            self.table.insertRow(row+2)
+            for i in range(self.table.columnCount()):
+                self.table.setCellWidget(
+                    row+2, i, self.table.cellWidget(row, i))
+                self.table.setCurrentCell(row+2, column)
+            self.table.removeRow(row)
 
     def moveRowUp(self):
-        row = self.currentRow()
-        column = self.currentColumn()
+        row = self.table.currentRow()
+        column = self.table.currentColumn()
         if row > 0:
-            self.insertRow(row-1)
-            for i in range(self.columnCount()):
-                self.setCellWidget(row-1, i, self.cellWidget(row+1, i))
-                self.setCurrentCell(row-1, column)
-            self.removeRow(row+1)
+            self.table.insertRow(row-1)
+            for i in range(self.table.columnCount()):
+                self.table.setCellWidget(
+                    row-1, i, self.table.cellWidget(row+1, i))
+                self.table.setCurrentCell(row-1, column)
+            self.table.removeRow(row+1)
+
+
+class TaRasterCompilerTableWidget(TaTableWidget):
+    openRasterButtonSignal = QtCore.pyqtSignal(QtWidgets.QWidget)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.openRasterButtonSignal.connect(self.openRasterFromDisk)
+        self.controlButtons.add.clicked.connect(self.addRow)
+        self.controlButtons.remove.clicked.connect(self.removeRow)
+
+    def addRow(self, row):
+        if not row:
+            row = self.table.rowCount()
+        self.table.insertRow(row)
+        self.table.setCellWidget(
+            row, 0, QgsMapLayerComboBox(self))
+        self.table.setCellWidget(
+            row, 1, QtWidgets.QToolButton(self))
+        if self.table.columnCount() > 2:
+            checkBoxWidget = QtWidgets.QWidget()
+            checkBox = TaCheckBox('')
+            checkBox.setObjectName("apply_mask_checkbox")
+            layout = QtWidgets.QHBoxLayout(checkBoxWidget)
+            layout.addWidget(checkBox)
+            layout.setAlignment(QtCore.Qt.AlignCenter)
+            layout.setContentsMargins(0, 0, 0, 0)
+            self.table.setCellWidget(row, 2, checkBoxWidget)
+        btn = self.table.cellWidget(row, 1)
+        btn.setText('...')
+        btn.setIconSize(QtCore.QSize(10, 10))
+        filter_model = QgsMapLayerProxyModel()
+        filter_model.setFilters(QgsMapLayerProxyModel.RasterLayer)
+        cmb = self.table.cellWidget(row, 0)
+        cmb.setFilters(filter_model.filters())
+        btn.clicked.connect(lambda: self.openRasterButtonSignal.emit(cmb))
+        self.table.setCurrentCell(row, 0)
+
+    def removeRow(self):
+        selected_rows = self.table.selectionModel().selectedRows()
+        rows_selected = [i.row() for i in selected_rows]
+        if not len(rows_selected) > 0:
+            self.msgBar.pushWarning(
+                "Warning:", "No row is selected. Click on the row number to select it.")
+        else:
+            for index in selected_rows:
+                if self.table.rowCount() > 1:
+                    self.table.removeRow(index.row())
+
+    def openRasterFromDisk(self, cmb):
+        fd = QtWidgets.QFileDialog()
+        filter = "Raster files (*.jpg *.tif *.grd *.nc *.png *.tiff)"
+        fname, _ = fd.getOpenFileName(
+            caption='Select a vector layer', directory=None, filter=filter)
+
+        if fname:
+            name, _ = os.path.splitext(os.path.basename(fname))
+            rlayer = QgsRasterLayer(fname, name, 'gdal')
+            try:
+                QgsProject.instance().addMapLayer(rlayer)
+            except Exception as e:
+                raise e
+            cmb.setLayer(rlayer)
+
+    def addColumn(self):
+        self.table.insertColumn(2)
+        self.table.setHorizontalHeaderLabels(
+            ["Input layer", "", "Apply mask"])
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        for i in range(self.table.rowCount()):
+            checkBoxWidget = QtWidgets.QWidget()
+            checkBox = TaCheckBox('')
+            checkBox.setObjectName("apply_mask_checkbox")
+            layout = QtWidgets.QHBoxLayout(checkBoxWidget)
+            layout.addWidget(checkBox)
+            layout.setAlignment(QtCore.Qt.AlignCenter)
+            layout.setContentsMargins(0, 0, 0, 0)
+            self.table.setCellWidget(i, 2, checkBoxWidget)
+
+
+class TaVectorCompilerTableWidget(TaTableWidget):
+    def __init__(self, parent=None, msg_bar=None):
+        super().__init__(parent, msg_bar)
+        self.controlButtons.add.clicked.connect(self.addRow)
+        self.controlButtons.remove.clicked.connect(self.removeRow)
+
+    def addRow(self, row):
+        if not row:
+            row = self.table.rowCount()
+        self.table.insertRow(row)
+        self.table.setCellWidget(
+            row, 0, QgsMapLayerComboBox(self))
+        self.table.setCellWidget(
+            row, 1, QtWidgets.QComboBox(self))
+        self.table.cellWidget(row, 1).setEditable(True)
+        filter_model = QgsMapLayerProxyModel()
+        filter_model.setFilters(
+            QgsMapLayerProxyModel.PolygonLayer | QgsMapLayerProxyModel.LineLayer)
+        self.table.cellWidget(
+            row, 0).setFilters(filter_model.filters())
+        self.table.cellWidget(row, 1).addItems(
+            ["Coastline", "Continental Shelf", "Shallow Sea"])
+        self.table.cellWidget(row, 1).currentIndexChanged.connect(
+            self.updateItemsInMaskCategories)
+        self.table.cellWidget(row, 1).repaint()
+
+    def removeRow(self):
+        selected_rows = self.table.selectionModel().selectedRows()
+        rows_selected = [i.row() for i in selected_rows]
+        if not len(rows_selected) > 0:
+            self.msgBar.pushWarning(
+                "Warning:", "No row is selected. Click on the row number to select it.")
+        else:
+            for index in selected_rows:
+                if self.table.rowCount() > 1:
+                    self.table.removeRow(index.row())
+
+    def updateItemsInMaskCategories(self, index):
+        sender = QtCore.QObject().sender()
+        setItem = sender.itemText(index)
+
+        for i in range(self.table.rowCount()):
+            widget = self.table.cellWidget(i, 1)
+            if id(widget) == id(sender):
+                continue
+            items = [widget.itemText(i) for i in range(widget.count())]
+            if not any([i == setItem for i in items]):
+                widget.addItem(setItem)
 
 
 class TaHelpBrowser(QtWidgets.QTextBrowser):
@@ -305,9 +448,8 @@ class TaCheckBox(QtWidgets.QCheckBox):
         :param widgets: A list of widgets that need to be registered with the checkbox.
         :type widgets: list.
         :param natural: If natural is True, the widgets get disabled, when the checkbox is
-        checked. If it is False the checbox get enabled.
+                        checked. If it is False the checbox get enabled.
         :type natural: bool.
-
         """
 
         for widget in widgets:
