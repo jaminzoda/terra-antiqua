@@ -4,7 +4,7 @@
 
 # This file contains the constant values that are used within Terra Antiqua modules.
 
-import gdalconst
+from osgeo import gdalconst
 import numpy as np
 
 

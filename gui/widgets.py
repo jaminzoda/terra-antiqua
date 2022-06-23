@@ -420,6 +420,10 @@ class TaSpinBox(QtWidgets.QWidget):
         type value: int. """
         self.spinBox.setValue(value)
 
+    def value(self) -> float:
+        """Returns value of the spinbox"""
+        return self.spinBox.value()
+
 
 class TaCheckBox(QtWidgets.QCheckBox):
     def __init__(self, label):

@@ -58,6 +58,8 @@ class TaBaseDialog(TaTemplateDialog):
         self.mandatory_parameters = []
         self.variant_parameters = []
         self.advanced_parameters = []
+        self.parameters_order = {}
+        self.parameters_added = 0
         self.var_index = None
         self.runButton.clicked.connect(self.runEvent)
         self.closeButton.clicked.connect(self.close)
@@ -145,6 +147,8 @@ class TaBaseDialog(TaTemplateDialog):
         else:
             param = param()
         self.parameters.append((param, param_id))
+        self.parameters_added += 1
+        self.parameters_order[param_id] = self.parameters_added
         if widget_type == 'TaMapLayerComboBox':
             return param.getMainWidget()
         else:
@@ -197,6 +201,8 @@ class TaBaseDialog(TaTemplateDialog):
         else:
             self.variant_parameters.append(
                 (param, variant_index, False, param_id))
+        self.parameters_added += 1
+        self.parameters_order[param_id] = self.parameters_added
 
         if widget_type == 'TaMapLayerComboBox':
             return param.getMainWidget()
@@ -237,6 +243,8 @@ class TaBaseDialog(TaTemplateDialog):
         else:
             param = param()
         self.advanced_parameters.append((param, variant_index, param_id))
+        self.parameters_added += 1
+        self.parameters_order[param_id] = self.parameters_added
         if widget_type == 'TaMapLayerComboBox':
             return param.getMainWidget()
         else:
@@ -273,6 +281,8 @@ class TaBaseDialog(TaTemplateDialog):
             self.paramsLayout.addWidget(self.outputPathLabel)
             self.paramsLayout.addWidget(self.outputPath)
             self.parameters.append((self.outputPath, "outputPath"))
+            self.parameters_added += 1
+            self.parameters_order["outputPath"] = self.parameters_added
         self.paramsLayout.addStretch()
 
         for parameter in self.mandatory_parameters:

@@ -4,7 +4,7 @@
 # Full copyright notice in file: terra_antiqua.py
 
 # -*- coding: utf-8 -*-
-
+from .package_installer import install_package
 import sys
 import tempfile
 import os
@@ -81,11 +81,6 @@ import subprocess
 import random
 from random import randrange
 from typing import Tuple, Union
-
-
-def install_package(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-
 
 try:
     from scipy.ndimage.filters import gaussian_filter, uniform_filter
