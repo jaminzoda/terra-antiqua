@@ -2,6 +2,8 @@
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
 
+from threading import local
+from xmlrpc.client import APPLICATION_ERROR
 from PyQt5.QtCore import (
     QVariant
 )
@@ -20,13 +22,18 @@ from qgis.core import (
 
 
 import numpy as np
+from sympy import jn
+
+import cppwtt as wt
 
 from .utils import (
     fillNoDataInPolygon,
     vectorToRaster,
     modRescale,
     randomPointsInPolygon,
-    assignUniqueIds
+    assignUniqueIds,
+    findNearestPowerOfTwo,
+    polygonsToPolylines
 )
 
 
@@ -56,8 +63,10 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
         if not self.killed:
             if self.dlg.featureTypeBox.currentText() == "Sea":
                 self.createSea()
-            elif self.dlg.featureTypeBox.currentText() == "Mountain range":
+            elif self.dlg.featureTypeBox.currentText() == "Mountain range (random)":
                 self.createMountainRange()
+            elif self.dlg.featureTypeBox.currentText() == "Mountain range (fractal)":
+                self.createMountainRangeFractal()
 
     def getParameters(self):
         if not self.killed:
@@ -924,3 +933,309 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
             self.finished.emit(True, self.out_file_path)
         else:
             self.finished.emit(False, "")
+
+    def createMountainRangeFractal(self) -> None:
+        """Creates a mountain range using the stream power law for generating
+        drainage network and fractal geometry for producing topography details
+        regardless of the scale.
+        """
+        if not self.killed:
+            # Get the input topography raster
+            topo_layer_ds = gdal.Open(self.topo_layer.source())
+            topo_to_modify = topo_layer_ds.GetRasterBand(
+                1).ReadAsArray(buf_type=taconst.GDT_TopoDType)
+            topo_layer_ds = None
+        if not self.killed:
+            # Remove the existing values before assigning
+            # Before we remove values inside the boundaries of the features to be created, we map initial empty cells.
+            # creare an empty array
+            initial_values = np.empty(
+                topo_to_modify.shape, dtype=taconst.NP_TopoDType)
+            # Copy the elevation values from initial raster
+            initial_values[:] = topo_to_modify[:]
+            self.context = self.getExpressionContext(self.mask_layer)
+
+            progress_unit = 80 / \
+                self.mask_layer.featureCount() if self.mask_layer.featureCount() > 0 else 0
+
+        for feature in self.features:
+            if self.killed:
+                break
+            self.context.setFeature(feature)
+            try:
+                self.feedback.info(
+                    "<b><i>Creating {} mountain".format(
+                        feature.attribute('name')
+                        if feature.attribute('name') != NULL else "NoName"
+                    )
+                )
+            except Exception as e:
+                self.feedback.info(
+                    "<b><i>Processing feature {}".format(feature.attribute('id')))
+                self.feedback.debug(e)
+
+            # Reading parameters for creating feature from the dialog or attributes
+            max_mount_elev, ok = self.dlg.maxElevFractal.overrideButton.toProperty(
+            ).valueAsInt(self.context)
+            if not ok:
+                max_mount_elev = self.dlg.maxElevFractal.spinBox.value()
+
+            # Create a memory vector layer to store a feature at a time
+            feature_layer = QgsVectorLayer(
+                f"Polygon?crs={self.crs.authid()}", "Feature layer", "memory")
+            feature_layer.dataProvider().addAttributes(self.mask_layer.fields())
+            feature_layer.updateFields()
+            feature_layer.dataProvider().addFeature(feature)
+            vlayer_extent = feature_layer.extent()
+
+            width = round((vlayer_extent.xMaximum() - vlayer_extent.xMinimum()) /
+                          self.topo_layer.rasterUnitsPerPixelX())
+            height = round((vlayer_extent.yMaximum() - vlayer_extent.yMinimum()) /
+                           self.topo_layer.rasterUnitsPerPixelY())
+
+            self.feedback.debug(
+                f"Width of the modification rectangle: {width}")
+            self.feedback.debug(
+                f"Height of the modification rectangle: {height}")
+
+            # create a square mask array to make it consistent with the topography model
+            # 64, 128, 256 ...
+            mask_size = findNearestPowerOfTwo(max((width, height)))
+            self.feedback.debug(
+                f"Size of the mask to be used for masking the model: {mask_size}x{mask_size}")
+
+            # Original dimensions
+            nx, ny = 8, 8
+            dx, dy = 1000, 1000
+            lx, ly = (nx) * dx, (ny) * dy
+            boundaries = "4edges"
+            self.feedback.debug(f"Boundaries set to: {boundaries}")
+            nrefining = 1
+            n_equ = 4
+
+            # find number of iterations that will result in an array of a size that
+            # can fit in the initial global raster
+            m_size = mask_size
+            while m_size > nx:
+                nrefining += 1
+                m_size /= 2
+
+            m_size = None
+
+            self.feedback.debug(
+                f"Number of itterations for running the model: {nrefining}")
+
+            # Homogeneous values
+            tm, tn = 0.45, 1
+            tKref = 2e-5
+            tAcrit = 1e4
+            tS_c = 0.6
+
+            # Initialising the model
+            model = wt.MiniLEM()
+            # Sets the dimensions of the regular grid
+            model.initialise_graph(nx, ny, dx, dy, boundaries)
+            # initialise white noise
+            model.init_topo(1, "white_noise")
+            self.feedback.info("Initializing the model with a white noise.")
+            # feeds param to the model
+            model.set_uniform_parameters(tm, tn, tKref, tAcrit, tS_c, 5)
+            model.set_hillslope_mode("critical_slope")  # critical_slope
+            self.feedback.info("Hillslope mode is set to 'critical slope'.")
+
+            # Running the model
+            unit_of_progress = progress_unit/nrefining
+            for j in range(nrefining):
+                for i in range(50 if (j == 0) else n_equ):
+                    model.solve_analytically()
+                model.double_resolution() if(j < nrefining - 1) else 0
+                model.graph.set_boundaries_to(0) if(j < nrefining - 1) else 0
+                self.feedback.debug(f"iteration: {j}")
+                self.feedback.debug(
+                    f"Minimum generated elevation: {model.graph.get_topo_np().min()}")
+                self.feedback.debug(
+                    f"Maximum generated elevation: {model.graph.get_topo_np().max()}")
+
+                self.applyMask(model, feature_layer, mask_size, width, height)
+                model.add_noise(20) if(j < nrefining - 1) else 0
+
+                self.feedback.progress += int(unit_of_progress)
+
+            # model.blur(5)
+
+            # reading topography from the model
+            dims = model.graph.get_dimensions()
+            topo = model.graph.get_topo_np()
+            topo = topo.reshape(dims['ny'], dims['nx'])
+            self.feedback.debug("Final generated topo:")
+            self.feedback.debug(f"Minimum generated elevation: {topo.min()}")
+            self.feedback.debug(f"Maximum generated elevation: {topo.max()}")
+            self.feedback.progress += int(progress_unit)
+            topo = topo[0:height, 0:width]
+            # Normalize elevations
+            mask_outline_layer = polygonsToPolylines(feature_layer)
+            rlayer_extent = self.topo_layer.extent()
+            x_res = self.topo_layer.rasterUnitsPerPixelX()
+            y_res = -self.topo_layer.rasterUnitsPerPixelY()
+            geotransform = (rlayer_extent.xMinimum(), x_res, 0.0,
+                            rlayer_extent.yMaximum(), 0.0, y_res)
+            mask_outline_array = vectorToRaster(mask_outline_layer,
+                                                geotransform,
+                                                self.topo_layer.width(),
+                                                self.topo_layer.height(),
+                                                feedback=self.feedback,
+                                                field_to_burn=None,
+                                                no_data=0)
+            initial_outline_elev = initial_values[mask_outline_array == 1]
+            min_mount_elev = initial_outline_elev.mean()
+            topo[topo == 0] = np.nan
+            topo_normalized = modRescale(topo, min_mount_elev, max_mount_elev)
+            # Rasterize mask with topography layer extent and geotransform
+            mask_array = vectorToRaster(feature_layer,
+                                        geotransform,
+                                        self.topo_layer.width(),
+                                        self.topo_layer.height(),
+                                        feedback=self.feedback,
+                                        field_to_burn=None,
+                                        no_data=0)
+            local_extent_xmin = round(np.sqrt(pow((vlayer_extent.xMinimum() -
+                                                   rlayer_extent.xMinimum()), 2))/x_res)
+            local_extent_ymax = round(np.sqrt(pow((vlayer_extent.yMaximum() -
+                                                   rlayer_extent.yMaximum()), 2))/(-y_res))
+
+            self.feedback.debug(f"local extent xmin: {local_extent_xmin}")
+            self.feedback.debug(f"local extent ymax: {local_extent_ymax}")
+            self.feedback.debug(
+                f"local extent xmax: {local_extent_xmin+width}")
+            self.feedback.debug(
+                f"local extent ymin: {local_extent_ymax+height}")
+
+            local_mask_array = mask_array[local_extent_ymax:local_extent_ymax+height,
+                                          local_extent_xmin:local_extent_xmin+width]
+            local_mask_array = local_mask_array.reshape(height, width)
+
+            array_diff = topo_to_modify[mask_array == 1].size - \
+                topo_normalized[local_mask_array == 1].size
+
+            if array_diff != 0:
+                local_mask_array = self.compensateForMaskDifference(
+                    local_mask_array,
+                    array_diff,
+                    1 if array_diff > 0 else 0
+                )
+
+            topo_to_modify[mask_array ==
+                           1] = topo_normalized[local_mask_array == 1]
+
+        #  processing and saving the result
+        if not self.killed:
+            self.feedback.debug("Saving ... ")
+            # Restore the original size of the array
+            # TODO: 1) Normalize elevation values; 2) set 0 values to nan; 3) insert the result into the global raster
+            rlayer_extent = self.topo_layer.extent()
+            geotransform = (rlayer_extent.xMinimum(),
+                            self.topo_layer.rasterUnitsPerPixelX(),
+                            0.0,
+                            rlayer_extent.yMaximum(),
+                            0.0,
+                            -self.topo_layer.rasterUnitsPerPixelY())
+            output_raster = gdal.GetDriverByName('GTIFF').Create(
+                self.out_file_path, self.topo_layer.width(), self.topo_layer.height(), 1, taconst.GDT_TopoDType)
+
+            output_raster.SetGeoTransform(geotransform)
+            output_raster.SetProjection(self.projection)
+            output_raster.GetRasterBand(1).SetNoDataValue(-9999)
+            output_raster.GetRasterBand(1).WriteArray(topo_to_modify)
+            output_raster.GetRasterBand(1).FlushCache()
+            self.feedback.progress = 100
+            self.finished.emit(True, self.out_file_path)
+        else:
+            self.finished.emit(False, "")
+
+    def applyMask(self, model, featureLayer, maxMaskSize, maxMaskWidth, maxMaskHeight):
+        # Read the model dimensions
+        dims = model.graph.get_dimensions()
+
+        # calculate mask dimensions
+        extent = featureLayer.extent()
+        x_min = extent.xMinimum()
+        x_max = extent.xMaximum()
+        y_min = extent.yMinimum()
+        y_max = extent.yMaximum()
+
+        ncols = int(round(dims['nx']*maxMaskWidth/maxMaskSize))
+        nrows = int(round(dims['ny']*maxMaskHeight/maxMaskSize))
+
+        pixel_size_x = (x_max-x_min)/ncols
+        pixel_size_y = (y_max-y_min)/nrows
+        self.feedback.debug(f"Pixel size X: {pixel_size_x}")
+        self.feedback.debug(f"Pixel size Y: {pixel_size_y}")
+        geotransform = (x_min, pixel_size_x, 0.0, y_max, 0.0, -pixel_size_y)
+        self.feedback.debug(f"Mask layer extent: {extent}")
+        self.feedback.debug(
+            f"Geotransform for mask rasterizaton: {geotransform}")
+
+        self.feedback.debug(
+            f"Number of cols and rows the mask: {ncols}x{nrows}")
+
+        # rasterize the mask polygon
+        temp_mask_array = vectorToRaster(
+            featureLayer,
+            geotransform,
+            ncols,
+            nrows,
+            feedback=self.feedback,
+            field_to_burn=None,
+            no_data=0
+        )
+        mask_array = np.zeros((dims['nx'], dims['ny']), taconst.NP_MaskDType)
+        mask_array[0:temp_mask_array.shape[0],
+                   0:temp_mask_array.shape[1]] = temp_mask_array
+
+        self.feedback.debug(f"Graph dimensions: {dims}")
+        self.feedback.debug(f"Mask dimensions: {mask_array.shape}")
+        self.feedback.debug(f"Mask min value: {mask_array.min()}")
+        self.feedback.debug(f"Mask max value: {mask_array.max()}")
+        model.init_boundaries_from_binary_array(
+            mask_array.ravel(), True)
+
+        # adding random boundary from a sin cos wave
+        x = np.linspace(dims['extents'][0], dims['extents'][1], dims['nx'])
+        y = np.linspace(dims['extents'][2], dims['extents'][3], dims['ny'])
+        xx, yy = np.meshgrid(x, y)
+        preexisting_topo = np.abs(50 * np.sin(xx) * np.cos(yy))
+        model.burn_data_to_base_levels(preexisting_topo.ravel())
+
+    def compensateForMaskDifference(self, maskArray, diffSize, mode=1):
+        """Since the model for generating fractal topography is run on a small subset
+        of the input raster and inserted back afterward, due to rounding width and
+        heigh of the mask arrays, the local mask array and 'global' mask array may
+        end up havng different masking areas (with value of 1). Therefore, this function
+        should compensate for this difference by setting values (of equal amount of pixels)
+         at the boundary of the creating feature to 1.
+
+         :param maskArray: the array in which the difference should be compencated for.
+         :type maskArray: numpy.ndarray
+         :param diffSize: masking area difference in pixels.
+         :type diffSize: int.
+         :param mode: compensation mode. Can be 1 or 0. If masking area in the local mask array is smaller
+                        than the area in the global mask array, the mode is 1, hence the masking
+                        area should be increased and viceversa. 
+         :type mode: int.
+
+         :return: compensated mask array.
+         :rtype: numpy.ndarray.
+         """
+        item1 = None
+        mask_array1D = maskArray.ravel()
+        for i in range(diffSize):
+            for j in range(mask_array1D.size):
+                if j == 0:
+                    item1 = mask_array1D[j]
+                    continue
+                if item1 != mask_array1D[j] and item1 == mode:
+                    mask_array1D[j] = mode
+                    break
+                else:
+                    item1 = mask_array1D[j]
+        return mask_array1D.reshape(maskArray.shape)

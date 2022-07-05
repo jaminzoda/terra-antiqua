@@ -987,10 +987,10 @@ def modRescale(in_array: np.ndarray, min: int, max: int) -> np.ndarray:
 
     :param in_array: input numpy array for modification.
     :type in_array: np.ndarray.
-    :param fmin: final minimum value of elevation/bathymetry.
-    :type fmin: int.
-    :param fmax: final maximum value of elevation/bathymetry.
-    :type fmax: int.
+    :param min: final minimum value of elevation/bathymetry.
+    :type min: int.
+    :param max: final maximum value of elevation/bathymetry.
+    :type max: int.
 
     :return:rescaled array.
     :rtype:np.ndarray.
@@ -1534,3 +1534,17 @@ class TaVectorFileWriter(QgsVectorFileWriter):
             result = TaVectorFileWriter.writeAsVectorFormat2(
                 layer, fileName, context, options)
         return result
+
+
+def findNearestPowerOfTwo(num: int) -> int:
+    """Finds the nearest number which is the product of power n with the base of 2. 
+    It returns the bigger nearest number so that we can further downsample the arrays.
+    :param num: number to find a nearest number for.
+    :type num: int;
+    :return: nearest number that is eaqual to 2^n. 
+    :rtype: int.
+    """
+    power = int(1)
+    while power < num:
+        power *= 2
+    return int(power)

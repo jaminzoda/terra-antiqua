@@ -24,7 +24,6 @@
 """
 
 
-
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Load TerraAntiqua class from file TerraAntiqua.
@@ -32,5 +31,13 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
+    # add external libs directory to the system variable Path
+    # to be able to import extension libs
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "external"
+    ))
     from .core.terra_antiqua import TerraAntiqua
     return TerraAntiqua(iface)
