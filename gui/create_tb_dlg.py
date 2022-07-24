@@ -4,12 +4,14 @@
 
 
 from PyQt5.QtWidgets import QComboBox
+from PyQt5.QtCore import pyqtSlot
 from .base_dialog import TaBaseDialog
 from .widgets import (
     TaRasterLayerComboBox,
     TaVectorLayerComboBox,
     TaCheckBox,
     TaSpinBox,
+    TaDoubleSpinBox,
     TaColorSchemeWidget
 )
 
@@ -62,21 +64,21 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
         # Parameters for mountain range creation
         self.maxElev = self.addVariantParameter(TaSpinBox,
                                                 featureTypeRandomMountain,
-                                                "Maximum ridge elevation (in m)")
+                                                "Maximum ridge elevation (in m):")
         self.maxElev.spinBox.setValue(5000)
         self.minElev = self.addVariantParameter(TaSpinBox,
                                                 featureTypeRandomMountain,
-                                                "Minimum ridge elevation (in m)")
+                                                "Minimum ridge elevation (in m):")
         self.minElev.spinBox.setValue(3000)
 
         self.mountRugged = self.addVariantParameter(TaSpinBox,
                                                     featureTypeRandomMountain,
-                                                    "Ruggedness of the mountains (in %)")
+                                                    "Ruggedness of the mountains (in %):")
         self.mountRugged.spinBox.setValue(30)
         self.mountRugged.setAllowedValueRange(0, 100)
         self.mountSlope = self.addVariantParameter(TaSpinBox,
                                                    featureTypeRandomMountain,
-                                                   "Width of mountain slope (in km)")
+                                                   "Width of mountain slope (in km):")
         self.mountSlope.spinBox.setValue(5)
         self.mountSlope.setAllowedValueRange(0, 500)
 
@@ -87,8 +89,61 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
         # Parameters for creating mountain ranges using stream power law and fractal geometry
         self.maxElevFractal = self.addVariantParameter(TaSpinBox,
                                                        featureTypeFractalMountain,
-                                                       "Maximum ridge elevation (in m)")
+                                                       "Maximum ridge elevation (in m):")
         self.maxElevFractal.spinBox.setValue(5000)
+        self.maxElevFractal.setDataType("double")
+
+        self.mExponentFractal = self.addVariantParameter(TaDoubleSpinBox,
+                                                         featureTypeFractalMountain,
+                                                         "m exponent of the Stream power law:")
+        self.mExponentFractal.spinBox.setObjectName("mExponent")
+        self.mExponentFractal.setAllowedValueRange(0.1, 10000.0)
+        self.mExponentFractal.setValue(0.45)
+        self.mExponentFractal.setDataType("double")
+        self.mExponentFractal.spinBox.setClearValue(
+            self.mExponentFractal.spinBox.minimum())
+        self.mExponentFractal.spinBox.valueChanged.connect(
+            self.synchronizeMAndNExponents)
+
+        self.nExponentFractal = self.addVariantParameter(TaDoubleSpinBox,
+                                                         featureTypeFractalMountain,
+                                                         "n exponent of the Stream power law:")
+        self.nExponentFractal.spinBox.setObjectName("nExponent")
+        self.nExponentFractal.setAllowedValueRange(0.1, 10000.0)
+        self.nExponentFractal.setValue(1)
+        self.nExponentFractal.setDataType("double")
+        self.nExponentFractal.spinBox.setClearValue(
+            self.nExponentFractal.spinBox.minimum())
+        self.nExponentFractal.spinBox.valueChanged.connect(
+            self.synchronizeMAndNExponents)
+
+        self.rockErodabilityFractal = self.addVariantParameter(TaDoubleSpinBox,
+                                                               featureTypeFractalMountain,
+                                                               "Rock erodability (K):")
+        self.rockErodabilityFractal.spinBox.setDecimals(13)
+        self.rockErodabilityFractal.setAllowedValueRange(1e-13, 1e-2)
+        self.rockErodabilityFractal.setValue(2e-5)
+        self.rockErodabilityFractal.setDataType("double")
+        self.rockErodabilityFractal.spinBox.setClearValue(
+            self.rockErodabilityFractal.spinBox.minimum())
+
+        self.drainageAreaFractal = self.addVariantParameter(TaDoubleSpinBox,
+                                                            featureTypeFractalMountain,
+                                                            "Upstream drainage area (A):")
+        self.drainageAreaFractal.setAllowedValueRange(1.0, 100000.0)
+        self.drainageAreaFractal.setValue(2e4)
+        self.drainageAreaFractal.setDataType("double")
+        self.drainageAreaFractal.spinBox.setClearValue(
+            self.drainageAreaFractal.spinBox.minimum())
+
+        self.channelSlopeFractal = self.addVariantParameter(TaDoubleSpinBox,
+                                                            featureTypeFractalMountain,
+                                                            "Channel slope (S):")
+        self.channelSlopeFractal.setAllowedValueRange(0.0, 10000.0)
+        self.channelSlopeFractal.setValue(0.6)
+        self.channelSlopeFractal.setDataType("double")
+        self.channelSlopeFractal.spinBox.setClearValue(
+            self.channelSlopeFractal.spinBox.minimum())
 
         self.fillDialog()
         self.showVariantWidgets(self.featureTypeBox.currentText())
@@ -123,3 +178,42 @@ class TaCreateTopoBathyDlg(TaBaseDialog):
         self.mountSlope.initOverrideButton("mountSlopeValue",
                                            "Width of mountain slope",
                                            self.masksBox.currentLayer())
+        self.maxElevFractal.initOverrideButton("maxElevValueFractal",
+                                               "Maximum ridge elevation",
+                                               self.masksBox.currentLayer())
+        self.mExponentFractal.initOverrideButton("mExponentFractal",
+                                                 "m Exponent of SPL",
+                                                 self.masksBox.currentLayer())
+        self.nExponentFractal.initOverrideButton("nExponentFractal",
+                                                 "n Exponent of SPL",
+                                                 self.masksBox.currentLayer())
+        self.rockErodabilityFractal.initOverrideButton("rockErodabilityFractal",
+                                                       "Rock erodability",
+                                                       self.masksBox.currentLayer())
+        self.drainageAreaFractal.initOverrideButton("drainageAreaFractal",
+                                                    "Upstream drainage area",
+                                                    self.masksBox.currentLayer())
+        self.channelSlopeFractal.initOverrideButton("channelSlopeFractal",
+                                                    "Channel slope",
+                                                    self.masksBox.currentLayer())
+
+    @pyqtSlot()
+    def synchronizeMAndNExponents(self):
+        """The ration of m/n in stream power law equation (E=KA^mS^n)
+        should range between 0.2 and 0.8. This function makes sure
+        that it doesn't go beyond this range."""
+        ratio = self.mExponentFractal.value()/self.nExponentFractal.value()
+        if self.sender().objectName() == "mExponent":
+            if ratio > 0.8:
+                self.nExponentFractal.setValue(
+                    self.mExponentFractal.value()/0.8)
+            elif ratio < 0.2:
+                self.nExponentFractal.setValue(
+                    self.mExponentFractal.value()/0.2)
+        elif self.sender().objectName() == "nExponent":
+            if ratio > 0.8:
+                self.mExponentFractal.setValue(
+                    self.nExponentFractal.value()*0.8)
+            elif ratio < 0.2:
+                self.mExponentFractal.setValue(
+                    self.nExponentFractal.value()*0.2)

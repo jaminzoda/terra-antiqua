@@ -9,6 +9,7 @@ from qgis.gui import (
     QgsMapLayerComboBox,
     QgsPropertyOverrideButton,
     QgsSpinBox,
+    QgsDoubleSpinBox,
     QgsFilterLineEdit,
     QgsCollapsibleGroupBox
 )
@@ -276,6 +277,78 @@ class TaSpinBox(QtWidgets.QWidget):
         param value: value to be set.
         type value: int. """
         self.spinBox.setValue(value)
+
+    def value(self):
+        """Returns the value set in the spinBox."""
+        return self.spinBox.value()
+
+
+class TaDoubleSpinBox(QtWidgets.QWidget):
+    def __init__(self):
+        super(TaDoubleSpinBox, self).__init__()
+        self.layout = QtWidgets.QHBoxLayout()
+        self.spinBox = QgsDoubleSpinBox()
+        self.overrideButton = QgsPropertyOverrideButton(self)
+        self.overrideButton.registerEnabledWidget(self.spinBox, False)
+        self.layout.addWidget(self.spinBox)
+        self.layout.addWidget(self.overrideButton)
+        self.layout.setSpacing(6)
+        self.layout.setContentsMargins(QtCore.QMargins(0, 0, 0, 0))
+        self.setLayout(self.layout)
+        self.dataType = None
+        self.spinBox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.initOverrideButton("generalProperty", "Blank property")
+
+    def initOverrideButton(self, property_name, property_descr, layer=None):
+        if self.dataType:
+            if self.dataType.lower() == 'integer':
+                definition = QgsPropertyDefinition(property_name, property_descr,
+                                                   QgsPropertyDefinition.Integer)
+            elif self.dataType.lower() == 'double':
+                definition = QgsPropertyDefinition(property_name, property_descr,
+                                                   QgsPropertyDefinition.Double)
+            else:
+                raise Exception("Wrong data type: {}".format(self.dataType))
+        else:
+            definition = QgsPropertyDefinition(property_name, property_descr,
+                                               QgsPropertyDefinition.Integer)
+
+        if layer:
+            self.overrideButton.registerExpressionContextGenerator(layer)
+            self.overrideButton.init(
+                0, QgsProperty(), definition, layer, False)
+        else:
+            self.overrideButton.init(0, QgsProperty(), definition)
+
+    def setDataType(self, dataType: str):
+        """Sets the type of data set in SpinBox. Must be called before
+        initOverrideButton. Accepts Integer and Double.
+
+        :dataType: A string defining the data type for the spinbox. Can be 'integer' or 'double'.
+
+        :type: str
+
+        """
+        self.dataType = dataType
+
+    def setAllowedValueRange(self, min, max):
+        """ Sets allowed value range for the spinbox to bound the maximum and
+        minimum values that the spinbox can receive.
+        :param min: minimum value.
+        :param nax: maximum value.
+        """
+        self.spinBox.setMinimum(min)
+        self.spinBox.setMaximum(max)
+
+    def setValue(self, value):
+        """Sets value for the spinbox.
+        param value: value to be set.
+        type value: int. """
+        self.spinBox.setValue(value)
+
+    def value(self):
+        """Returns the value set in the spinBox."""
+        return self.spinBox.value()
 
 
 class TaCheckBox(QtWidgets.QCheckBox):

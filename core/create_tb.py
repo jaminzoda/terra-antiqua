@@ -978,7 +978,30 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
             max_mount_elev, ok = self.dlg.maxElevFractal.overrideButton.toProperty(
             ).valueAsInt(self.context)
             if not ok:
-                max_mount_elev = self.dlg.maxElevFractal.spinBox.value()
+                max_mount_elev = self.dlg.maxElevFractal.value()
+
+            tm, ok = self.dlg.mExponentFractal.overrideButton.toProperty().valueAsDouble(self.context)
+            if not ok:
+                tm = self.dlg.mExponentFractal.value()
+
+            tn, ok = self.dlg.nExponentFractal.overrideButton.toProperty().valueAsDouble(self.context)
+            if not ok:
+                tn = self.dlg.nExponentFractal.value()
+
+            tKref, ok = self.dlg.rockErodabilityFractal.overrideButton.toProperty(
+            ).valueAsDouble(self.context)
+            if not ok:
+                tKref = self.dlg.rockErodabilityFractal.value()
+
+            tAcrit, ok = self.dlg.drainageAreaFractal.overrideButton.toProperty(
+            ).valueAsDouble(self.context)
+            if not ok:
+                tAcrit = self.dlg.drainageAreaFractal.value()
+
+            tS_c, ok = self.dlg.channelSlopeFractal.overrideButton.toProperty(
+            ).valueAsDouble(self.context)
+            if not ok:
+                tS_c = self.dlg.channelSlopeFractal.value()
 
             # Create a memory vector layer to store a feature at a time
             feature_layer = QgsVectorLayer(
@@ -1024,12 +1047,6 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
 
             self.feedback.debug(
                 f"Number of itterations for running the model: {nrefining}")
-
-            # Homogeneous values
-            tm, tn = 0.45, 1
-            tKref = 2e-5
-            tAcrit = 1e4
-            tS_c = 0.6
 
             # Initialising the model
             model = wt.MiniLEM()
@@ -1130,8 +1147,6 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
         #  processing and saving the result
         if not self.killed:
             self.feedback.debug("Saving ... ")
-            # Restore the original size of the array
-            # TODO: 1) Normalize elevation values; 2) set 0 values to nan; 3) insert the result into the global raster
             rlayer_extent = self.topo_layer.extent()
             geotransform = (rlayer_extent.xMinimum(),
                             self.topo_layer.rasterUnitsPerPixelX(),
@@ -1176,7 +1191,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
             f"Geotransform for mask rasterizaton: {geotransform}")
 
         self.feedback.debug(
-            f"Number of cols and rows the mask: {ncols}x{nrows}")
+            f"Number of cols and rows in the mask: {ncols}x{nrows}")
 
         # rasterize the mask polygon
         temp_mask_array = vectorToRaster(
@@ -1214,7 +1229,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
         should compensate for this difference by setting values (of equal amount of pixels)
          at the boundary of the creating feature to 1.
 
-         :param maskArray: the array in which the difference should be compencated for.
+         :param maskArray: the array in which the difference should be compensated for.
          :type maskArray: numpy.ndarray
          :param diffSize: masking area difference in pixels.
          :type diffSize: int.
