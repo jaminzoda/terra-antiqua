@@ -939,6 +939,21 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
         drainage network and fractal geometry for producing topography details
         regardless of the scale.
         """
+
+        """
+        - `tm,tn`: the m and n exponents of the stream power law. 
+        Usually the ratio m/n is between 0.2 and 0.8, median around 0.45.
+        - `tKref`: the erodibility ("the rock strength"). 
+        Lower values = higher relief. its magnitude varies between 1e-2 
+        and 1e-13 and highly depends on the values of m and n. It ultimately 
+        controls the height of a mountain range.
+        - `tAcrit`: controls the transition between fluvial and hillslope 
+        processes by applying a threshold of drainage area (number of 
+        accumulated pixels draining to a single one times the area of a cell).
+         Set to 1 if you only want fluvial landscapes, set to high values for a 
+         lot of linear hillslopes
+        - `tS_c`: critical slope of the hillslopes
+        """
         if not self.killed:
             # Get the input topography raster
             topo_layer_ds = gdal.Open(self.topo_layer.source())
