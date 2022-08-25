@@ -39,7 +39,7 @@ To install the plugin you need to switch to Releases tab and download a zip file
 
 Documentation
 =================
-You can download the user's manual as a pdf here: (URL)
+You see the user's manual here: https://jaminzoda.github.io/terra-antiqua-documentation
 
 Versioning and changelog (Developers)
 ==================
