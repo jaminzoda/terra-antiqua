@@ -22,7 +22,7 @@ from qgis.core import (
 
 
 import numpy as np
-from sympy import jn
+
 
 import cppwtt as wt
 
