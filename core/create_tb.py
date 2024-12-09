@@ -210,6 +210,10 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 except Exception as e:
                     self.feedback.error("Failed to create random points inside feature polygons with the following exception: {}".format(e))
                     self.kill()
+                else:
+                    if random_points_layer.featureCount() == 0:
+                        self.feedback.error("Failed to create random points inside polygon features.")
+                        self.kill()
 
 
             if not self.killed:
@@ -292,15 +296,15 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     if not int(self.feedback.progress)==int(progress_count):
                         self.feedback.progress = int(progress_count)
 
-            if len(dists)>0:
-                min_dist = min(dists)
-                max_dist = max(dists)
-            else:
-                name = feature.attribute('name') if feature.attribute('name')!=NULL else 'NoName'
-                self.feedback.warning(f"Something went wrong while processing feature {name}.")
-                self.feedback.warning("The distances between the shoreline and\
-                                      depth points are not calculated.")
-                continue
+                if len(dists)>0:
+                    min_dist = min(dists)
+                    max_dist = max(dists)
+                else:
+                    name = feature.attribute('name') if feature.attribute('name')!=NULL else 'NoName'
+                    self.feedback.warning(f"Something went wrong while processing feature {name}.")
+                    self.feedback.warning("The distances between the shoreline and\
+                                        depth points are not calculated.")
+                    continue
 
             if not self.killed:
                 self.feedback.info("Calculating depth values ... ")

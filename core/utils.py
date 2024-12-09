@@ -60,8 +60,8 @@ from qgis.core import (
     QgsCoordinateTransformContext,
     QgsCoordinateReferenceSystem,
     QgsSimpleFillSymbolLayer,
-    QgsProcessingException
-
+    QgsProcessingException,
+    Qgis
 )
 from osgeo import gdal, osr, ogr, gdalconst
 from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
@@ -1173,10 +1173,15 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
 
         bbox = fGeom.boundingBox()
         area = da.measureArea(fGeom)
-        if da.areaUnits() != 8:
-            area = da.convertAreaMeasurement(area, 8)
+
+        # Convert area to square degrees
+        if da.areaUnits() != Qgis.AreaUnit.SquareDegrees:
+            area = da.convertAreaMeasurement(area, Qgis.AreaUnit.SquareDegrees)
+
+
 
         pointCount = int(round(point_density * area))
+
 
         if pointCount == 0:
             feedback.warning(
