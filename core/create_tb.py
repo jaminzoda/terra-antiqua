@@ -141,16 +141,13 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
             if self.killed:
                 break
             self.context.setFeature(feature)
-            try:
-                self.feedback.info(
-                    "<b><i>Creating {} sea".format(
-                        feature.attribute('name')
-                        if feature.attribute('name')!=NULL else "NoName"
-                    )
-                )
-            except Exception as e:
-                self.feedback.info("<b><i>Processing feature {}".format(feature.attribute('id')))
-                self.feedback.debug(e)
+            if 'name' in feature.fields().names() and feature.attribute('name')!=NULL:
+                self.feedback.info(f"<b><i>Creating {feature.attribute('name')} sea")
+            elif 'id' in feature.fields().names() and feature.attribute('id')!=NULL:
+                self.feedback.info(f"<b><i>Creating sea for the feature with id {feature.attribute('id')}") 
+            else:
+                self.feedback.info(f"<b><i>Creating NoName sea")
+                
             #Reading parameters for creating feature from the dialog or attributes
             shelf_width, ok = self.dlg.shelfWidth.overrideButton.toProperty().valueAsInt(self.context)
             if not ok:
@@ -209,11 +206,13 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                                           pixel_size_avrg, self.feedback, 10)
                 except Exception as e:
                     self.feedback.error("Failed to create random points inside feature polygons with the following exception: {}".format(e))
-                    self.kill()
+                    self.feedback.info("Proceeding to the next feature")
+                    continue
                 else:
                     if random_points_layer.featureCount() == 0:
                         self.feedback.error("Failed to create random points inside polygon features.")
-                        self.kill()
+                        self.feedback.info("Proceeding to the next feature.")
+                        continue
 
 
             if not self.killed:
@@ -300,7 +299,10 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     min_dist = min(dists)
                     max_dist = max(dists)
                 else:
-                    name = feature.attribute('name') if feature.attribute('name')!=NULL else 'NoName'
+                    if 'name' in feature.fields().names() and feature.attribute('name')!=NULL:
+                        name = feature.attribute('name')
+                    else:
+                        name = 'NoName'
                     self.feedback.warning(f"Something went wrong while processing feature {name}.")
                     self.feedback.warning("The distances between the shoreline and\
                                         depth points are not calculated.")
@@ -533,16 +535,12 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
             if self.killed:
                 break
             self.context.setFeature(feature)
-            try:
-                self.feedback.info(
-                    "<b><i>Creating {} mountain".format(
-                        feature.attribute('name')
-                        if feature.attribute('name')!=NULL else "NoName"
-                    )
-                )
-            except Exception as e:
-                self.feedback.info("<b><i>Processing feature {}".format(feature.attribute('id')))
-                self.feedback.debug(e)
+            if 'name' in feature.fields().names() and feature.attribute('name')!=NULL:
+                self.feedback.info(f"<b><i>Creating {feature.attribute('name')} mountain range")
+            elif 'id' in feature.fields().names() and feature.attribute('id')!=NULL:
+                self.feedback.info(f"<b><i>Creating mountain for the feature with id {feature.attribute('id')}") 
+            else:
+                self.feedback.info(f"<b><i>Creating NoName mountain range")
 
             #Reading parameters for creating feature from the dialog or attributes
             max_mount_elev, ok = self.dlg.maxElev.overrideButton.toProperty().valueAsInt(self.context)
@@ -597,11 +595,13 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     random_points_layer = randomPointsInPolygon(mask_layer_densified, point_density, pixel_size_avrg, self.feedback, 10)
                 except Exception as e:
                     self.feedback.error("Failed to create random points inside polygon features. The error is: {}".format(e))
-                    self.kill()
+                    self.feedback.info("Proceeding to the next feature.")
+                    continue
                 else:
                     if random_points_layer.featureCount() == 0:
                         self.feedback.error("Failed to create random points inside polygon features.")
-                        self.kill()
+                        self.feedback.info("Proceeding to the next feature.")
+                        continue
 
             if not self.killed:
                 # Extracting geographic feature vertices
@@ -685,7 +685,10 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     min_dist = min(dists)
                     max_dist = max(dists)
                 else:
-                    name = feature.attribute('name') if feature.attribute('name')!=NULL else 'NoName'
+                    if 'name' in feature.fields().names() and feature.attribute('name')!=NULL:
+                        name = feature.attribute('name')
+                    else:
+                        name = 'NoName'
                     self.feedback.warning(f"Something went wrong while processing feature {name}.")
                     self.feedback.warning("The distances between the mountain boundary and\
                                           elevation  points are not calculated.")
