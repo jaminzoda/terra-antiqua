@@ -1,11 +1,18 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 #Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires
+#  - exec_() replaced by exec()
+#  - Arrow icons loaded from the resources/ folder through compat.icon_path (resources.py removed)
+#  See core/compat.py for the note on how this port was made.
 
 import os
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from qgis.PyQt import QtWidgets  # [QGIS4 port]
+from qgis.PyQt import QtGui  # [QGIS4 port]
+from qgis.PyQt import QtCore  # [QGIS4 port]
+from ..core.compat import icon_path  # [QGIS4 port]
 from .widgets import TaHelpBrowser
 
 
@@ -16,10 +23,10 @@ class TaTemplateDialog(QtWidgets.QDialog):
 
         self.setGeometry(200, 200, 900, 600)
         self.tabWidget =QtWidgets.QTabWidget(self)
-        self.tabWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.tabWidget.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)  # [QGIS4 port]
 
         self.paramsScrollArea = QtWidgets.QScrollArea()
-        self.paramsScrollArea.setAlignment(QtCore.Qt.AlignTop)
+        self.paramsScrollArea.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)  # [QGIS4 port]
         self.paramsScrollArea.setWidgetResizable(True)
         self.paramsWidget = QtWidgets.QWidget()
         self.paramsLayout = QtWidgets.QVBoxLayout()
@@ -31,19 +38,19 @@ class TaTemplateDialog(QtWidgets.QDialog):
         self.logBrowser.setOpenExternalLinks(True)
         self.tabWidget.addTab(self.logBrowser, 'Log')
         self.helpTextBox = TaHelpBrowser(self)
-        self.helpTextBox.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self.helpTextBox.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)  # [QGIS4 port]
         try:
             self.helpTextBox.placeholderText = "Your log will be shown here."
         except:
             pass
-        self.iconRight = QtGui.QIcon(':/arrow_right.png')
-        self.iconLeft = QtGui.QIcon(':/arrow_left.png')
+        self.iconRight = QtGui.QIcon(icon_path('arrow_right.png'))  # [QGIS4 port]
+        self.iconLeft = QtGui.QIcon(icon_path('arrow_left.png'))  # [QGIS4 port]
         self.collapseButton = QtWidgets.QToolButton(self)
         self.collapseButton.setIcon(self.iconRight)
         self.collapseButton.setIconSize(QtCore.QSize(8,8))
         self.collapseButton.setAutoRaise(True)
-        self.tabWidget.setCornerWidget(self.collapseButton, QtCore.Qt.TopRightCorner)
-        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        self.tabWidget.setCornerWidget(self.collapseButton, QtCore.Qt.Corner.TopRightCorner)  # [QGIS4 port]
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)  # [QGIS4 port]
         self.splitter.addWidget(self.tabWidget)
         self.splitter.addWidget(self.helpTextBox)
         self.splitter.setStretchFactor(0, 1)
@@ -125,4 +132,4 @@ if __name__=='__main__':
     app = QtWidgets.QApplication([])
     dlg = TaTemplateDialog()
     dlg.show()
-    app.exec_()
+    app.exec()  # [QGIS4 port]

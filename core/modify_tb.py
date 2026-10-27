@@ -1,6 +1,14 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Python built-ins abs, bool, max, min, pow and round restored after "from numpy import *",
+#    because NumPy 2 (bundled with QGIS 4) would otherwise replace them
+#  - Raster files are deleted with compat.delete_raster_file, so a failed deletion
+#    (Windows "Permission denied") no longer stops the tool
+#  - modifyWithFormula: formula check uses core/expressions.evaluate instead of eval()
+#  See core/compat.py for the note on how this port was made.
 
 import os
 from osgeo import (
@@ -19,6 +27,9 @@ import shutil
 
 import numpy as np
 from numpy import * #This is to import math functions to use in formula
+# NumPy 2.x (bundled with QGIS 4) also exports abs, bool, max, min, pow and round, which would
+# replace Python's built-ins in this module. Restore them so behaviour matches NumPy 1.x.
+from builtins import abs, bool, max, min, pow, round  # noqa: E402,F811  # [QGIS4 port]
 
 from .utils import (
      vectorToRaster,
@@ -27,6 +38,8 @@ from .utils import (
      polygonOverlapCheck
      )
 from .base_algorithm import TaBaseAlgorithm
+from .compat import delete_raster_file  # [QGIS4 port]
+from .expressions import evaluate  # [QGIS4 port]
 
 
 class TaModifyTopoBathy(TaBaseAlgorithm):
@@ -124,8 +137,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
             if ok:
                 # Write the resulting raster array to a raster file
                 driver = gdal.GetDriverByName('GTiff')
-                if os.path.exists(self.out_file_path):
-                    driver.Delete(self.out_file_path)
+                delete_raster_file(self.out_file_path, self.feedback)  # [QGIS4 port]
 
                 raster = driver.Create(self.out_file_path, self.ncols, self.nrows, 1, gdal.GDT_Float32)
                 raster.SetGeoTransform(self.geotransform)
@@ -167,7 +179,7 @@ class TaModifyTopoBathy(TaBaseAlgorithm):
                 continue
             else:
                 try:
-                    eval(formula)
+                    evaluate(formula, {"H": H})  # [QGIS4 port]
                 except Exception as e:
                     self.feedback.warning(f"Formula for mask {mask_number} \
                                           is invalid: {formula}.")

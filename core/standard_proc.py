@@ -1,8 +1,20 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Raster files are deleted with compat.delete_raster_file, so a failed deletion
+#    (Windows "Permission denied") no longer stops the tool
+#  - prepareOutputName: gives the default output file name before the tool starts
+#  - smoothRaster (fixed paleoshorelines): the final correction near the shorelines is skipped when
+#    no pixels need it, instead of stopping with "The input Array is empty"; when all pixels to correct
+#    have the same value they are set to 0.1 m (land side) or -0.1 m (sea side) instead of becoming empty;
+#    the gaps are filled from a temporary copy, as filling a file into itself corrupts it on Windows
+#  - smoothRaster: when the input has NoData cells, the temporary filled raster is closed after reading
+#    (it is filled again during smoothing, which on Windows gave an all-zero result)
+#  See core/compat.py for the note on how this port was made.
 
 from .base_algorithm import TaBaseAlgorithm
+from .compat import delete_raster_file  # [QGIS4 port]
 from .utils import rasterSmoothing, rasterSmoothingInPolygon
 import os
 from osgeo import gdal, gdalconst
@@ -40,6 +52,10 @@ class TaStandardProcessing(TaBaseAlgorithm):
         super().__init__(dlg)
         self.getParameters()
         self.dlg.dialog_name_changed.connect(self.getParameters)
+
+    def prepareOutputName(self):  # [QGIS4 port]
+        """The default output file name depends on the processing type chosen in the dialog."""
+        self.getParameters()
 
     def getParameters(self):
         self.processing_type = self.dlg.processingTypeBox.currentText()
@@ -249,6 +265,10 @@ class TaStandardProcessing(TaBaseAlgorithm):
                 raster_to_smooth_ds = gdal.Open(
                     filled_raster, gdalconst.GA_ReadOnly)
                 in_array = raster_to_smooth_ds.GetRasterBand(1).ReadAsArray()
+                # [QGIS4 port] Close the filled temporary file: it is filled again during smoothing, and on
+                # Windows that overwrites it while open, giving an all-zero result. The original input
+                # has the same size and georeferencing, which is all that is read from it later.
+                raster_to_smooth_ds = gdal.Open(raster_to_smooth_layer.source())  # [QGIS4 port]
 
         if not self.killed:
             in_raster_extent = raster_to_smooth_layer.extent()
@@ -416,12 +436,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
 
                 # Write the smoothed raster
                 # If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
-                try:
-                    if os.path.exists(self.out_file_path):
-                        driver = gdal.GetDriverByName('GTiff')
-                        driver.Delete(self.out_file_path)
-                except Exception as e:
-                    self.feedback.error(e)
+                delete_raster_file(self.out_file_path, self.feedback)  # [QGIS4 port]
 
                 smoothed_raster = gdal.GetDriverByName('GTiff').Create(self.out_file_path, in_array.shape[1],
                                                                        in_array.shape[0], 1, gdal.GDT_Float32)
@@ -465,6 +480,7 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                                            raster_to_smooth_ds.GetGeoTransform(),
                                                            raster_to_smooth_ds.RasterXSize,
                                                            raster_to_smooth_ds.RasterYSize)
+                    smoothed_raster_layer = None  # [QGIS4 port] release the output file (Windows)
                     smoothed_raster = gdal.Open(
                         self.out_file_path, gdalconst.GA_Update)
                     smoothed_array = smoothed_raster.GetRasterBand(
@@ -478,15 +494,23 @@ class TaStandardProcessing(TaBaseAlgorithm):
                                    * (smoothed_array < 0) == 1] = np.nan
                     smoothed_array[(shorelines_mask_array != 1)
                                    * (smoothed_array > 0) == 1] = np.nan
-                    smoothed_raster.GetRasterBand(1).WriteArray(smoothed_array)
+                    # [QGIS4 port] The gaps are filled from a temporary copy into the output file. Filling a
+                    # file into itself corrupts it on Windows (empty values, georeferencing lost).
+                    temp_to_fill = os.path.join(self.temp_dir, "Smoothed_raster_before_filling.tif")  # [QGIS4 port]
+                    delete_raster_file(temp_to_fill, self.feedback)  # [QGIS4 port]
+                    temp_raster = gdal.GetDriverByName('GTiff').CreateCopy(temp_to_fill, smoothed_raster)  # [QGIS4 port]
+                    temp_raster.GetRasterBand(1).WriteArray(smoothed_array)  # [QGIS4 port]
+                    temp_raster = None  # [QGIS4 port]
                     smoothed_array = None
                     shorelines_array = None
                     smoothed_raster = None
                     # fill the resulting gaps
                     layer_to_fill = QgsRasterLayer(
-                        self.out_file_path, "Smoothed raster", "gdal")
+                        temp_to_fill, "Smoothed raster", "gdal")  # [QGIS4 port]
                     self.out_file_path = fillNoData(
                         layer_to_fill, self.out_file_path)
+                    layer_to_fill = None  # [QGIS4 port]
+                    delete_raster_file(temp_to_fill, self.feedback)  # [QGIS4 port]
                     # Make sure that values close to the shorelnes are interpolated correctly
                     # Pixels in touch with the shorelines can get wrong value if they diagonally touch
                     # any pixel on the other side of the shoreline
@@ -495,14 +519,24 @@ class TaStandardProcessing(TaBaseAlgorithm):
                     final_array = final_raster.GetRasterBand(1).ReadAsArray()
                     array_to_rescale_asl = final_array[(
                         shorelines_mask_array == 1)*(final_array < 0) == 1]
-                    rescaled = modRescale(array_to_rescale_asl, 0.1, 5)
-                    final_array[(shorelines_mask_array == 1) *
-                                (final_array < 0) == 1] = rescaled
+                    if array_to_rescale_asl.size > 0:  # [QGIS4 port] nothing to correct otherwise
+                        if array_to_rescale_asl.min() == array_to_rescale_asl.max():  # [QGIS4 port]
+                            # all values equal: rescaling would divide by zero; use the value at the shoreline
+                            rescaled = np.full(array_to_rescale_asl.shape, 0.1)
+                        else:
+                            rescaled = modRescale(array_to_rescale_asl, 0.1, 5)
+                        final_array[(shorelines_mask_array == 1) *
+                                    (final_array < 0) == 1] = rescaled
                     array_to_rescale_bsl = final_array[(
                         shorelines_mask_array != 1)*(final_array >= 0) == 1]
-                    rescaled = modRescale(array_to_rescale_bsl, -5, -0.1)
-                    final_array[(shorelines_mask_array != 1) *
-                                (final_array >= 0) == 1] = rescaled
+                    if array_to_rescale_bsl.size > 0:  # [QGIS4 port] nothing to correct otherwise
+                        if array_to_rescale_bsl.min() == array_to_rescale_bsl.max():  # [QGIS4 port]
+                            # all values equal: rescaling would divide by zero; use the value at the shoreline
+                            rescaled = np.full(array_to_rescale_bsl.shape, -0.1)
+                        else:
+                            rescaled = modRescale(array_to_rescale_bsl, -5, -0.1)
+                        final_array[(shorelines_mask_array != 1) *
+                                    (final_array >= 0) == 1] = rescaled
                     final_array[nan_mask == 1] = np.nan
                     final_raster.GetRasterBand(1).WriteArray(final_array)
                     final_array = None

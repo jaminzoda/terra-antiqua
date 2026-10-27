@@ -1,10 +1,20 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires
+#  - TaHelpBrowser: show/hide events compared with QEvent.Type (the old event.Show/event.Hide
+#    form does not exist in Qt6)
+#  - Layer filters use compat.FILTER_* (they moved to Qgis.LayerFilter in QGIS 3.34)
+#  - Button icons loaded from the resources/ folder through compat.icon_path (resources.py removed)
+#  See core/compat.py for the note on how this port was made.
 
 
 import os
-from PyQt5 import QtWidgets, QtCore, QtGui
+from qgis.PyQt import QtWidgets, QtCore, QtGui  # [QGIS4 port]
+from ..core.compat import FILTER_LINE, FILTER_POINT, FILTER_POLYGON, FILTER_RASTER, FILTER_VECTOR  # [QGIS4 port]
+from ..core.compat import icon_path  # [QGIS4 port]
 from qgis.gui import (
     QgsMapLayerComboBox,
     QgsPropertyOverrideButton,
@@ -27,18 +37,18 @@ class TaButtonGroup(QtWidgets.QWidget):
         super(TaButtonGroup, self).__init__()
         self.add = QtWidgets.QToolButton()
         self.add.setAutoRaise(True)
-        self.add.setIcon(QtGui.QIcon(':/addButton.png'))
+        self.add.setIcon(QtGui.QIcon(icon_path('addButton.png')))  # [QGIS4 port]
         self.add.setToolTip("Add row")
         self.remove = QtWidgets.QToolButton()
-        self.remove.setIcon(QtGui.QIcon(':/removeButton.png'))
+        self.remove.setIcon(QtGui.QIcon(icon_path('removeButton.png')))  # [QGIS4 port]
         self.remove.setAutoRaise(True)
         self.remove.setToolTip("Remove row")
         self.up = QtWidgets.QToolButton()
-        self.up.setIcon(QtGui.QIcon(':/arrow_up.png'))
+        self.up.setIcon(QtGui.QIcon(icon_path('arrow_up.png')))  # [QGIS4 port]
         self.up.setAutoRaise(True)
         self.up.setToolTip("Move row up")
         self.down = QtWidgets.QToolButton()
-        self.down.setIcon(QtGui.QIcon(':/arrow_down.png'))
+        self.down.setIcon(QtGui.QIcon(icon_path('arrow_down.png')))  # [QGIS4 port]
         self.down.setAutoRaise(True)
         self.down.setToolTip("Move row down")
         self.hLayout = QtWidgets.QHBoxLayout(self)
@@ -85,11 +95,11 @@ class TaHelpBrowser(QtWidgets.QTextBrowser):
         self.collapsed = False
 
     def hideEvent(self, event):
-        if event.type() == event.Hide:
+        if event.type() == QtCore.QEvent.Type.Hide:  # [QGIS4 port]
             self.visibilityChanged.emit(False)
 
     def showEvent(self, event):
-        if event.type() == event.Show:
+        if event.type() == QtCore.QEvent.Type.Show:  # [QGIS4 port]
             self.visibilityChanged.emit(True)
 
 
@@ -107,20 +117,20 @@ class TaAbstractMapLayerComboBox(QgsMapLayerComboBox):
 
         """
         if not layer_type:
-            layer_type = QgsMapLayerProxyModel.RasterLayer
+            layer_type = FILTER_RASTER  # [QGIS4 port]
         else:
             if layer_type == 'Polygon':
-                layer_type = QgsMapLayerProxyModel.PolygonLayer
+                layer_type = FILTER_POLYGON  # [QGIS4 port]
             elif layer_type == 'Polyline':
-                layer_type = QgsMapLayerProxyModel.LineLayer
+                layer_type = FILTER_LINE  # [QGIS4 port]
             elif layer_type == 'Point':
-                layer_type = QgsMapLayerProxyModel.PointLayer
+                layer_type = FILTER_POINT  # [QGIS4 port]
             else:
-                layer_type = QgsMapLayerProxyModel.VectorLayer
+                layer_type = FILTER_VECTOR  # [QGIS4 port]
         self.setFilters(layer_type)
 
     def changeEvent(self, event):
-        if event.type() == QtCore.QEvent.EnabledChange:
+        if event.type() == QtCore.QEvent.Type.EnabledChange:  # [QGIS4 port]
             self.enabled.emit(self.isEnabled())
 
 
@@ -227,22 +237,22 @@ class TaSpinBox(QtWidgets.QWidget):
         self.layout.setContentsMargins(QtCore.QMargins(0, 0, 0, 0))
         self.setLayout(self.layout)
         self.dataType = None
-        self.spinBox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.spinBox.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # [QGIS4 port]
         self.initOverrideButton("generalProperty", "Blank property")
 
     def initOverrideButton(self, property_name, property_descr, layer=None):
         if self.dataType:
             if self.dataType.lower() == 'integer':
                 definition = QgsPropertyDefinition(property_name, property_descr,
-                                                   QgsPropertyDefinition.Integer)
+                                                   QgsPropertyDefinition.StandardPropertyTemplate.Integer)  # [QGIS4 port]
             elif self.dataType.lower() == 'double':
                 definition = QgsPropertyDefinition(property_name, property_descr,
-                                                   QgsPropertyDefinition.Double)
+                                                   QgsPropertyDefinition.StandardPropertyTemplate.Double)  # [QGIS4 port]
             else:
                 raise Exception("Wrong data type: {}".format(self.dataType))
         else:
             definition = QgsPropertyDefinition(property_name, property_descr,
-                                               QgsPropertyDefinition.Integer)
+                                               QgsPropertyDefinition.StandardPropertyTemplate.Integer)  # [QGIS4 port]
 
         if layer:
             self.overrideButton.registerExpressionContextGenerator(layer)
@@ -287,9 +297,9 @@ class TaCheckBox(QtWidgets.QCheckBox):
         self.default_checked_state = None
 
     def changeEvent(self, event):
-        if event.type() == QtCore.QEvent.EnabledChange and not self.isEnabled():
+        if event.type() == QtCore.QEvent.Type.EnabledChange and not self.isEnabled():  # [QGIS4 port]
             self.setChecked(False)
-        if event.type() == QtCore.QEvent.EnabledChange and self.isEnabled():
+        if event.type() == QtCore.QEvent.Type.EnabledChange and self.isEnabled():  # [QGIS4 port]
             if self.default_checked_state:
                 self.setChecked(self.default_checked_state)
 
@@ -374,7 +384,7 @@ class TaExpressionWidget(QtWidgets.QWidget):
 
     def initOverrideButton(self, property_name, property_descr, layer=None):
         definition = QgsPropertyDefinition(property_name, property_descr,
-                                           QgsPropertyDefinition.String)
+                                           QgsPropertyDefinition.StandardPropertyTemplate.String)  # [QGIS4 port]
 
         if layer:
             self.overrideButton.registerExpressionContextGenerator(layer)

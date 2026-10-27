@@ -1,15 +1,26 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - exec_() replaced by exec()
+#  - add_result / addSecondaryOutputToProject: raster or vector results are recognised with
+#    isinstance() instead of QgsMapLayerType (removed: the try/except import of QgsMapLayerType)
+#  - releaseDefaultOutput / restoreReleasedOutput: when a tool writes to its DEFAULT output file while the
+#    previous result is open on the map, the old layer is pointed at a temporary copy during the run and
+#    pointed back afterwards, so the file can be overwritten on Windows as the help text describes
+#    (on macOS/Linux the end result is the same as before). Output paths chosen by the user are never touched.
+#  See core/compat.py for the note on how this port was made.
 
+import glob  # [QGIS4 port]
 import os
-try:
-    from qgis.core import QgsMapLayerType
-except:
-    pass
-
+import shutil  # [QGIS4 port]
+import tempfile  # [QGIS4 port]
 from qgis.core import (
+    QgsDataProvider,  # [QGIS4 port]
     QgsMapLayer,
+    QgsRasterLayer,  # [QGIS4 port]
+    QgsVectorLayer,
     QgsExpressionContext,
     QgsExpressionContextUtils,
     QgsProject,
@@ -21,6 +32,66 @@ from qgis.core import (
 from . utils import setRasterSymbology, setVectorSymbology
 from .remove_arts import TaRemoveArtefacts, TaPolygonCreator, TaFeatureSink
 from ..gui.welcome_dialog import TaWelcomeDialog
+
+
+def _same_file(path_a, path_b):  # [QGIS4 port]
+    return os.path.normcase(os.path.abspath(path_a)) == os.path.normcase(os.path.abspath(path_b))
+
+
+def releaseDefaultOutput(thread):  # [QGIS4 port]
+    """Releases the tool's default output file if the previous result is open on the map.
+
+    Windows cannot overwrite a file that QGIS has open. If the user did not choose an output
+    path (so the default file is used, which the help text says is overwritten on every run)
+    and that file is loaded as a layer, the layer is pointed at a temporary copy of it while
+    the tool runs. The layer keeps its place and style. Must be called from the main thread.
+    Returns the information needed by restoreReleasedOutput, or None.
+    """
+    try:
+        thread.prepareOutputName()
+        if thread.dlg.outputPath.filePath():
+            return None  # an output path chosen by the user is never touched
+        path = thread.getOutFilePath()
+        if not path or not os.path.exists(path):
+            return None
+        layers = [layer for layer in QgsProject.instance().mapLayers().values()
+                  if layer.source().split("|")[0] and _same_file(layer.source().split("|")[0], path)]
+        if not layers:
+            return None
+        copy_dir = tempfile.mkdtemp(prefix="terra_antiqua_previous_result_")
+        base = os.path.splitext(path)[0]
+        for file_path in glob.glob(glob.escape(base) + ".*"):  # the file and its side files
+            if os.path.isfile(file_path):
+                shutil.copy2(file_path, copy_dir)
+        copy_path = os.path.join(copy_dir, os.path.basename(path))
+        released = []
+        for layer in layers:
+            source = layer.source()
+            layer.setDataSource(copy_path + source[len(source.split("|")[0]):], layer.name(),
+                                layer.providerType(), QgsDataProvider.ProviderOptions())
+            released.append((layer.id(), source))
+        return {"path": path, "copy_dir": copy_dir, "layers": released}
+    except Exception:
+        return None
+
+
+def restoreReleasedOutput(released):  # [QGIS4 port]
+    """Points layers released by releaseDefaultOutput back at the output file and deletes the copy."""
+    if not released:
+        return
+    keep_copy = False
+    for layer_id, source in released["layers"]:
+        layer = QgsProject.instance().mapLayer(layer_id)
+        if layer is None:
+            continue
+        if os.path.exists(released["path"]):
+            layer.setDataSource(source, layer.name(), layer.providerType(),
+                                QgsDataProvider.ProviderOptions())
+            layer.triggerRepaint()
+        else:
+            keep_copy = True  # the output was not written: the layer keeps showing the copy
+    if not keep_copy:
+        shutil.rmtree(released["copy_dir"], ignore_errors=True)
 
 
 class TaAlgorithmProvider:
@@ -35,16 +106,19 @@ class TaAlgorithmProvider:
         self.thread.finished.connect(self.finish)
         self.thread.progress.connect(self.dlg.setProgressValue)
         self.welcome_page = TaWelcomeDialog()
+        self.released_output = None  # [QGIS4 port]
 
     def load(self):
         if self.settings.temporarySettings.get("first_start") != False:
             self.settings.setTempValue("first_start", False)
             if self.welcome_page.showAgain:
-                result = self.welcome_page.exec_()
+                result = self.welcome_page.exec()  # [QGIS4 port]
         self.dlg.show()
 
     def start(self):
         if not self.thread.isRunning():
+            restoreReleasedOutput(self.released_output)  # [QGIS4 port]
+            self.released_output = releaseDefaultOutput(self.thread)  # [QGIS4 port]
             self.thread.startOver()
             self.thread.start()
 
@@ -57,6 +131,8 @@ class TaAlgorithmProvider:
                 "Or something went wrong. Please, refer to the log above for more details.")
 
     def finish(self, finished, output_path):
+        restoreReleasedOutput(self.released_output)  # [QGIS4 port]
+        self.released_output = None  # [QGIS4 port]
         if finished and output_path:
             self.add_result(output_path)
             self.dlg.finishEvent()
@@ -81,16 +157,10 @@ class TaAlgorithmProvider:
 
         if layer:
             # Rendering a symbology style for the resulting raster layer.
-            try:
-                if layer.type() == QgsMapLayerType.RasterLayer:
-                    setRasterSymbology(layer)
-                elif layer.type() == QgsMapLayerType.VectorLayer:
-                    setVectorSymbology(layer)
-            except Exception:
-                if layer.type() == QgsMapLayer.LayerType.RasterLayer:
-                    setRasterSymbology(layer)
-                elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
-                    setVectorSymbology(layer)
+            if isinstance(layer, QgsRasterLayer):  # [QGIS4 port]
+                setRasterSymbology(layer)  # [QGIS4 port]
+            elif isinstance(layer, QgsVectorLayer):  # [QGIS4 port]
+                setVectorSymbology(layer)  # [QGIS4 port]
             self.thread.feedback.info(
                 "The algorithm finished processing successfully,")
             self.thread.feedback.info(
@@ -116,6 +186,7 @@ class TaRemoveArtefactsAlgProvider:
         self.rbCollection = None
         self.pointCollection = None
         self.vertexCollection = None
+        self.released_output = None  # [QGIS4 port]
 
         self.thread = TaRemoveArtefacts(self.dlg, self.iface)
         self.thread.progress.connect(self.dlg.setProgressValue)
@@ -175,6 +246,8 @@ class TaRemoveArtefactsAlgProvider:
         self.vl = self.feature_sink.getVectorLayer()
         if self.vl.featureCount() != 0:
             self.thread.setInputLayer(self.vl)
+            restoreReleasedOutput(self.released_output)  # [QGIS4 port]
+            self.released_output = releaseDefaultOutput(self.thread)  # [QGIS4 port]
             self.thread.start()
             self.nFeatures = 0
             self.toolPoly.geometry = None
@@ -206,6 +279,8 @@ class TaRemoveArtefactsAlgProvider:
         self.vertexCollection.append(vrtx)
 
     def addResult(self, finished, output_path):
+        restoreReleasedOutput(self.released_output)  # [QGIS4 port]
+        self.released_output = None  # [QGIS4 port]
         if finished is True:
             file_name = os.path.splitext(os.path.basename(output_path))[0]
             rlayer = self.iface.addRasterLayer(output_path, file_name, "gdal")
@@ -240,16 +315,10 @@ class TaRemoveArtefactsAlgProvider:
 
         if layer:
             # Rendering a symbology style for the resulting raster layer.
-            try:
-                if layer.type() == QgsMapLayerType.RasterLayer:
-                    setRasterSymbology(layer)
-                elif layer.type() == QgsMapLayerType.VectorLayer:
-                    setVectorSymbology(layer)
-            except Exception:
-                if layer.type() == QgsMapLayer.LayerType.RasterLayer:
-                    setRasterSymbology(layer)
-                elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
-                    setVectorSymbology(layer)
+            if isinstance(layer, QgsRasterLayer):  # [QGIS4 port]
+                setRasterSymbology(layer)  # [QGIS4 port]
+            elif isinstance(layer, QgsVectorLayer):  # [QGIS4 port]
+                setVectorSymbology(layer)  # [QGIS4 port]
             self.thread.feedback.info(
                 f"A secondary output layer is added to the project: {path_to_output}")
         else:

@@ -1,16 +1,30 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6);
+#    "qgis._core" (private) replaced by "qgis.core"
+#  - Python built-ins abs, bool, max, min, pow and round restored after "from numpy import *",
+#    because NumPy 2 (bundled with QGIS 4) would otherwise replace them
+#  - TaPolygonCreator: rubber band uses compat.GEOMETRY_POLYGON; mouse buttons, colour and vertex
+#    marker use full enum names
+#  - TaFeatureSink: ID and Expression fields use compat.FIELD_INT / FIELD_STRING
+#  - run: the temporary raster for interpolation is released before it is deleted
+#  - Raster files are deleted with compat.delete_raster_file, so a failed deletion
+#    (Windows "Permission denied") no longer stops the tool
+#  - Saved mask layer checked against compat.VECTOR_WRITER_NO_ERROR
+#  - feedback.Error / feedback.Warning written as feedback.error / feedback.warning
+#  - prepareExpression: expressions are evaluated with core/expressions.evaluate instead of eval()
+#  See core/compat.py for the note on how this port was made.
 
-from PyQt5.QtCore import QObject, QVariant, Qt, pyqtSignal
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtCore import QObject, Qt, pyqtSignal  # [QGIS4 port]
+from qgis.PyQt.QtGui import QColor  # [QGIS4 port]
 import os
 import tempfile
 from osgeo import gdal
 from qgis.core import (
     QgsVectorLayer,
     QgsField,
-    QgsWkbTypes,
     QgsFields,
     QgsFeature,
     QgsProject,
@@ -25,14 +39,19 @@ from qgis.gui import (
 
 import numpy as np
 from numpy import *
+# NumPy 2.x (bundled with QGIS 4) also exports abs, bool, max, min, pow and round, which would
+# replace Python's built-ins in this module. Restore them so behaviour matches NumPy 1.x.
+from builtins import abs, bool, max, min, pow, round  # noqa: E402,F811  # [QGIS4 port]
 
 
 from .utils import (
     vectorToRaster,
     fillNoDataInPolygon,
     TaVectorFileWriter)
-from qgis._core import QgsRasterLayer
+from .compat import FIELD_INT, FIELD_STRING, GEOMETRY_POLYGON, VECTOR_WRITER_NO_ERROR, delete_raster_file  # [QGIS4 port]
+from qgis.core import QgsRasterLayer  # [QGIS4 port]
 from .base_algorithm import TaBaseAlgorithm
+from .expressions import evaluate  # [QGIS4 port]
 
 
 class TaPolygonCreator(QgsMapToolEmitPoint):
@@ -44,8 +63,8 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
         self.iface = iface
         QgsMapToolEmitPoint.__init__(self, self.canvas)
         self.rubberband = QgsRubberBand(
-            self.canvas, QgsWkbTypes.PolygonGeometry)
-        self.rubberband.setFillColor(Qt.red)
+            self.canvas, GEOMETRY_POLYGON)  # [QGIS4 port]
+        self.rubberband.setFillColor(Qt.GlobalColor.red)  # [QGIS4 port]
         self.rubberband.setOpacity(0.5)
         self.rubberband.setWidth(1)
         self.point = None
@@ -55,18 +74,18 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
 
     def canvasPressEvent(self, e):
 
-        if e.button() == Qt.RightButton:
+        if e.button() == Qt.MouseButton.RightButton:  # [QGIS4 port]
             geometry = self.rubberband.asGeometry()
             self.geometry = geometry
             self.finished.emit(True)
 
-        if e.button() == Qt.LeftButton:
+        if e.button() == Qt.MouseButton.LeftButton:  # [QGIS4 port]
             self.point = self.toMapCoordinates(e.pos())
             m = QgsVertexMarker(self.canvas)
             m.setCenter(self.point)
             m.setColor(QColor(0, 255, 0))
             m.setIconSize(5)
-            m.setIconType(QgsVertexMarker.ICON_BOX)
+            m.setIconType(QgsVertexMarker.IconType.ICON_BOX)  # [QGIS4 port]
             m.setPenWidth(3)
             self.points.append(self.point)
             self.vertices.append(m)
@@ -74,7 +93,7 @@ class TaPolygonCreator(QgsMapToolEmitPoint):
             self.showRubberband()
 
     def showRubberband(self):
-        self.rubberband.reset(QgsWkbTypes.PolygonGeometry)
+        self.rubberband.reset(GEOMETRY_POLYGON)  # [QGIS4 port]
         for point in self.points:
             self.rubberband.addPoint(point, True)
             self.rubberband.show()
@@ -105,7 +124,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
             try:
                 topo_layer = self.getTopoLayer()
             except Exception as e:
-                self.feedback.Error("{}".format(e))
+                self.feedback.error("{}".format(e))  # [QGIS4 port]
                 self.kill()
 
         if not self.killed:
@@ -127,7 +146,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                                                         "UTF-8",
                                                         self.crs,
                                                         "ESRI Shapefile")
-            if error[0] == TaVectorFileWriter.NoError:
+            if error[0] == VECTOR_WRITER_NO_ERROR:  # [QGIS4 port]
                 self.feedback.info(f"Mask layer saved at: {outputFilePath}")
                 if self.dlg.addPolLayerToCanvasCheckBox.isChecked():
                     self.layerAdded.emit(outputFilePath)
@@ -175,7 +194,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                         try:
                             H[expr*mask_array == 1] = np.nan
                         except Exception as e:
-                            self.feedback.Warning(
+                            self.feedback.warning(  # [QGIS4 port]
                                 "Although the expression seems to be ok, during topography modification an exception was raised for feature id {}".format(feature.id()))
                             continue
                     processed_successfuly += 1
@@ -219,16 +238,16 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                         interpolated_raster = fillNoDataInPolygon(
                             rlayer, self.vl, self.out_file_path)
                     except Exception as e:
-                        self.feedback.Error(
+                        self.feedback.error(  # [QGIS4 port]
                             "An error occured wile interpolating values for the artefact pixels: {}".format(e))
                         self.kill()
 
                     self.feedback.progress = 100
 
                     self.finished.emit(True, interpolated_raster)
-                if os.path.exists(out_file_path):
-                    drv = gdal.GetDriverByName('GTIFF')
-                    drv.Delete(out_file_path)
+                # Release the temporary layer before deleting its file (Windows)
+                rlayer = None  # [QGIS4 port]
+                delete_raster_file(out_file_path, self.feedback)  # [QGIS4 port]
             else:
 
                 output_raster = gdal.GetDriverByName('GTIFF').Create(
@@ -262,7 +281,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
         topo_layer = None
         layer_found = False
         for layer in self.iface.mapCanvas().layers():
-            if layer.type() == QgsMapLayer.RasterLayer:
+            if layer.type() == QgsMapLayer.LayerType.RasterLayer:  # [QGIS4 port]
                 topo_layer = layer
                 layer_found = True
                 break
@@ -282,7 +301,7 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
             try:
                 topo_layer = self.getTopoLayer()
             except Exception as e:
-                self.feedback.Error(e)
+                self.feedback.error(e)  # [QGIS4 port]
                 self.kill()
             topo_raster = gdal.Open(topo_layer.source())
             no_data_value = topo_raster.GetRasterBand(1).GetNoDataValue()
@@ -293,13 +312,13 @@ class TaRemoveArtefacts(TaBaseAlgorithm):
                 expr = "np.isnan(H)"
 
             try:
-                mask = eval(expr)
+                mask = evaluate(expr, {"H": H})  # [QGIS4 port]
             except Exception as e:
                 raise Exception(e)
 
         else:
             try:
-                mask = eval(expr)
+                mask = evaluate(expr, {"H": H})  # [QGIS4 port]
 
             except Exception as e:
                 raise Exception(e)
@@ -318,8 +337,8 @@ class TaFeatureSink(QObject):
     def createVectorLayer(self):
         vl = QgsVectorLayer(
             f"Polygon?crs={self.crs.authid()}", "Polygons created", "memory")
-        id_field = QgsField("ID", QVariant.Int, "integer")
-        expr_field = QgsField("Expression", QVariant.String, "text")
+        id_field = QgsField("ID", FIELD_INT, "integer")  # [QGIS4 port]
+        expr_field = QgsField("Expression", FIELD_STRING, "text")  # [QGIS4 port]
         fields = QgsFields()
         fields.append(id_field)
         fields.append(expr_field)
@@ -332,8 +351,8 @@ class TaFeatureSink(QObject):
         feature = QgsFeature()
         feature.setGeometry(geom)
         fields = QgsFields()
-        id_field = QgsField("ID", QVariant.Int, "integer")
-        expr_field = QgsField("Expression", QVariant.String, "text")
+        id_field = QgsField("ID", FIELD_INT, "integer")  # [QGIS4 port]
+        expr_field = QgsField("Expression", FIELD_STRING, "text")  # [QGIS4 port]
         fields.append(id_field)
         fields.append(expr_field)
         feature.setFields(fields)

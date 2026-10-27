@@ -1,12 +1,16 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 #Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires
+#  See core/compat.py for the note on how this port was made.
 
 
 import os
 import webbrowser as wb
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import (
+from qgis.PyQt import QtCore  # [QGIS4 port]
+from qgis.PyQt.QtWidgets import (  # [QGIS4 port]
     QWidget,
     QVBoxLayout,
     QLabel,
@@ -42,7 +46,7 @@ class TaBaseDialog(TaTemplateDialog):
         self.cancelButton.clicked.connect(self.cancelEvent)
         self.helpButton.clicked.connect(self.openManual)
         self.msgBar = QgsMessageBar(self)
-        self.msgBar.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.msgBar.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)  # [QGIS4 port]
         self.layout().insertWidget(0,self.msgBar)
         self.setKeyboardShortcuts()
 
@@ -174,7 +178,7 @@ class TaBaseDialog(TaTemplateDialog):
         if add_output_path:
             self.outputPath = QgsFileWidget()
             self.outputPathLabel = QLabel('Output file path:')
-            self.outputPath.setStorageMode(self.outputPath.SaveFile)
+            self.outputPath.setStorageMode(QgsFileWidget.StorageMode.SaveFile)  # [QGIS4 port]
             self.outputPath.setFilter('*.tif;;*.tiff')
             self.paramsLayout.addWidget(self.outputPathLabel)
             self.paramsLayout.addWidget(self.outputPath)
@@ -368,6 +372,6 @@ class TaBaseDialog(TaTemplateDialog):
     def setKeyboardShortcuts(self):
         self.shortcuts = {}
         self.shortcuts["Run"] = QShortcut(self)
-        self.shortcuts["Run"].setContext(QtCore.Qt.ApplicationShortcut)
-        self.shortcuts["Run"].setKey(QtCore.Qt.Key_Enter)
+        self.shortcuts["Run"].setContext(QtCore.Qt.ShortcutContext.ApplicationShortcut)  # [QGIS4 port]
+        self.shortcuts["Run"].setKey(QtCore.Qt.Key.Key_Enter)  # [QGIS4 port]
         self.shortcuts["Run"].activated.connect(self.runButton.click)

@@ -1,10 +1,16 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - "import processing" used directly (removed: the "from plugins import processing" fallback)
+#  - New fields (Depth, Elev) use compat.FIELD_DOUBLE instead of QVariant.Double (not available in Qt6)
+#  - Processing algorithms are looked up with compat.alg_id, so the native (C++) version is used when
+#    the running QGIS has it (densify, distance to nearest hub, raster sampling, polygons to lines)
+#  - createSea: an error message referred to a variable that does not exist, which raised a
+#    second error; the message no longer does
+#  See core/compat.py for the note on how this port was made.
 
-from PyQt5.QtCore import (
-    QVariant
-)
 import os
 from osgeo import (
     gdal
@@ -30,12 +36,10 @@ from .utils import (
 )
 
 
-try:
-    from plugins import processing
-except Exception:
-    import processing
+import processing  # [QGIS4 port]
 
 from .base_algorithm import TaBaseAlgorithm
+from .compat import FIELD_DOUBLE, alg_id  # [QGIS4 port]
 
 
 
@@ -194,7 +198,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     'OUTPUT': self.processing_output
                 }
 
-                mask_layer_densified = processing.run("qgis:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+                mask_layer_densified = processing.run(alg_id("native:densifygeometriesgivenaninterval", "qgis:densifygeometriesgivenaninterval"), d_params)['OUTPUT']  # [QGIS4 port]
             finally:
                 if not mask_layer_densified.isValid() or mask_layer_densified.featureCount()==0:
                     mask_layer_densified = feature_layer
@@ -252,7 +256,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                         'OUTPUT': self.processing_output
                     }
 
-                    r_points_distance_layer = processing.run("qgis:distancetonearesthubpoints", dc_params)['OUTPUT']
+                    r_points_distance_layer = processing.run(alg_id("native:distancetonearesthubpoints", "qgis:distancetonearesthubpoints"), dc_params)['OUTPUT']  # [QGIS4 port]
                 except Exception as e:
                     self.feedback.error("Distance calculation for randomly created\
                                   depth points failed with the following error: {}".format(e))
@@ -273,7 +277,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                         'COLUMN_PREFIX': 'd_value',
                         'OUTPUT': self.processing_output
                     }
-                    points_dist_depth_layer = processing.run("qgis:rastersampling", sampling_params)['OUTPUT']
+                    points_dist_depth_layer = processing.run(alg_id("native:rastersampling", "qgis:rastersampling"), sampling_params)['OUTPUT']  # [QGIS4 port]
                 except Exception as e:
                     self.feedback.warning("Sampling the initial topography failed with the following error: {}. The depths will be calculated without taking the initial topography into account.".format(e))
 
@@ -347,7 +351,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 depth_layer = QgsVectorLayer(f"Point?crs={self.crs.authid()}", "Depth layer", "memory")
                 depth_layer_dp = depth_layer.dataProvider()
                 fields = points_dist_depth_layer.fields().toList()
-                depth_field = QgsField("Depth", QVariant.Double, "double")
+                depth_field = QgsField("Depth", FIELD_DOUBLE, "double")  # [QGIS4 port]
                 fields.append(depth_field)
 
                 depth_layer_dp.addAttributes(fields)
@@ -409,10 +413,10 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                         'INPUT': mask_layer_densified,
                         'OUTPUT': self.processing_output
                     }
-                    mlayer_line = processing.run("qgis:polygonstolines", ptol_params)["OUTPUT"]
+                    mlayer_line = processing.run(alg_id("native:polygonstolines", "qgis:polygonstolines"), ptol_params)["OUTPUT"]  # [QGIS4 port]
                 finally:
                     if not mlayer_line.isValid() or mlayer_line.featureCount()==0:
-                        self.feedback.error("Extracting polygon boundaries failed with the following error: {}.".format(e))
+                        self.feedback.error("Extracting polygon boundaries failed (the result is empty or invalid).")  # [QGIS4 port]
                         self.kill()
 
                 if not self.killed:
@@ -579,7 +583,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                     'OUTPUT': self.processing_output
                 }
 
-                mask_layer_densified = processing.run("qgis:densifygeometriesgivenaninterval", d_params)['OUTPUT']
+                mask_layer_densified = processing.run(alg_id("native:densifygeometriesgivenaninterval", "qgis:densifygeometriesgivenaninterval"), d_params)['OUTPUT']  # [QGIS4 port]
             finally:
                 if not mask_layer_densified.isValid() or mask_layer_densified.featureCount()==0:
                     mask_layer_densified = feature_layer
@@ -638,7 +642,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                         'OUTPUT': self.processing_output
                     }
 
-                    r_points_distance_layer = processing.run("qgis:distancetonearesthubpoints", dc_params)['OUTPUT']
+                    r_points_distance_layer = processing.run(alg_id("native:distancetonearesthubpoints", "qgis:distancetonearesthubpoints"), dc_params)['OUTPUT']  # [QGIS4 port]
                 except QgsProcessingException as e:
                     self.feedback.error("Distance calculation for random points inside feature outlines failed with the following error: {}.".format(e))
                     self.kill()
@@ -658,7 +662,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                         'COLUMN_PREFIX': 'elev_value',
                         'OUTPUT': self.processing_output
                     }
-                    points_dist_elev_layer = processing.run("qgis:rastersampling", sampling_params)['OUTPUT']
+                    points_dist_elev_layer = processing.run(alg_id("native:rastersampling", "qgis:rastersampling"), sampling_params)['OUTPUT']  # [QGIS4 port]
                 except QgsProcessingException as e:
                     self.feedback.warning("Sampling existing topography/bathymetry failed. Depth calculation will be done without considering initial topography. The following error was thrown: {}".format(e))
 
@@ -734,7 +738,7 @@ class TaCreateTopoBathy(TaBaseAlgorithm):
                 )
                 elev_layer_dp = elev_layer.dataProvider()
                 fields = points_dist_elev_layer.fields().toList()
-                elev_field = QgsField("Elev", QVariant.Double, "double")
+                elev_field = QgsField("Elev", FIELD_DOUBLE, "double")  # [QGIS4 port]
                 fields.append(elev_field)
 
                 elev_layer_dp.addAttributes(fields)

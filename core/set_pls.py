@@ -1,6 +1,11 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - run: the temporary layer is released before its file is deleted
+#  - Raster files are deleted with compat.delete_raster_file, so a failed deletion
+#    (Windows "Permission denied") no longer stops the tool
+#  See core/compat.py for the note on how this port was made.
 
 import os
 from osgeo import gdal, osr, gdalconst
@@ -15,6 +20,7 @@ from .utils import (
     modRescale
     )
 from .base_algorithm import TaBaseAlgorithm
+from .compat import delete_raster_file  # [QGIS4 port]
 
 
 class TaSetPaleoshorelines(TaBaseAlgorithm):
@@ -130,8 +136,7 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
                     temp_out_file = os.path.join(os.path.dirname(self.out_file_path),
                                                  "PaleoShorelines_without_theGaps_filled.tiff")
                     driver = gdal.GetDriverByName('GTiff')
-                    if os.path.exists(temp_out_file):
-                        driver.Delete(temp_out_file)
+                    delete_raster_file(temp_out_file, self.feedback)  # [QGIS4 port]
 
                     raster = driver.Create(temp_out_file, ncols, nrows, 1, gdal.GDT_Float32)
                     raster.SetGeoTransform(geotransform)
@@ -147,9 +152,10 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
                     ret = fillNoData(raster_layer, self.out_file_path)
 
                     #Delete the temporary layer stored before filling the gaps
-                    if os.path.exists(temp_out_file):
-                        driver.Delete(temp_out_file)
-                        driver = None
+                    # (release the layer first: Windows cannot delete open files)
+                    raster_layer = None  # [QGIS4 port]
+                    driver = None  # [QGIS4 port]
+                    delete_raster_file(temp_out_file, self.feedback)  # [QGIS4 port]
 
                     self.set_progress += 10
 
@@ -256,8 +262,7 @@ class TaSetPaleoshorelines(TaBaseAlgorithm):
                 if 'topo' in locals():
 
                     driver = gdal.GetDriverByName('GTiff')
-                    if os.path.exists(self.out_file_path):
-                        driver.Delete(self.out_file_path)
+                    delete_raster_file(self.out_file_path, self.feedback)  # [QGIS4 port]
 
                     raster = driver.Create(self.out_file_path, ncols, nrows, 1, gdal.GDT_Float32)
                     raster.SetGeoTransform(geotransform)

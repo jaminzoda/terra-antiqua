@@ -1,15 +1,25 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires (message boxes)
+#  - exec_() replaced by exec()
+#  - __init_subclass__ / explainOutputFileInUse: when a tool stops with an error while its output file
+#    is open as a layer in the project (e.g. the result of a previous run), the log explains this.
+#    The error itself and the behaviour of the tools are unchanged.
+#  - prepareOutputName: hook used by algorithm_provider.releaseDefaultOutput
+#  See core/compat.py for the note on how this port was made.
 
+import functools  # [QGIS4 port]
 import os
 import tempfile
 
-from PyQt5.QtCore import (
+from qgis.PyQt.QtCore import (  # [QGIS4 port]
     QThread,
     pyqtSignal
 )
-from PyQt5.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QMessageBox  # [QGIS4 port]
 from qgis.core import (QgsExpressionContext,
                        QgsCoordinateReferenceSystem,
                        QgsProject,
@@ -40,15 +50,15 @@ class TaBaseAlgorithm(QThread):
         self.out_file_path = self.getOutFilePath()
         self.dlg.setDefaultOutFilePath(self.out_file_path)
         self.decisionMessageBox = QMessageBox()
-        self.decisionMessageBox.setIcon(QMessageBox.Warning)
+        self.decisionMessageBox.setIcon(QMessageBox.Icon.Warning)  # [QGIS4 port]
         self.decisionMessageBox.setWindowTitle('Terra Antiqua - Warning')
         self.decisionMessageBox.setStandardButtons(
-            QMessageBox.Yes | QMessageBox.No)
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)  # [QGIS4 port]
         self.processing_output = self.getProcessingOutput()
         self.informationMessageBox = QMessageBox()
-        self.informationMessageBox.setIcon(QMessageBox.Warning)
+        self.informationMessageBox.setIcon(QMessageBox.Icon.Warning)  # [QGIS4 port]
         self.informationMessageBox.setWindowTitle('Terra Antiqua - Warning')
-        self.informationMessageBox.setStandardButtons(QMessageBox.Ok)
+        self.informationMessageBox.setStandardButtons(QMessageBox.StandardButton.Ok)  # [QGIS4 port]
         try:
             self.feedback = self.dlg.createFeedback()
         except Exception as e:
@@ -66,8 +76,8 @@ class TaBaseAlgorithm(QThread):
         if not self.crs.isValid():
             msg = 'Your project does not have a Coordinate Reference System.\n Do you want to set WGS84 Coordinate Reference System to your project?'
             self.decisionMessageBox.setText(msg)
-            retval = self.decisionMessageBox.exec_()
-            if retval == QMessageBox.Yes:
+            retval = self.decisionMessageBox.exec()  # [QGIS4 port]
+            if retval == QMessageBox.StandardButton.Yes:  # [QGIS4 port]
                 self.crs = self.setProjectCrs()
             else:
                 self.dlg.reject()
@@ -80,7 +90,7 @@ class TaBaseAlgorithm(QThread):
         if len(unmaching_crs) > 0:
             msg = f"""{len(unmaching_crs)} layers in your project have a different Coordinate Reference System (crs) from the current project. For Terra Antiqua to work properly all the layers must have the same crs  as the project. Consider reprojecting your layer to the project crs before using Terra Antiqua."""
             self.informationMessageBox.setText(msg)
-            retval = self.informationMessageBox.exec_()
+            retval = self.informationMessageBox.exec()  # [QGIS4 port]
 
     def setProjectCrs(self, crs: QgsCoordinateReferenceSystem = None) -> QgsCoordinateReferenceSystem:
         if not crs:
@@ -97,7 +107,7 @@ class TaBaseAlgorithm(QThread):
         if value == 'false' or not value:
             msg = """The processing plugin, which is essential for Terra Antiqua to function properly, seems to be deactivated in your QGIS installation. Activate it before using Terra Antiqua. It can be activated in the Plugin manager window by following these steps: Plugins -> Manage and install plugins ... -> Installed -> check the checkbox for <i>Processing</i> plugin."""
             self.informationMessageBox.setText(msg)
-            retval = self.informationMessageBox.exec_()
+            retval = self.informationMessageBox.exec()  # [QGIS4 port]
 
     def getOutFilePath(self):
         file_type = None
@@ -180,6 +190,46 @@ class TaBaseAlgorithm(QThread):
 
     def emit_progress(self, progress_count):
         self.progress.emit(progress_count)
+
+    def __init_subclass__(cls, **kwargs):  # [QGIS4 port]
+        """Wraps each tool's run() so that, if it stops with an error, the log explains when the
+        output file is open in QGIS. The error is re-raised unchanged."""
+        super().__init_subclass__(**kwargs)
+        run = cls.__dict__.get("run")
+        if run is None:
+            return
+
+        @functools.wraps(run)
+        def run_with_explanation(self, *args, **kwargs):
+            try:
+                return run(self, *args, **kwargs)
+            except Exception:
+                self.explainOutputFileInUse()
+                raise
+        cls.run = run_with_explanation
+
+    def prepareOutputName(self):  # [QGIS4 port]
+        """Sets the output file name before the tool starts. Tools whose default file name depends
+        on the options chosen in the dialog (Standard Processing) override this."""
+        pass
+
+    def explainOutputFileInUse(self):  # [QGIS4 port]
+        """Adds a message to the log if the output file is loaded as a layer in the project."""
+        try:
+            path = getattr(self, "out_file_path", None)
+            if not path:
+                return
+            target = os.path.normcase(os.path.abspath(path))
+            for layer in QgsProject.instance().mapLayers().values():
+                source = layer.source().split("|")[0]
+                if source and os.path.normcase(os.path.abspath(source)) == target:
+                    self.feedback.error(
+                        f"The output file {path} is open in QGIS as the layer \"{layer.name()}\", which can "
+                        "prevent it from being overwritten (on Windows this shows as \"Permission denied\"). "
+                        "Remove that layer from the map or choose another output file, then run the tool again.")
+                    return
+        except Exception:
+            pass  # never hide the original error
 
     def kill(self):
         self.killed = True

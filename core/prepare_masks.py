@@ -1,17 +1,18 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - "import processing" used directly (removed: the "from plugins import processing" fallback)
+#  - Line-layer check uses compat.GEOMETRY_LINE; the Category field uses compat.FIELD_STRING
+#  - Shapefile result checked against compat.VECTOR_WRITER_NO_ERROR
+#  See core/compat.py for the note on how this port was made.
 
-from PyQt5.QtCore import QVariant
 from qgis.core import (
     QgsVectorLayer,
-    QgsWkbTypes,
     QgsField
     )
-try:
-    from plugins import processing
-except Exception:
-    import processing
+import processing  # [QGIS4 port]
 
 from .utils import (
     refactorFields,
@@ -19,6 +20,7 @@ from .utils import (
     TaVectorFileWriter
 )
 from .base_algorithm import TaBaseAlgorithm
+from .compat import FIELD_STRING, GEOMETRY_LINE, VECTOR_WRITER_NO_ERROR  # [QGIS4 port]
 
 class TaPrepareMasks(TaBaseAlgorithm):
 
@@ -67,7 +69,7 @@ class TaPrepareMasks(TaBaseAlgorithm):
                 if self.killed:
                     break
                 self.feedback.progress+=item_progress/len(item.get('Layers'))
-                if layer.geometryType() == QgsWkbTypes.LineGeometry:
+                if layer.geometryType() == GEOMETRY_LINE:  # [QGIS4 port]
                     try:
                         self.feedback.info("Layer {} contains {} polyline features.".format(layer.name(),
                                                                                                 layer.featureCount()))
@@ -131,7 +133,7 @@ class TaPrepareMasks(TaBaseAlgorithm):
                                                                               [l.name() for l in layers_to_merge]))
 
             if not 'Category' in item['Merged_Layer'].fields().names():
-                cat_field = QgsField('Category', QVariant.String, 'Text', 80)
+                cat_field = QgsField('Category', FIELD_STRING, 'Text', 80)  # [QGIS4 port]
                 item['Merged_Layer'].startEditing()
                 item['Merged_Layer'].addAttribute(cat_field)
                 item['Merged_Layer'].commitChanges()
@@ -197,7 +199,7 @@ class TaPrepareMasks(TaBaseAlgorithm):
 
         if not self.killed:
             error = TaVectorFileWriter.writeToShapeFile(final_layer, self.out_file_path, "UTF-8", self.crs, "ESRI Shapefile")
-            if error[0] == TaVectorFileWriter.NoError:
+            if error[0] == VECTOR_WRITER_NO_ERROR:  # [QGIS4 port]
                 self.feedback.info("All the layers were merged. \
                                    The resulting layer is saved at: {}".format(self.out_file_path))
             else:

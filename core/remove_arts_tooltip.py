@@ -1,11 +1,15 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires (window flags)
+#  See core/compat.py for the note on how this port was made.
 
 import os
-from PyQt5.QtCore import Qt
-from PyQt5 import QtWidgets
-from PyQt5 import uic
+from qgis.PyQt.QtCore import Qt  # [QGIS4 port]
+from qgis.PyQt import QtWidgets  # [QGIS4 port]
+from qgis.PyQt import uic  # [QGIS4 port]
 from .utils import loadHelp
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), '../gui/remove_arts_tooltip.ui'))
@@ -16,10 +20,10 @@ class TaRemoveArtefactsTooltip(QtWidgets.QDialog, FORM_CLASS):
         super(TaRemoveArtefactsTooltip, self).__init__(parent)
         self.setupUi(self)
         # enable custom window hint
-        self.setWindowFlags(self.windowFlags() | Qt.CustomizeWindowHint)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.CustomizeWindowHint)  # [QGIS4 port]
 
         # disable (but not hide) close button
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowCloseButtonHint)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)  # [QGIS4 port]
 
         #self.setWindowFlags(Qt.CustomizeWindowHint)
         #self.setWindowFlags(Qt.WindowCloseButtonHint, False)

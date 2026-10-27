@@ -2,6 +2,28 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Python built-ins abs, bool, max, min, pow and round restored after "from numpy import *",
+#    because NumPy 2 (bundled with QGIS 4) would otherwise replace them;
+#    "import random" stays after the NumPy import, as in v1.1
+#  - Removed: the duplicated block of imports at the top of the file
+#  - "import processing" used directly (removed: the "from plugins import processing" fallback)
+#  - scipy.ndimage.filters (deprecated) replaced by scipy.ndimage
+#  - vectorToRaster: the temporary raster is closed before it is deleted
+#  - vectorToRaster, fillNoData, fillNoDataInPolygon, rasterSmoothing: raster files are deleted with
+#    compat.delete_raster_file, so a failed deletion (Windows "Permission denied") no longer stops the tool
+#  - randomPointsInPolygon: area unit given as compat.AREA_SQUARE_DEGREES instead of the number 8
+#  - polygonsToPolylines / refactorFields: algorithms looked up with compat.alg_id; field types
+#    passed as integers (compat.enum_to_int)
+#  - polylinesToPolygons: WKB types from compat; setVectorSymbology: layer checked with isinstance()
+#  - Field types use compat.FIELD_INT; raster statistics use compat.RASTER_STATS_ALL (avoids a
+#    deprecation warning in QGIS 4); colour ramp uses full enum names
+#  - TaVectorFileWriter.writeToShapeFile: uses compat.write_vector_layer (fixes a broken fallback
+#    that called a method that does not exist)
+#  - modFormula: formulas are evaluated with core/expressions.evaluate instead of eval()
+#    (eval is blocked by the QGIS plugin repository); results are unchanged
+#  See core/compat.py for the note on how this port was made.
 
 # -*- coding: utf-8 -*-
 
@@ -10,26 +32,22 @@ import tempfile
 import os
 import time
 
-
 import numpy as np
-from numpy import * #This to import math functions to be used in formula (modFormula)
+# This to import math functions to be used in formula (modFormula)
+from numpy import *  # [QGIS4 port]
+# NumPy 2.x (bundled with QGIS 4) also exports abs, bool, max, min, pow and round, which would
+# replace Python's built-ins in this module. Restore them so behaviour matches NumPy 1.x.
+from builtins import abs, bool, max, min, pow, round  # noqa: E402,F811  # [QGIS4 port]
+# These must come after the numpy star import, which also exports a "random" module.
 import subprocess
 import random
 from random import randrange
 from typing import Tuple, Union
-from .logger import TaFeedback
-from qgis.gui import QgsMessageBar
-try:
-    from scipy.ndimage.filters import gaussian_filter, uniform_filter
-except Exception:
-    install_package('scipy')
-    from scipy.ndimage.filters import gaussian_filter, uniform_filter
 
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
-
-from osgeo import gdal, osr, ogr
-from osgeo import gdalconst
+from osgeo import gdal, osr, ogr, gdalconst  # [QGIS4 port]
+from qgis.PyQt.QtGui import QColor  # [QGIS4 port]
+from qgis.PyQt.QtCore import QThread, QObject, pyqtSignal  # [QGIS4 port]
+from qgis.gui import QgsMessageBar  # [QGIS4 port]
 from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
@@ -51,34 +69,32 @@ from qgis.core import (
     QgsFields,
     NULL,
     QgsMapLayer,
-    QgsMapLayerType,
     QgsCategorizedSymbolRenderer,
     QgsSymbol,
     QgsRendererCategory,
-    QgsWkbTypes,
     QgsVectorFileWriter,
     QgsCoordinateTransformContext,
     QgsCoordinateReferenceSystem,
     QgsSimpleFillSymbolLayer,
     QgsProcessingException
-
 )
-from osgeo import gdal, osr, ogr, gdalconst
-from PyQt5.QtCore import QVariant, QThread, QObject, pyqtSignal
-from PyQt5.QtGui import QColor
-import sys
-import tempfile
-import os
-import time
 
+import processing  # [QGIS4 port]
+from processing.tools import vector  # [QGIS4 port]
 
-import numpy as np
-# This to import math functions to be used in formula (modFormula)
-from numpy import *
-import subprocess
-import random
-from random import randrange
-from typing import Tuple, Union
+from .logger import TaFeedback  # [QGIS4 port]
+from .compat import (
+    FIELD_INT,
+    WKB_LINESTRING,
+    WKB_MULTILINESTRING,
+    AREA_SQUARE_DEGREES,
+    RASTER_STATS_ALL,
+    alg_id,
+    delete_raster_file,
+    enum_to_int,
+    write_vector_layer,
+)
+from .expressions import evaluate  # [QGIS4 port]
 
 
 def install_package(package):
@@ -86,18 +102,10 @@ def install_package(package):
 
 
 try:
-    from scipy.ndimage.filters import gaussian_filter, uniform_filter
-except Exception:
+    from scipy.ndimage import gaussian_filter, uniform_filter  # [QGIS4 port]
+except ImportError:  # [QGIS4 port]
     install_package('scipy')
-    from scipy.ndimage.filters import gaussian_filter, uniform_filter
-
-
-try:
-    from plugins import processing
-    from plugins.processing.tools import vector
-except Exception:
-    import processing
-    from processing.tools import vector
+    from scipy.ndimage import gaussian_filter, uniform_filter  # [QGIS4 port]
 
 
 def fillNoData(in_layer: QgsRasterLayer,
@@ -184,9 +192,7 @@ def fillNoData(in_layer: QgsRasterLayer,
     processing.run("gdal:fillnodata", fill_params)
 
     # (4) delete the validity mask file
-    driver = gdal.GetDriverByName('GTiff')
-    if os.path.exists(mask_path):
-        driver.Delete(mask_path)
+    delete_raster_file(mask_path)  # [QGIS4 port]
 
     return out_file_path
 
@@ -286,9 +292,7 @@ def fillNoDataInPolygon(in_layer, poly_layer, out_file_path=None, no_data_value=
     poly_array = None
 
     # (4) delete the validity mask file
-    driver = gdal.GetDriverByName('GTiff')
-    if os.path.exists(mask_path):
-        driver.Delete(mask_path)
+    delete_raster_file(mask_path)  # [QGIS4 port]
 
     return out_file_path
 
@@ -414,12 +418,7 @@ def rasterSmoothing(in_layer, filter_type,
     # Write the smoothed raster
     # If the out_file argument is specified the smoothed raster will written in a new raster, otherwise the old raster will be updated
     if out_file != None:
-        try:
-            if os.path.exists(out_file):
-                driver = gdal.GetDriverByName('GTiff')
-                driver.Delete(out_file)
-        except Exception as e:
-            raise e
+        delete_raster_file(out_file, feedback)  # [QGIS4 port]
         smoothed_raster = gdal.GetDriverByName('GTiff').Create(
             out_file, cols, rows, 1, gdal.GDT_Float32)
         smoothed_raster.SetGeoTransform(geotransform)
@@ -597,11 +596,11 @@ def setRasterSymbology(in_layer, color_ramp_name=None):
         color_ramp.setStops(stops)
         return color_ramp
 
-    stats = in_layer.dataProvider().bandStatistics(1, QgsRasterBandStats.All)
+    stats = in_layer.dataProvider().bandStatistics(1, RASTER_STATS_ALL)  # [QGIS4 port]
     min_elev = stats.minimumValue
     max_elev = stats.maximumValue
     ramp_shader = QgsColorRampShader()
-    ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
+    ramp_shader.setColorRampType(QgsColorRampShader.Type.Interpolated)  # [QGIS4 port]
 
     cpt_data = readCpt(color_palette_file)
     lst = getColorRampItems(ramp_shader, cpt_data, min_elev, max_elev)
@@ -636,7 +635,7 @@ def setVectorSymbology(in_layer):
     # provide file name index and field's unique values
 
     layer = in_layer
-    assert layer.type() == QgsMapLayerType.VectorLayer, "The input layer must be of type QgsVectorLayer."
+    assert isinstance(layer, QgsVectorLayer), "The input layer must be of type QgsVectorLayer."  # [QGIS4 port]
     if not layer.isValid():
         raise Exception("The input vector layer is not valid.")
     list_of_fields = ['Category', 'Id', 'ID', 'iD', 'id', 'Fid', 'FID', 'fid']
@@ -750,15 +749,16 @@ def vectorToRaster(in_layer, geotransform, width, height, feedback=None, field_t
         points_raster = processing.run("gdal:rasterize", r_params)["OUTPUT"]
     except QgsProcessingException as e:
         if feedback:
-            feedback.Error(e)
+            feedback.error(e)  # [QGIS4 port]
         else:
             raise e
 
     points_raster_ds = gdal.Open(points_raster)
     points_array = points_raster_ds.GetRasterBand(1).ReadAsArray()
+    # Close the file before deleting it (Windows cannot delete open files)
+    points_raster_ds = None  # [QGIS4 port]
 
-    drv = gdal.GetDriverByName('GTIFF')
-    drv.Delete(output)
+    delete_raster_file(output, feedback)  # [QGIS4 port]
 
     return points_array
 
@@ -827,7 +827,7 @@ def polygonsToPolylines(in_layer):
     except Exception as e:
         raise e
     try:
-        polylines = processing.run("qgis:polygonstolines",
+        polylines = processing.run(alg_id("native:polygonstolines", "qgis:polygonstolines"),  # [QGIS4 port]
                                    {'INPUT': fixed_polygons,
                                     'OUTPUT': 'memory:polylines_from_prolygons'})
     except Exception as e:
@@ -858,9 +858,9 @@ def polylinesToPolygons(in_layer: QgsVectorLayer, feedback: TaFeedback) -> QgsVe
         attributes = feature.attributes()
 
         # checking if the geometry is polyline or multipolyline
-        if geometry.wkbType() == QgsWkbTypes.LineString:
+        if geometry.wkbType() == WKB_LINESTRING:  # [QGIS4 port]
             coordinates = geometry.asPolyline()
-        elif geometry.wkbType() == QgsWkbTypes.MultiLineString:
+        elif geometry.wkbType() == WKB_MULTILINESTRING:  # [QGIS4 port]
             coordinates = geometry.asMultiPolyline()
         else:
             feedback.info(
@@ -901,7 +901,7 @@ def refactorFields(in_layer, layer2, out_layer_name):
             if field1.name() == field2.name():
                 if field1.type() == field2.type():
                     refact_params = {'name': field1.name(),
-                                     'type': field1.type(),
+                                     'type': enum_to_int(field1.type()),  # [QGIS4 port]
                                      'length': field1.length(),
                                      'precision': field1.precision(),
                                      'expression': field1.name()
@@ -909,7 +909,7 @@ def refactorFields(in_layer, layer2, out_layer_name):
                     field_mapping.append(refact_params)
                 else:
                     refact_params = {'name': field1.name(),
-                                     'type': field2.type(),
+                                     'type': enum_to_int(field2.type()),  # [QGIS4 port]
                                      'length': field2.length(),
                                      'precision': field2.precision(),
                                      'expression': field1.name()
@@ -925,7 +925,7 @@ def refactorFields(in_layer, layer2, out_layer_name):
                 name_match = True
         if not name_match:
             refact_params = {'name': field1.name(),
-                             'type': field1.type(),
+                             'type': enum_to_int(field1.type()),  # [QGIS4 port]
                              'length': field1.length(),
                              'precision': field1.precision(),
                              'expression': field1.name()
@@ -934,7 +934,7 @@ def refactorFields(in_layer, layer2, out_layer_name):
 
     params = {'INPUT': layer1, 'FIELDS_MAPPING': field_mapping,
               'OUTPUT': 'memory:{}'.format(out_layer_name)}
-    refactored_layer = processing.run("qgis:refactorfields", params)['OUTPUT']
+    refactored_layer = processing.run(alg_id("native:refactorfields", "qgis:refactorfields"), params)['OUTPUT']  # [QGIS4 port]
 
     return refactored_layer, fields_refactored
 
@@ -1010,22 +1010,22 @@ def modFormula(in_array, formula, min=None, max=None):
         index = 'H[(H>min)*(H<max)==1]'
         H[(topo > min) * (topo < max) == 1] = topo[(topo > min) * (topo < max) == 1]
         new_formula = formula.replace('H', index)
-        H[(topo > min) * (topo < max) == 1] = eval(new_formula)
+        H[(topo > min) * (topo < max) == 1] = evaluate(new_formula, {"H": H, "min": min, "max": max, "topo": topo})  # [QGIS4 port]
 
     elif min != None and max == None:
         index = 'H[H>min]'
         H[topo > min] = topo[topo > min]
         new_formula = formula.replace('H', index)
-        H[topo > min] = eval(new_formula)
+        H[topo > min] = evaluate(new_formula, {"H": H, "min": min, "max": max, "topo": topo})  # [QGIS4 port]
     elif min == None and max != None:
         index = 'H[H<max]'
         H[topo < max] = topo[topo < max]
         new_formula = formula.replace('H', index)
-        H[topo < max] = eval(new_formula)
+        H[topo < max] = evaluate(new_formula, {"H": H, "min": min, "max": max, "topo": topo})  # [QGIS4 port]
     else:
         H = topo
         new_formula = formula
-        H[:] = eval(new_formula)
+        H[:] = evaluate(new_formula, {"H": H, "min": min, "max": max, "topo": topo})  # [QGIS4 port]
 
     topo[np.isfinite(H)] = H[np.isfinite(H)]
 
@@ -1115,7 +1115,7 @@ def generateUniqueIds(vlayer, id_field) -> QgsVectorLayer:
             pass
 
     if not id_found:
-        id_field = QgsField("id", QVariant.Int, "integer")
+        id_field = QgsField("id", FIELD_INT, "integer")  # [QGIS4 port]
         vlayer.startEditing()
         vlayer.addAttribute(id_field)
         vlayer.commitChanges()
@@ -1149,7 +1149,7 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
     da.setEllipsoid(context.project().ellipsoid())
 
     fields = QgsFields()
-    fields.append(QgsField('id', QVariant.Int, '', 10, 0))
+    fields.append(QgsField('id', FIELD_INT, '', 10, 0))  # [QGIS4 port]
     crs = source.crs().toWkt()
     points_layer = QgsVectorLayer("Point?" + crs, "Depth layer", "memory")
     points_layer_dp = points_layer.dataProvider()
@@ -1173,8 +1173,8 @@ def randomPointsInPolygon(source, point_density, min_distance, feedback, runtime
 
         bbox = fGeom.boundingBox()
         area = da.measureArea(fGeom)
-        if da.areaUnits() != 8:
-            area = da.convertAreaMeasurement(area, 8)
+        if da.areaUnits() != AREA_SQUARE_DEGREES:  # [QGIS4 port]
+            area = da.convertAreaMeasurement(area, AREA_SQUARE_DEGREES)  # [QGIS4 port]
 
         pointCount = int(round(point_density * area))
 
@@ -1352,7 +1352,7 @@ def assignUniqueIds(vlayer, feedback, run_time):
             feedback.progress = int(progress_count)
 
     if not id_found:
-        id_field = QgsField("id", QVariant.Int, "integer")
+        id_field = QgsField("id", FIELD_INT, "integer")  # [QGIS4 port]
         vlayer.startEditing()
         vlayer.addAttribute(id_field)
         vlayer.commitChanges()
@@ -1490,16 +1490,16 @@ class TaFeedbackOld(QObject):
 
 
 class TaVectorFileWriter(QgsVectorFileWriter):
-    def __init__(self):
-        super().__init__()
-
+    @staticmethod  # [QGIS4 port]
     def writeToShapeFile(layer: QgsVectorLayer,
                          fileName: str,
                          fileEncoding: str,
                          destCRS: QgsCoordinateReferenceSystem,
                          driverName: str) -> Tuple[QgsVectorFileWriter.WriterError, str]:
 
-        """This function is used to make writing to shapefiles compatible beteen Qgis version >3.10 and <3.10."""
+        """Writes a layer to a shapefile, overwriting it if it exists. Works on QGIS 3.10 to 4.x.
+
+        Returns a tuple (error_code, error_message)."""  # [QGIS4 port]
 
         # Check if the file is already created. Acts like overwrite
         if os.path.exists(fileName):
@@ -1507,14 +1507,4 @@ class TaVectorFileWriter(QgsVectorFileWriter):
             if not deleted:
                 raise Exception(
                     "Could not delete shapefile {}.".format(fileName))
-        try:
-            result = TaVectorFileWriter.writeAsVectorFormat(
-                layer, fileName, fileEncoding, destCRS, driverName)
-        except Exception:
-            context = QgsCoordinateTransformContext()
-            context.addCoordinateOperation(destCRS, destCRS, destCRS.toProj())
-            options = TaVectorFileWriter.SaveVectorOptions()
-            options.driverName = driverName
-            result = TaVectorFileWriter.writeAsVectorFormat2(
-                layer, fileName, context, options)
-        return result
+        return write_vector_layer(layer, fileName, fileEncoding, destCRS, driverName)  # [QGIS4 port]

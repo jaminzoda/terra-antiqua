@@ -1,9 +1,15 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 #Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Python built-ins abs, bool, max, min, pow and round restored after "from numpy import *",
+#    because NumPy 2 (bundled with QGIS 4) would otherwise replace them
+#  - formulaValidation: uses core/expressions.evaluate instead of eval()
+#  See core/compat.py for the note on how this port was made.
 
 
-from PyQt5 import QtWidgets
+from qgis.PyQt import QtWidgets  # [QGIS4 port]
 from .base_dialog import TaBaseDialog
 from .widgets import (
     TaRasterLayerComboBox,
@@ -14,6 +20,10 @@ from .widgets import (
     TaColorSchemeWidget
 )
 from numpy import * #This is to use math functions for formula validation
+# NumPy 2.x (bundled with QGIS 4) also exports abs, bool, max, min, pow and round, which would
+# replace Python's built-ins in this module. Restore them so behaviour matches NumPy 1.x.
+from builtins import abs, bool, max, min, pow, round  # noqa: E402,F811  # [QGIS4 port]
+from ..core.expressions import evaluate  # noqa: E402  # [QGIS4 port]
 
 
 class TaModifyTopoBathyDlg(TaBaseDialog):
@@ -103,6 +113,6 @@ class TaModifyTopoBathyDlg(TaBaseDialog):
     def formulaValidation(self):
         H = random.random((1800,3600))
         try:
-            eval(self.formulaField.lineEdit.value())
+            evaluate(self.formulaField.lineEdit.value(), {"H": H})  # [QGIS4 port]
         except Exception as e:
             self.msgBar.pushWarning("Warning:", f"The entered formula is invalid: {e}.")

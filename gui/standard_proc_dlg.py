@@ -1,13 +1,19 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires
+#  - Layer filters use compat.FILTER_* (they moved to Qgis.LayerFilter in QGIS 3.34)
+#  See core/compat.py for the note on how this port was made.
 
 
-from PyQt5 import QtCore, QtWidgets
+from qgis.PyQt import QtCore, QtWidgets  # [QGIS4 port]
+from ..core.compat import FILTER_POLYGON  # [QGIS4 port]
 
 import os
 import shutil
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtWidgets import (  # [QGIS4 port]
     QComboBox,
     QPushButton,
     QFileDialog
@@ -109,7 +115,7 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                          "Smooth raster",
                                                          "Mask layer:",
                                                          "TaMapLayerComboBox")
-        self.smoothingMaskBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.smoothingMaskBox.setFilters(FILTER_POLYGON)  # [QGIS4 port]
         self.smoothingMaskBox.layerChanged.connect(self.setFieldsInLayer)
         self.smoothInPolygonCheckBox.registerEnabledWidgets(
             [self.smoothingMaskBox])
@@ -209,13 +215,13 @@ class TaStandardProcessingDlg(TaBaseDialog):
                                                  self.smoothingMaskBox.currentLayer())
 
     def onSmoothInPolygonCheckBoxStateChange(self, state):
-        if state == QtCore.Qt.Checked:
+        if state == QtCore.Qt.CheckState.Checked:  # [QGIS4 port]
             self.smoothingMaskBox.setLayer(self.smoothingMaskBox.layer(1))
         else:
             self.smoothingMaskBox.setLayer(self.smoothingMaskBox.layer(0))
 
     def onFixedPaleoshorelinesCheckBoxStateChange(self, state):
-        if state == QtCore.Qt.Checked:
+        if state == QtCore.Qt.CheckState.Checked:  # [QGIS4 port]
             self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(1))
         else:
             self.paleoshorelinesMask.setLayer(self.smoothingMaskBox.layer(0))

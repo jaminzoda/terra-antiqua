@@ -1,16 +1,27 @@
 # Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 # Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 # Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Python built-ins abs, bool, max, min, pow and round restored after "from numpy import *",
+#    because NumPy 2 (bundled with QGIS 4) would otherwise replace them
+#  - Qt/QGIS enum names written in full, as Qt6 requires (file widget mode)
+#  - formulaValidation: uses core/expressions.evaluate instead of eval()
+#  See core/compat.py for the note on how this port was made.
 
 
 import os
 import tempfile
-from PyQt5.QtWidgets import QComboBox, QPushButton
+from qgis.PyQt.QtWidgets import QComboBox, QPushButton  # [QGIS4 port]
 
 from qgis.gui import QgsFileWidget
 from .base_dialog import TaBaseDialog
 from .widgets import TaExpressionWidget, TaCheckBox, TaColorSchemeWidget
 from numpy import *
+# NumPy 2.x (bundled with QGIS 4) also exports abs, bool, max, min, pow and round, which would
+# replace Python's built-ins in this module. Restore them so behaviour matches NumPy 1.x.
+from builtins import abs, bool, max, min, pow, round  # noqa: E402,F811  # [QGIS4 port]
+from ..core.expressions import evaluate  # noqa: E402  # [QGIS4 port]
 
 
 class TaRemoveArtefactsDlg(TaBaseDialog):
@@ -48,7 +59,7 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
 
         self.masksOutputPath = self.addAdvancedParameter(QgsFileWidget,
                                                          label="Output file path:")
-        self.masksOutputPath.setStorageMode(self.masksOutputPath.SaveFile)
+        self.masksOutputPath.setStorageMode(QgsFileWidget.StorageMode.SaveFile)  # [QGIS4 port]
         self.masksOutputPath.setFilter('*.shp')
         default_file_path = os.path.join(tempfile.gettempdir(),
                                          "remove_artefacts_polygons.shp")
@@ -91,7 +102,7 @@ class TaRemoveArtefactsDlg(TaBaseDialog):
             return
         H = random.random((1800, 3600))
         try:
-            eval(self.exprLineEdit.lineEdit.value())
+            evaluate(self.exprLineEdit.lineEdit.value(), {"H": H})  # [QGIS4 port]
         except Exception as e:
             self.msgBar.pushWarning(
                 "Warning:", f"The entered expression is invalid: {e}.")

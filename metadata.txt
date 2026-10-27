@@ -9,8 +9,9 @@
 [general]
 name=Terra Antiqua
 qgisMinimumVersion=3.10
+qgisMaximumVersion=4.99
 description=This plugin creates digital elevation models of paleogeographic maps.
-version=1.1
+version=1.1.1
 author=Jovid Aminov, Diego Ruiz
 email=terraantiqua.qgis@gmail.com
 
@@ -23,6 +24,18 @@ repository=https://github.com/jaminzoda/terra-antiqua
 
 # Uncomment the following line and add your changelog:
 Changelog=
+     version 1.1.1
+    - QGIS 4 (Qt6) compatibility
+    - QGIS 4 port carried out with AI assistance; plugin originally designed for QGIS 3
+    - No changes to tools or results
+    - Fixed a broken fallback when saving shapefiles (Remove Artefacts, Prepare Masks)
+    - Fixed an error when clicking Remove Artefacts again after closing its tooltip
+    - Fixed "Permission denied" errors when deleting temporary files on Windows, which stopped several tools in QGIS 4
+    - The log now explains when a tool stops because its output file is open in QGIS (e.g. the result of a previous run)
+    - Windows: running a tool again without choosing an output path now overwrites the previous result, as described in the help; output paths chosen by the user are never changed
+    - Typed expressions and formulas are evaluated without Python's eval(), which the QGIS plugin repository blocks; results are unchanged
+    - Fixed two error messages that could themselves raise an error (Create Topo/Bathymetry, log)
+    - Fixed a bug in Smooth raster with fixed paleoshorelines
      version 1.1
     - New functionality (40 percent of the tools redesigned)
     - General help text revision

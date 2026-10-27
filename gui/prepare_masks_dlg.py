@@ -1,10 +1,16 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 #Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires
+#  - Layer filters use compat.FILTER_* (they moved to Qgis.LayerFilter in QGIS 3.34)
+#  See core/compat.py for the note on how this port was made.
 
 
 
-from PyQt5 import QtCore, QtWidgets
+from qgis.PyQt import QtCore, QtWidgets  # [QGIS4 port]
+from ..core.compat import FILTER_LINE, FILTER_POLYGON  # [QGIS4 port]
 from qgis.core import QgsMapLayerProxyModel
 from qgis.gui import QgsMapLayerComboBox
 from .base_dialog import TaBaseDialog
@@ -35,8 +41,8 @@ class TaPrepareMasksDlg(TaBaseDialog):
         self.tableWidget.insertColumn(1)
         self.tableWidget.setHorizontalHeaderLabels(["Input layer", "Mask category"])
         header = self.tableWidget.horizontalHeader()
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)  # [QGIS4 port]
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # [QGIS4 port]
         self.tableWidget.setMinimumHeight(250)
         self.addRow(0)
 
@@ -48,7 +54,7 @@ class TaPrepareMasksDlg(TaBaseDialog):
         self.tableWidget.setCellWidget(row,1, QtWidgets.QComboBox(self))
         self.tableWidget.cellWidget(row, 1).setEditable(True)
         filter_model= QgsMapLayerProxyModel()
-        filter_model.setFilters(QgsMapLayerProxyModel.PolygonLayer|QgsMapLayerProxyModel.LineLayer)
+        filter_model.setFilters(FILTER_POLYGON|FILTER_LINE)  # [QGIS4 port]
         self.tableWidget.cellWidget(row, 0).setFilters(filter_model.filters())
         self.tableWidget.cellWidget(row,1).addItems(["Coastline", "Continental Shelf", "Shallow Sea"])
         self.tableWidget.cellWidget(row, 1).currentIndexChanged.connect(self.updateItemsInMaskCategories)

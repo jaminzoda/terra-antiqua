@@ -1,11 +1,18 @@
 #Copyright (C) 2021 by Jovid Aminov, Diego Ruiz, Guillaume Dupont-Nivet
 #Terra Antiqua is a plugin for the software QGis that deals with the reconstruction of paleogeography.
 #Full copyright notice in file: terra_antiqua.py
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6)
+#    (removed: the unused "Qt" module import)
+#  - Qt/QGIS enum names written in full (e.g. Qt.AlignmentFlag.AlignCenter), as Qt6 requires
+#  - Layer filters use compat.FILTER_* (they moved to Qgis.LayerFilter in QGIS 3.34)
+#  See core/compat.py for the note on how this port was made.
 
 
 # -*- coding: utf-8 -*-
 import os
-from PyQt5 import QtWidgets, QtCore, Qt
+from qgis.PyQt import QtWidgets, QtCore  # [QGIS4 port]
+from ..core.compat import FILTER_POLYGON, FILTER_RASTER  # [QGIS4 port]
 from qgis.core import QgsMapLayerProxyModel, QgsProject, QgsRasterLayer
 from qgis.gui import (
     QgsMapLayerComboBox,
@@ -43,8 +50,8 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        self.tableWidget.insertColumn(1)
        self.tableWidget.setHorizontalHeaderLabels(["Input layer", ""])
        header = self.tableWidget.horizontalHeader()
-       header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-       header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+       header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)  # [QGIS4 port]
+       header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # [QGIS4 port]
        self.tableWidget.setMinimumHeight(200)
        self.addRow(0)
 
@@ -61,7 +68,7 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
        self.bufferDistanceForRemoveOverlapBath = self.addAdvancedParameter(QgsDoubleSpinBox, "Buffer distance (In map units):")
 
        self.maskComboBox.layerChanged.connect(self.onLayerChange)
-       self.maskComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+       self.maskComboBox.setFilters(FILTER_POLYGON)  # [QGIS4 port]
        self.removeOverlapBathyCheckBox.registerEnabledWidgets([self.maskComboBox,
                                                                self.bufferDistanceForRemoveOverlapBath])
        self.removeOverlapBathyCheckBox.stateChanged.connect(self.onRemoveOverlapCheckBoxStateChange)
@@ -82,14 +89,14 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
             checkBox.setObjectName("apply_mask_checkbox")
             layout = QtWidgets.QHBoxLayout(checkBoxWidget)
             layout.addWidget(checkBox)
-            layout.setAlignment(QtCore.Qt.AlignCenter)
+            layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)  # [QGIS4 port]
             layout.setContentsMargins(0,0,0,0)
             self.tableWidget.setCellWidget(row, 2,checkBoxWidget)
         btn = self.tableWidget.cellWidget(row, 1)
         btn.setText('...')
         btn.setIconSize(QtCore.QSize(10,10))
         filter_model= QgsMapLayerProxyModel()
-        filter_model.setFilters(QgsMapLayerProxyModel.RasterLayer)
+        filter_model.setFilters(FILTER_RASTER)  # [QGIS4 port]
         cmb = self.tableWidget.cellWidget(row, 0)
         cmb.setFilters(filter_model.filters())
         btn.clicked.connect(lambda: self.openRasterButtonSignal.emit(cmb))
@@ -121,14 +128,14 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
         self.tableWidget.insertColumn(2)
         self.tableWidget.setHorizontalHeaderLabels(["Input layer", "", "Apply mask"])
         header = self.tableWidget.horizontalHeader()
-        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # [QGIS4 port]
         for i in range(self.tableWidget.rowCount()):
             checkBoxWidget = QtWidgets.QWidget()
             checkBox = TaCheckBox('')
             checkBox.setObjectName("apply_mask_checkbox")
             layout = QtWidgets.QHBoxLayout(checkBoxWidget)
             layout.addWidget(checkBox)
-            layout.setAlignment(QtCore.Qt.AlignCenter)
+            layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)  # [QGIS4 port]
             layout.setContentsMargins(0,0,0,0)
             self.tableWidget.setCellWidget(i, 2,checkBoxWidget)
 
@@ -139,10 +146,10 @@ class TaCompileTopoBathyDlg(TaBaseDialog):
         elif not layer and self.tableWidget.columnCount()>2:
             self.tableWidget.removeColumn(2)
             header = self.tableWidget.horizontalHeader()
-            header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+            header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)  # [QGIS4 port]
 
     def onRemoveOverlapCheckBoxStateChange(self, state):
-        if state == QtCore.Qt.Checked:
+        if state == QtCore.Qt.CheckState.Checked:  # [QGIS4 port]
             self.maskComboBox.setLayer(self.maskComboBox.layer(1))
         else:
             self.maskComboBox.setLayer(self.maskComboBox.layer(0))

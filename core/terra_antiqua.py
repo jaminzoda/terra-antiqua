@@ -29,14 +29,22 @@ Terra Antiqua deals with the reconstruction of paleogeography, simplifying the r
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import (
+# [QGIS4 port] Changes made in v1.1.1 for QGIS 4 compatibility (lines marked "# [QGIS4 port]"):
+#  - Imports switched from PyQt5 to qgis.PyQt (works with both Qt5 and Qt6);
+#    QAction comes from compat (it moved from QtWidgets to QtGui in Qt6)
+#  - initGui: toolbar icons are loaded from the resources/ folder through compat.icon_path
+#    (removed: the compiled resources.py, which only worked with Qt5)
+#  - __init__: no error when QGIS has no locale setting yet
+#  - initRemoveArtefacts: no error when the tool is clicked again after closing its tooltip
+#  See core/compat.py for the note on how this port was made.
+from qgis.PyQt.QtCore import (  # [QGIS4 port]
                             QSettings,
                             QTranslator,
                             qVersion,
                             QCoreApplication
                         )
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QToolBar
+from qgis.PyQt.QtGui import QIcon  # [QGIS4 port]
+from qgis.PyQt.QtWidgets import QToolBar  # [QGIS4 port]
 from qgis.core import QgsSettings
 
 import os.path
@@ -50,6 +58,7 @@ from .modify_tb import TaModifyTopoBathy
 from .remove_arts_tooltip import TaRemoveArtefactsTooltip
 from .settings import TaSettings
 from .algorithm_provider import TaAlgorithmProvider, TaRemoveArtefactsAlgProvider
+from .compat import QAction, icon_path as ta_icon_path  # [QGIS4 port]
 
 from ..gui.compile_tb_dlg import  TaCompileTopoBathyDlg
 from ..gui.modify_tb_dlg import  TaModifyTopoBathyDlg
@@ -58,7 +67,6 @@ from ..gui.prepare_masks_dlg import  TaPrepareMasksDlg
 from ..gui.set_pls_dlg import  TaSetPaleoshorelinesDlg
 from ..gui.remove_arts_dlg import  TaRemoveArtefactsDlg
 from ..gui.standard_proc_dlg import  TaStandardProcessingDlg
-from ..resources import *
 
 
 
@@ -79,7 +87,7 @@ class TerraAntiqua:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale = (QSettings().value('locale/userLocale') or '')[0:2]  # [QGIS4 port]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
@@ -208,13 +216,13 @@ class TerraAntiqua:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        compile_tb_icon = ':/compile_tb_icon.png'
-        prepare_masks_icon = ':/prepare_masks_icon.png'
-        modify_tb_icon =':/modify_tb_icon.png'
-        set_pls_icon = ':/set_pls_icon.png'
-        std_proc_icon = ':/std_proc_icon.png'
-        feat_create_icon = ':/feat_create_icon.png'
-        remove_arts_icon = ':/remove_arts_icon.png'
+        compile_tb_icon = ta_icon_path('compile_tb_icon.png')  # [QGIS4 port]
+        prepare_masks_icon = ta_icon_path('prepare_masks_icon.png')  # [QGIS4 port]
+        modify_tb_icon = ta_icon_path('modify_tb_icon.png')  # [QGIS4 port]
+        set_pls_icon = ta_icon_path('set_pls_icon.png')  # [QGIS4 port]
+        std_proc_icon = ta_icon_path('std_proc_icon.png')  # [QGIS4 port]
+        feat_create_icon = ta_icon_path('feat_create_icon.png')  # [QGIS4 port]
+        remove_arts_icon = ta_icon_path('remove_arts_icon.png')  # [QGIS4 port]
 
         self.add_action(
             compile_tb_icon,
@@ -332,7 +340,10 @@ class TerraAntiqua:
 
     def initRemoveArtefacts(self):
         """Initializes the Remove artefacts algorithm and activates it"""
-        if self.settings.removeArtefactsChecked:
+        if self.settings.removeArtefactsChecked and not hasattr(self.removeArtefacts, "toolPoly"):  # [QGIS4 port]
+            # The tooltip was dismissed before any polygon tool was started: just reset.
+            self.removeArtefacts.clean()  # [QGIS4 port]
+        elif self.settings.removeArtefactsChecked:  # [QGIS4 port]
             self.removeArtefacts.storeRubberbands(self.removeArtefacts.toolPoly.rubberband, self.removeArtefacts.toolPoly.vertices, self.removeArtefacts.toolPoly.points)
             self.removeArtefacts.clean()
         else:
